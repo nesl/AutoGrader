@@ -31,3 +31,9 @@ def homepage(request):
 
 def registration(request):
     return render(request, 'main/registration.html')
+
+def logout_view(request):
+    logout(request)
+
+def successfully_logged_out(request):
+    return HttpResponse("Goodbye.")
