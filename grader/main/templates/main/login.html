@@ -17,51 +17,95 @@
         {% endif %}
       {% endif %}
   </div>
-    <!--/div-->
+  <!--/div-->
 
-
-  <form id="login-form" class="text-left" method="POST" action="{% url 'login' %}">
-    <!--div class="login-form-main-message">
-      {% if form.errors %}
-      <p>Your username and password didn't match. Please try again.</p>
-      {% endif %}
-
-      {% if next %}
-        {% if myuser.is_authenticated %}
-        <p>Your account doesn't have access to this page. To proceed,
-        please login with an account that has access.</p>
-        {% else %}
-        <p>Please login to see this page.</p>
-        {% endif %}
-      {% endif %}
-    </div-->
+<div class="form">
   {% csrf_token %}
-      <div class="main-login-form">
-          <div class="login-group">
-            <div class="form-group">
-              <label for="id_username" class="sr-only">{{ form.username.label_tag }}</label>
-              <input type="text" class="form-control" id="id_username" name="username" placeholder="username">
-  	  </div>
-            <div class="form-group">
-              <label for="id_password" class="sr-only">{{ form.password.label_tag }}</label>
-              <input type="password" class="form-control" id="id_password" name="password" placeholder="password">
+
+      <ul class="tab-group">
+        <li class="tab active"><a href="#login">Log In</a></li>
+        <li class="tab"><a href="#signup">Sign Up</a></li>
+      </ul>
+      
+      <div class="tab-content">
+        
+        <div id="login">   
+          
+          <form action="/" method="post">
+          
+            <div class="field-wrap">
+            <label for="id_username" class="sr-only">
+              {{ form.username.label_tag }}<span class="req">*</span>
+            </label>
+            <input type="email"required autocomplete="off" class="form-control" id="id_username" name="username" placeholder="username"/>
+          </div>
+          
+          <div class="field-wrap">
+            <label for="id_password" class="sr-only">
+              {{ form.password.label_tag }}<span class="req">*</span>
+            </label>
+            <input type="password"required autocomplete="off" class="form-control" id="id_password" name="password" placeholder="password"/>
+          </div>
+          
+          <p class="forgot"><a href="#">Contact bbalaji@ucla.edu to reset password</a></p>
+          
+          <button type="submit" class="button button-block"/>Log In</button>
+          <input type="hidden" name="next" value="/homepage/" />
+          
+          </form>
+
+        </div>
+        
+        <div id="signup">   
+          
+          <form action="/" method="post">
+          
+          <div class="top-row">
+            <div class="field-wrap">
+              <label>
+                First Name<span class="req">*</span>
+              </label>
+              <input type="text" required autocomplete="off" />
             </div>
-            <div class="form-group login-group-checkbox">
-              <input type="checkbox" id="lg_remember" name="lg_remember">
-              <label for="lg_remember">remember me</label>
+        
+            <div class="field-wrap">
+              <label>
+                Last Name<span class="req">*</span>
+              </label>
+              <input type="text"required autocomplete="off"/>
             </div>
           </div>
-          <button type="submit" class="login-button"><i class="fa fa-chevron-right"></i></button>
-          <input type="hidden" name="next" value="/homepage/" />
-      </div>
-      <div class="etc-login-form">
-          <p>forgot your password? <a href="{% url 'password_reset' %}">click here</a></p>
-          <p>new user? <a href="{% url 'registration' %}">create new account</a></p>
-      </div>
-  </form>
 
-</div>
-<!-- end:Login Container -->
+          <div class="field-wrap">
+            <label>
+              Email Address<span class="req">*</span>
+            </label>
+            <input type="email"required autocomplete="off"/>
+          </div>
+
+          <div class="field-wrap">
+            <label>
+              University ID<span class="req">*</span>
+            </label>
+            <input type="text"required autocomplete="off"/>
+          </div>
+          
+          <div class="field-wrap">
+            <label>
+              Set A Password<span class="req">*</span>
+            </label>
+            <input type="password"required autocomplete="off"/>
+          </div>
+          
+          <button type="submit" class="button button-block"/>Get Started</button>
+          
+          </form>
+
+        </div>
+
+      </div><!-- tab-content -->
+      
+</div> <!-- /form -->
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.13.1/jquery.validate.min.js"></script>
 <script src="{% static "main/login.js" %}"></script>
