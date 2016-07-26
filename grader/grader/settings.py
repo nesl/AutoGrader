@@ -27,10 +27,16 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+# Custom fields
+
+AUTH_USER_MODEL = 'main.MyUser'
+LOGIN_REDIRECT_MODEL = '/homepage/'
+TEMPLATE_DIRS = ['/home/guojiamm/nesl/AutoGrader/grader/main/static/main','/usr/local/lib/python2.7/dist-packages/django/contrib/admin/templates','/usr/local/lib/python2.7/dist-packages/django/contrib/auth/templates/']
 
 # Application definition
 
 INSTALLED_APPS = [
+    'main.apps.MainConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -84,6 +90,8 @@ DATABASES = {
 
 # Password validation
 # https://docs.djangoproject.com/en/1.9/ref/settings/#auth-password-validators
+
+AUTH_USER_MODEL = 'main.MyUser'
 
 AUTH_PASSWORD_VALIDATORS = [
     {
