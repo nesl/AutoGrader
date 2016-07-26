@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-  <!-- All the files that are required -->
+    <!-- All the files that are required -->
+{% load staticfiles %}
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
@@ -16,7 +17,7 @@
         <div class="row display-table-row">
             <div class="col-md-2 col-sm-1 hidden-xs display-table-cell v-align box" id="navigation">
                 <div class="logo">
-                    <a hef="home page.html"><img src="logo-transp.png" alt="nesl_logo" class="hidden-xs hidden-sm">
+                    <a hef="homepage.html"><img src="http://nesl.ee.ucla.edu/assets/logo-d409ad8bab7f311604beca92c52ab4bab7bd1a93f25417b0b6e57ef0f71a0113.png" alt="nesl_logo" class="hidden-xs hidden-sm">
                         <!--img src="http://jskrishna.com/work/merkury/images/circle-logo.png" alt="merkery_logo" class="visible-xs visible-sm circle-logo"-->
                     </a>
                 </div>
@@ -26,9 +27,9 @@
                         <li class="active"><a href="#"><i class="fa fa-tasks" aria-hidden="true"></i><span class="hidden-xs hidden-sm">Problem List</span></a></li>
                         <!--li><a href="#"><i class="fa fa-tasks" aria-hidden="true"></i><span class="hidden-xs hidden-sm">Problem List</span></a></li-->
                         <li><a href="#"><i class="glyphicon glyphicon-pushpin" aria-hidden="true"></i><span class="hidden-xs hidden-sm">Judge Status</span></a></li>
-                        {{% if myuser.is_admin %}}
+                        {% if myuser.is_admin %}
                         <li><a href="#"><i class="glyphicon glyphicon-plus-sign" aria-hidden="true"></i><span class="hidden-xs hidden-sm">Add a Problem</span></a></li>
-                        {{% end if %}}
+                        {% endif %}
                         <li><a href="#"><i class="fa fa-cog" aria-hidden="true"></i><span class="hidden-xs hidden-sm">Setting</span></a></li>
                     </ul>
                 </div>

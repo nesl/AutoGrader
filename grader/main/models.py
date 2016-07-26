@@ -9,7 +9,7 @@ from django.contrib.auth.models import (
 
 
 class MyUserManager(BaseUserManager):
-    def create_user(self, uid, first_name, last_name, password=None):
+    def create_user(self, uid, first_name, last_name, password):
         """
         Creates and saves a User with the given email, date of
         birth and password.
@@ -22,6 +22,7 @@ class MyUserManager(BaseUserManager):
             first_name=first_name,
             last_name=last_name,
         )
+        user.is_admin = False
 
         user.set_password(password)
         user.save(using=self._db)
@@ -36,7 +37,7 @@ class MyUserManager(BaseUserManager):
             uid,
             first_name,
             last_name,
-            password=password
+            password=password,
         )
         user.is_admin = True
         user.save(using=self._db)
@@ -52,7 +53,7 @@ class MyUser(AbstractBaseUser):
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
     is_active = models.BooleanField(default=True)
-    is_admin = models.BooleanField(default=False)
+    is_admin = models.BooleanField()
 
     objects = MyUserManager()
 
@@ -81,7 +82,7 @@ class MyUser(AbstractBaseUser):
         return True
 
     @property
-    def is_teacher(self):
+    def is_staff(self):
         "Is the user a teacher or a student?"
         # Simplest possible answer: All admins are staff
         return self.is_admin

@@ -3,7 +3,7 @@ from django.shortcuts import render
 from django.template import RequestContext
 from main.models import *
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, context_processors
 
 """def login_user(request):
     logout(request)
@@ -27,4 +27,7 @@ def login_user(request):
 
 @login_required(login_url='/login/')
 def homepage(request):
-    return render(request, 'homepage.html', {'myuser':request.myuser})
+    return render(request, 'main/homepage.html', {'myuser':request.user})
+
+def registration(request):
+    return render(request, 'main/registration.html')
