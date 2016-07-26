@@ -10,10 +10,19 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>NESL Homework Assistant</title>
+    <title>NESL Embed Autograder</title>
 
     <!-- Bootstrap Core CSS -->
     <link href="{% static 'bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+
+    <!-- Google Fonts -->
+    <link href='http://fonts.googleapis.com/css?family=Varela+Round' rel='stylesheet' type='text/css'>
+
+    <!-- Fonts from Font Awesome-->
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+
+    <!-- CSS specific to Embed Autograder page-->
+    <link href="{% static "main/login.css" %}" rel="stylesheet">
 
     <!-- Custom CSS -->
     <style>
@@ -45,7 +54,7 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" href="#">Start Bootstrap</a>
+                <a class="navbar-brand" href="#">Embed Autograder</a>
             </div>
             <!-- Collect the nav links, forms, and other content for toggling -->
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
@@ -70,10 +79,6 @@
     {% block content %}
     {% endblock %} 
 
-    {# Commenting out JQuery 
-    <!-- jQuery Version 1.11.1 -->
-    <script src="js/jquery.js"></script>
-    #}
     <!-- Bootstrap Core JavaScript -->
     <script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
 
