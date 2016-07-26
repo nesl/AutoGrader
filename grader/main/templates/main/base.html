@@ -79,6 +79,25 @@
     {% block content %}
     {% endblock %} 
 
+    <!-- Footer -->
+    <div class="navbar navbar-default navbar-fixed-bottom">
+    <div class="container">
+      <p class="navbar-text pull-left">© 2016 NESL •
+           <a href="http://tinyurl.com/tbvalid" target="_blank" >Privacy</a>
+           <span>•</span>
+           <a href="http://tinyurl.com/tbvalid" target="_blank" >Terms</a>
+      </p>
+      <div class="navbar-text pull-right">
+        <i class="glyphicon glyphicon-calendar" aria-hidden="true"></i> 
+        <span id="date_and_time">
+        <script>
+            document.getElementById("date_and_time").innerHTML = Date();
+        </script>
+        </span>
+      </div>
+    </div>
+    <!-- End Footer -->
+
     <!-- Bootstrap Core JavaScript -->
     <script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
 
