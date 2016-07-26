@@ -1,8 +1,6 @@
 {% extends 'main/base.html' %}
 {% load staticfiles %}
 {% block content %}
-<div class="login-form-1">
-  <img src="https://avatars0.githubusercontent.com/u/1921180?v=3&s=200" alt="logo" style="width:100px;height:100px;" >
 
   {% csrf_token %}
   <!--div class="login-form-main-message"-->
@@ -67,5 +65,6 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.13.1/jquery.validate.min.js"></script>
 <script src="{% static "main/login.js" %}"></script>
+
 {% endblock %}
 
