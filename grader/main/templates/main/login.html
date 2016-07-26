@@ -34,17 +34,17 @@
           <form action="/" method="post">
           
             <div class="field-wrap">
-            <label for="id_username" class="sr-only">
+            <label for="id_username">
               {{ form.username.label_tag }}<span class="req">*</span>
             </label>
-            <input type="email"required autocomplete="off" class="form-control" id="id_username" name="username" placeholder="username"/>
+            <input type="email"required autocomplete="off" id="id_username" name="username" placeholder="username"/>
           </div>
           
           <div class="field-wrap">
-            <label for="id_password" class="sr-only">
+            <label for="id_password">
               {{ form.password.label_tag }}<span class="req">*</span>
             </label>
-            <input type="password"required autocomplete="off" class="form-control" id="id_password" name="password" placeholder="password"/>
+            <input type="password"required autocomplete="off" id="id_password" name="password" placeholder="password"/>
           </div>
           
           <p class="forgot"><a href="#">Contact bbalaji@ucla.edu to reset password</a></p>
@@ -107,7 +107,7 @@
       
 </div> <!-- /form -->
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.13.1/jquery.validate.min.js"></script>
+<script src='http://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
 <script src="{% static "main/login.js" %}"></script>
 
 {% endblock %}
