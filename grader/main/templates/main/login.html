@@ -3,25 +3,29 @@
 
 {% block content %}
 
-  {% csrf_token %}
-  <!--div class="login-form-main-message"-->
-  <div class="alert alert-danger">
-     {% if form.errors %}
-      <p>Your username and password didn't match. Please try again.</p>
-      {% endif %}
-      {% if next %}
-        {% if myuser.is_authenticated %}
-        <p>Your account doesn't have access to this page. To proceed,
-        please login with an account that has access.</p>
-        {% else %}
-        <p>Please login to see this page.</p>
-        {% endif %}
-      {% endif %}
-  </div>
-  <!--/div-->
-
+  
 <div class="form">
   {% csrf_token %}
+
+  {% if form.errors %}
+    <!--div class="login-form-main-message"-->
+    <div class="alert alert-danger">
+        <p>Your username and password didn't match. Please try again.</p>
+    </div>
+    <!--/div-->
+  {% endif %}
+
+  {% if next %}
+    {% if myuser.is_authenticated %}
+      <!--div class="login-form-main-message"-->
+      <div class="alert alert-danger">
+        <p>Your account doesn't have access to this page. To proceed,
+        please login with an account that has access.</p>
+      </div>
+      <!--/div-->
+    {% endif %}
+  {% endif %}
+
 
       <ul class="tab-group">
         <li class="tab active"><a href="#login">Log In</a></li>
