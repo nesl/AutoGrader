@@ -24,7 +24,9 @@
 
     
     <!-- CSS specific to Embed Autograder page-->
-    <link href="{% static "main/login.css" %}" rel="stylesheet">
+    {% block css %}
+    {% endblock %}
+    <link href="{% static "main/sidebar.css" %}" rel="stylesheet">
 
     <!-- Custom CSS -->
     <style>
@@ -58,6 +60,12 @@
                 </button>
                 <a class="navbar-brand" href="#">Embed Autograder</a>
             </div>
+
+            {% if myuser.is_authenticated %}
+                <a href="{% url 'logout' %}" class="navbar-brand pull-right">Logout</a>
+                <!-- /.navbar-top-links -->
+            {% endif %}
+
             <!-- Collect the nav links, forms, and other content for toggling -->
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                 <ul class="nav navbar-nav">
@@ -73,8 +81,13 @@
                 </ul>
             </div>
             <!-- /.navbar-collapse -->
+
         </div>
         <!-- /.container -->
+
+        <!-- Sidebar Block -->
+        {% block nav %}
+        {% endblock %} 
     </nav>
 
     <!-- Page Content -->
@@ -85,9 +98,9 @@
     <div class="navbar navbar-default navbar-fixed-bottom">
     <div class="container">
       <p class="navbar-text pull-left">© 2016 NESL •
-           <a href="http://tinyurl.com/tbvalid" target="_blank" >Privacy</a>
+           <a href="http://nesl.ee.ucla.edu/privacy">Privacy</a>
            <span>•</span>
-           <a href="http://tinyurl.com/tbvalid" target="_blank" >Terms</a>
+           <a href="http://nesl.ee.ucla.edu/terms">Terms</a>
       </p>
       <div class="navbar-text pull-right">
         <i class="glyphicon glyphicon-calendar" aria-hidden="true"></i> 
