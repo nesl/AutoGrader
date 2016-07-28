@@ -2,6 +2,7 @@ from django.http import *
 from django.shortcuts import render
 from django.template import RequestContext
 from main.models import *
+from main.admin import UserCreationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout, context_processors
 
@@ -30,10 +31,24 @@ def homepage(request):
     return render(request, 'main/homepage.html', {'myuser':request.user})
 
 def registration(request):
-    return render(request, 'main/registration.html')
+    # if this is a POST request we need to process the form data
+    if request.method == 'POST':
+        # create a form instance and populate it with data from the request:
+        form = UserCreationForm(request.POST)
+        # check whether it's valid:
+        if form.is_valid():
+            # process the data in form.cleaned_data as required
+            # ...
+            # redirect to a new URL:
+            form.save()
+            return HttpResponse("Thanks.")
+    # if a GET (or any other method) we'll create a blank form
+    else:
+        form = UserCreationForm()
+    return render(request, 'main/login.html', {'form':form})
 
 def logout_view(request):
     logout(request)
 
-def successfully_logged_out(request):
-    return HttpResponse("Goodbye.")
+#def successfully_logged_out(request):
+   # return HttpResponse("Goodbye.")

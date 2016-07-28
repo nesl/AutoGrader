@@ -6,17 +6,19 @@
   
 <div class="form">
   {% csrf_token %}
-
   {% if form.errors %}
     <!--div class="login-form-main-message"-->
     <div class="alert alert-danger">
-        <p>Your username and password didn't match. Please try again.</p>
+      {% if forms.ValidationError %}
+      <p>Your password does not match. Please try again.</p>
+      {% else %}
+      <p>Your username and password didn't match. Please try again.</p>
+      {% endif %}
     </div>
     <!--/div-->
-  {% endif %}
-
-  {% if next %}
-    {% if myuser.is_authenticated %}
+  
+  {% elif next %}
+    {% if not myuser.is_authenticated %}
       <!--div class="login-form-main-message"-->
       <div class="alert alert-danger">
         <p>Your account doesn't have access to this page. To proceed,
@@ -36,8 +38,8 @@
         
         <div id="login">   
           
-          <form action="/" method="post">
-          
+          <form action="{% url 'login' %}" method="post">
+          {% csrf_token %}
             <div class="field-wrap">
             <label for="id_username">
               Email Address<span class="req">*</span>
@@ -55,29 +57,28 @@
           <p class="forgot"><a href="#">Contact bbalaji@ucla.edu to reset password</a></p>
           
           <button type="submit" class="button button-block"/>Log In</button>
-          <input type="hidden" name="next" value="/homepage/" />
+          <input type="hidden" name="next" value="{% url 'homepage' %}" />
           
           </form>
 
         </div>
         
         <div id="signup">   
-          
-          <form action="/" method="post">
-          
+          <form action="{% url 'registration' %}" method="post">
+	    {% csrf_token %}
           <div class="top-row">
             <div class="field-wrap">
-              <label>
+              <label for="id_first_name">
                 First Name<span class="req">*</span>
               </label>
-              <input type="text" required autocomplete="off" />
+              <input type="text" required autocomplete="off" id="id_first_name" name="first_name"/>
             </div>
         
             <div class="field-wrap">
-              <label>
+              <label for="id_last_name">
                 Last Name<span class="req">*</span>
               </label>
-              <input type="text"required autocomplete="off"/>
+              <input type="text"required autocomplete="off" id="id_last_name" name="last_name"/>
             </div>
           </div>
 
@@ -89,21 +90,36 @@
           </div>
 
           <div class="field-wrap">
-            <label>
+            <label for="id_uid">
               University ID<span class="req">*</span>
             </label>
-            <input type="text"required autocomplete="off"/>
+            <input type="text"required autocomplete="off" id="id_uid" name="uid"/>
           </div>
           
           <div class="field-wrap">
-            <label>
+            <label for="id_password1">
               Set A Password<span class="req">*</span>
             </label>
-            <input type="password"required autocomplete="off"/>
+            <input type="password"required autocomplete="off" id="id_password1" name="password1"/>
           </div>
-          
+
+	  <div class="field-wrap">
+            <label for="id_password2">
+              Confirm Password<span class="req">*</span>
+            </label>
+            <input type="password"required autocomplete="off" id="id_password2" name="password2"/>
+          </div>
+
+	  <div class="field-wrap">
+	    <input type="radio" class="id_is_admin_0" name="is_admin" id="id_is_admin_0" placeholder="username">
+            <label for="id_is_admin_0">I am a teacher</label>
+            <br>
+	    <input type="radio" class="id_is_admin_1" name="is_admin" id="id_is_admin_1" placeholder="username">
+	    <label for="id_is_admin_1">I am a student</label> 
+	  </div>
+	  
           <button type="submit" class="button button-block"/>Get Started</button>
-          
+          <input type="hidden" name="next" value="{% url 'registration' %}" />
           </form>
 
         </div>

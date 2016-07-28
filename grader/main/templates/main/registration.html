@@ -1,5 +1,5 @@
 
-{% extends 'main/login_base.html' %}
+{% extends 'main/base.html' %}
 
 {% block content %}
 {% csrf_token %}
@@ -8,42 +8,43 @@
 	<div class="logo">register</div>
 	<!-- Main Form -->
 	<div class="login-form-1">
-		<form id="register-form" class="text-left">
+	  <form id="register-form" class="text-left" method="POST" action="." >
+	    {% csrf_token %}
 			<div class="login-form-main-message"></div>
 			<div class="main-login-form">
 				<div class="login-group">
 					<div class="form-group">
-						<label for="reg_username" class="sr-only">UID</label>
-						<input type="text" class="form-control" id="reg_username" name="reg_username" placeholder="university ID">
+						<label for="id_uid" class="sr-only">UID</label>
+						<input type="text" class="form-control" id="id_uid" name="uid" placeholder="university ID">
 					</div>
 					<div class="form-group">
-						<label for="reg_password" class="sr-only">Password</label>
-						<input type="password" class="form-control" id="reg_password" name="reg_password" placeholder="password">
+						<label for="id_password1" class="sr-only">Password</label>
+						<input type="password" class="form-control" id="id_password1" name="password1" placeholder="password">
 					</div>
 					<div class="form-group">
-						<label for="reg_password_confirm" class="sr-only">Password Confirm</label>
-						<input type="password" class="form-control" id="reg_password_confirm" name="reg_password_confirm" placeholder="confirm password">
+						<label for="id_password2" class="sr-only">Password Confirm</label>
+						<input type="password" class="form-control" id="id_password2" name="password2" placeholder="confirm password">
 					</div>
 					
 					<div class="form-group">
-						<label for="reg_email" class="sr-only">Email</label>
+						<label for="id_email" class="sr-only">Email</label>
 						<input type="text" class="form-control" id="reg_email" name="reg_email" placeholder="email">
 					</div>
 					<div class="form-group">
-						<label for="reg_firstname" class="sr-only">Full Name</label>
-						<input type="text" class="form-control" id="reg_firstname" name="reg_firstname" placeholder="first name">
+						<label for="id_first_name" class="sr-only"></label>
+						<input type="text" class="form-control" id="id_first_name" name="first_name" placeholder="first name">
 					</div>
 					
 					 <div class="form-group">
-                                                <label for="reg_lastname" class="sr-only">Full Name</label>
-                                                <input type="text" class="form-control" id="reg_lastname" name="reg_lastname" placeholder="last name">
+                                                <label for="id_last_name" class="sr-only"></label>
+                                                <input type="text" class="form-control" id="last_name" name="last_name" placeholder="last name">
                                         </div>
 					<div class="form-group login-group-checkbox">
-						<input type="radio" class="" name="reg_gender" id="male" placeholder="username">
-						<label for="male">I am a teacher</label>
+						<input type="radio" class="id_is_admin_0" name="is_admin" id="id_is_admin_0" placeholder="username">
+						<label for="id_is_admin_0">I am a teacher</label>
 						<br>
-						<input type="radio" class="" name="reg_gender" id="female" placeholder="username">
-						<label for="female">I am a student</label>
+						<input type="radio" class="id_is_admin_1" name="is_admin" id="id_is_admin_1" placeholder="username">
+						<label for="id_is_admin_1">I am a student</label>
 					</div>
 					
 					<div class="form-group login-group-checkbox">
@@ -52,6 +53,7 @@
 					</div>
 				</div>
 				<button type="submit" class="login-button"><i class="fa fa-chevron-right"></i></button>
+				<input type="hidden" name="next" value="{% url 'registration' %}"
 			</div>
 			<div class="etc-login-form">
 				<p>already have an account? <a href="{% url 'login' %}">login here</a></p>
