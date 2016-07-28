@@ -9,7 +9,7 @@ from django.contrib.auth.models import (
 
 
 class MyUserManager(BaseUserManager):
-    def create_user(self, uid, first_name, last_name, password):
+    def create_user(self, email, uid, first_name, last_name, password):
         """
         Creates and saves a User with the given email, date of
         birth and password.
@@ -18,6 +18,7 @@ class MyUserManager(BaseUserManager):
             raise ValueError('Users must have a university id')
 
         user = self.model(
+            email = email,
             uid = uid,
             first_name=first_name,
             last_name=last_name,
@@ -34,6 +35,7 @@ class MyUserManager(BaseUserManager):
         birth and password.
         """
         user = self.create_user(
+            email,
             uid,
             first_name,
             last_name,
@@ -45,6 +47,7 @@ class MyUserManager(BaseUserManager):
 
 
 class MyUser(AbstractBaseUser):
+    email = models.EmailField(unique=True)
     uid = models.CharField(
         verbose_name='university id',
         max_length=9,
@@ -57,8 +60,8 @@ class MyUser(AbstractBaseUser):
 
     objects = MyUserManager()
 
-    USERNAME_FIELD = 'uid'
-    REQUIRED_FIELDS = ['first_name', 'last_name']
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['first_name', 'last_name', 'uid']
 
     def get_full_name(self):
         # The user is identified by their email address
@@ -69,7 +72,7 @@ class MyUser(AbstractBaseUser):
         return self.first_name
 
     def __str__(self):              # __unicode__ on Python 2
-        return self.uid
+        return self.email
 
     def has_perm(self, perm, obj=None):
         "Does the user have a specific permission?"
