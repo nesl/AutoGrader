@@ -35,6 +35,7 @@ def registration(request):
     if request.method == 'POST':
         # create a form instance and populate it with data from the request:
         form = UserCreationForm(request.POST)
+        print form.errors
         # check whether it's valid:
         if form.is_valid():
             # process the data in form.cleaned_data as required

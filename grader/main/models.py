@@ -22,7 +22,6 @@ class MyUserManager(BaseUserManager):
             uid = uid,
             name = name,
         )
-        user.is_admin = False
 
         user.set_password(password)
         user.save(using=self._db)
@@ -53,7 +52,7 @@ class MyUser(AbstractBaseUser):
     )
     name = models.CharField(max_length=50)
     is_active = models.BooleanField(default=True)
-    is_admin = models.BooleanField()
+    is_admin = models.BooleanField(default=False)
 
     objects = MyUserManager()
 

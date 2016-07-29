@@ -7,16 +7,16 @@ from django.contrib.auth.forms import ReadOnlyPasswordHashField
 from main.models import MyUser
 
 
-class UserCreationForm(forms.ModelForm):
-    is_admin = forms.BooleanField(widget=forms.RadioSelect) 
+class UserCreationForm(forms.ModelForm): 
     """A form for creating new users. Includes all the required
     fields, plus a repeated password."""
+    CHOICES = (('teacher'),('student'))
+    is_teacher = forms.ChoiceField(widget=forms.RadioSelect, choices=CHOICES)
     password1 = forms.CharField(label='Password', widget=forms.PasswordInput)
     password2 = forms.CharField(label='Password confirmation', widget=forms.PasswordInput)
     class Meta:
         model = MyUser
         fields = ('email','uid','name','is_admin')
-        widgets = { 'is_admin': forms.RadioSelect }
 
     def clean_password2(self):
         # Check that the two password entries match
@@ -30,11 +30,12 @@ class UserCreationForm(forms.ModelForm):
         # Save the provided password in hashed format
         user = super(UserCreationForm, self).save(commit=False)
         user.set_password(self.cleaned_data["password1"])
-        user.is_admin = self.cleaned_data.get("is_admin")
+        print self.cleaned_data.get("is_teacher")
+        is_teacher_bool = (self.cleaned_data.get("is_teacher")=='teacher')
+        user.is_admin = is_teacher_bool
         if commit:
             user.save()
         return user
-
 
 class UserChangeForm(forms.ModelForm):
     """A form for updating users. Includes all the fields on
