@@ -2,77 +2,61 @@
 {% extends 'main/base.html' %}
 {% load staticfiles %}
 
+{% block css %}
+  <link href="{% static "main/signin.css" %}" rel="stylesheet">
+{% endblock %}
+
 {% block content %}
 
     <div class="container">
-            <form class="form-horizontal" role="form">
+            <form class="form-register" role="form">
             {% csrf_token %}
-                <h2>Registration Form</h2>
+              <h2 class="form-signin-heading">Registration Form</h2>
                 <div class="form-group">
-                    <label for="firstName" class="col-sm-3 control-label">Full Name</label>
-                    <div class="col-sm-9">
-                        <input type="text" id="firstName" placeholder="Full Name" class="form-control" autofocus>
-                        <span class="help-block">First Name Last Name, eg.: Harry Smith</span>
-                    </div>
+                    <label for="firstName" class="control-label">Full Name</label>
+                    <input type="text" id="firstName" placeholder="Full Name" class="form-control" autofocus>
+                    <span class="help-block">Firstname Lastname, eg.: Harry Smith</span>
                 </div>
                 <div class="form-group">
-                    <label for="email" class="col-sm-3 control-label">Email</label>
-                    <div class="col-sm-9">
+                    <label for="email" class="control-label">Email</label>
                         <input type="email" id="email" placeholder="Email" class="form-control">
-                    </div>
                 </div>
                 <div class="form-group">
-                    <label for="id_password1" class="col-sm-3 control-label">Password</label>
-                    <div class="col-sm-9">
-                        <input type="password" id="id_password1" placeholder="Password" class="form-control">
-                    </div>
+                    <label for="password" class="control-label">Password</label>
+                    <input type="password" id="password" placeholder="Password" class="form-control">
                 </div>
-                
                 <div class="form-group">
-                    <label for="id_password2" class="col-sm-3 control-label">Confirm Password</label>
-                    <div class="col-sm-9">
-                        <input type="password" id="id_password2" placeholder="Password" class="form-control">
-                    </div>
+                    <label for="password" class="control-label">Confirm Password</label>
+                    <input type="password" id="password" placeholder="Password" class="form-control">
                 </div>
-                                
                 <div class="form-group">
-                    <label for="id_uid" class="sr-only">UID</label>
-                    <div class="col-sm-9">
-                        <input type="text" class="form-control" id="id_uid" name="uid" placeholder="university ID">
-                    </div>
+                    <label for="firstName" class="control-label">University ID</label>
+                    <input type="text" id="firstName" placeholder="A234234" class="form-control" autofocus>
                 </div>
-
                 <div class="form-group">
-                    
-                    <div class="col-sm-6">
-                      <label class="control-label col-sm-3">User Type</label>
+                    <label class="control-label">User Type</label>
                         <div class="row">
-                            <div class="col-sm-4">
+                            <div class="col-sm-6">
                                 <label class="radio-inline">
-                                    <input type="radio" id="id_student" value="Student">Student
+                                    <input type="radio" name="userType" id="femaleRadio" value="Female" checked="">Student
                                 </label>
                             </div>
-                            <div class="col-sm-4">
+                            <div class="col-sm-6">
                                 <label class="radio-inline">
-                                    <input type="radio" id="id_teacher" value="Teacher">Teacher
+                                    <input type="radio" name="userType" id="maleRadio" value="Male">Teacher
                                 </label>
                             </div>
                         </div>
-                    </div>
                 </div> <!-- /.form-group -->
                 <div class="form-group">
-                    <div class="col-sm-9 col-sm-offset-3">
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox">I accept <a href="#">terms</a>
+                                <input type="checkbox">I accept the <a href="#">Terms and Condition</a>
                             </label>
                         </div>
-                    </div>
                 </div> <!-- /.form-group -->
                 <div class="form-group">
-                    <div class="col-sm-9 col-sm-offset-3">
                         <button type="submit" class="btn btn-primary btn-block">Register</button>
-                    </div>
                 </div>
             </form> <!-- /form -->
         </div> <!-- ./container -->

@@ -45,7 +45,7 @@ def registration(request):
     # if a GET (or any other method) we'll create a blank form
     else:
         form = UserCreationForm()
-    return render(request, 'main/login.html', {'form':form})
+    return render(request, 'main/registration.html', {'form':form})
 
 def logout_view(request):
     logout(request)
