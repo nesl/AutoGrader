@@ -8,7 +8,7 @@ from django.template import RequestContext
 # Create your views here.
 
 def index(request):
- return HttpResponse("Hello World!")
+    return HttpResponse("Hello World!")
 
 
 def login_user(request):
