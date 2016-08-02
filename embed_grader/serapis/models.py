@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 
 # Create your models here.
 
-class HardwareTester(models.Model):
+class HardwareTestBench(models.Model):
     STATUS_TYPES = (
         ('reserved','Reserved'),
         ('avail', 'Available'),
@@ -15,7 +15,12 @@ class HardwareTester(models.Model):
         choices=STATUS_TYPES,
         default='avail',
     )
+   
+    #IP Address. Only allowing IPv4 as the testers are internal
+    ip_address = models.GenericIPAddressField(protocol='IPv4')
 
+
+class HardwareTester(models.Model):
     TESTER_TYPES = (
         ('beagle', 'BeagleBone'),
         ('rpi3', 'RaspberryPi3')
@@ -28,12 +33,32 @@ class HardwareTester(models.Model):
 
     #Tester firmware will be saved to 'media/documents/tester_code/date/'
     firmware = models.FileField(upload_to='documents/tester_code/%Y/%m/%d')
-    
 
-class HardwareTestBench(models.Model):
-    
-    #IP Address. Only allowing IPv4 as the testers are internal
-    ip_address = models.GenericIPAddressField(protocol='IPv4')
+    testbench = models.ForeignKey(
+        HardwareTestBench,
+        on_delete=models.CASCADE,
+    )  
+
+   
+#Device Under Test (DUT) Model
+class DUT(models.Model):
+    DUT_TYPES = (
+        ('mbed', 'mbed'),
+        ('ice40', 'Lattice iCE40'),
+    )
+    dut_type = models.CharField(
+        max_length = 10,
+        choices = DUT_TYPES,
+        default = 'mbed',
+    )
+
+    #TODO Regex to check binary is correct
+
+    testbench = models.ForeignKey(
+        HardwareTestBench,
+        on_delete=models.CASCADE,
+    )
+
    
 class UserProfile(models.Model):
     ROLE_SUPER_USER = 0
