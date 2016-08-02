@@ -20,14 +20,21 @@ class HardwareTester(models.Model):
         ('beagle', 'BeagleBone'),
         ('rpi3', 'RaspberryPi3')
     )
-    type = models.CharField(
+    tester_type = models.CharField(
         max_length = 10,
         choices = TESTER_TYPES,
         default = 'beagle'
     )
 
+    #Tester firmware will be saved to 'media/documents/tester_code/date/'
+    firmware = models.FileField(upload_to='documents/tester_code/%Y/%m/%d')
+    
+
 class HardwareTestBench(models.Model):
     
+    #IP Address. Only allowing IPv4 as the testers are internal
+    ip_address = models.GenericIPAddressField(protocol='IPv4')
+   
 class UserProfile(models.Model):
     ROLE_SUPER_USER = 0
     ROLE_INSTRUCTOR = 10
