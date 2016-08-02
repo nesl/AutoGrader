@@ -59,6 +59,39 @@ class DUT(models.Model):
         on_delete=models.CASCADE,
     )
 
+#Wiring between DUT and Tester
+class TesterToDUTWiring(models.Model):
+    tester = models.ForeignKey(
+        HardwareTester,
+        on_delete=models.CASCADE,
+    )
+
+    tester_pin = models.CharField(max_length = 5)
+
+    dut = models.ForeignKey(
+        DUT,
+        on_delete=models.CASCADE,
+    )
+
+    dut_pin = models.CharField(max_length = 5)
+
+#Wiring between two DUTs
+class DUTToDUTWiring(models.Model):
+    dut_a = models.ForeignKey(
+        DUT,
+        on_delet=models.CASCADE,
+        related_name='dut_a'
+    )
+    dut_a_pin = models.CharField(max_length=5)
+
+    dut_b = models.ForeignKey(
+        DUT,
+        on_delet=models.CASCADE,
+        related_name='dut_b'
+    )
+    dut_b_pin = models.CharField(max_length=5)
+
+
    
 class UserProfile(models.Model):
     ROLE_SUPER_USER = 0
@@ -66,17 +99,20 @@ class UserProfile(models.Model):
     ROLE_TA = 11
     ROLE_GRADER = 12
     ROLE_STUDENT = 20
-    choices = (
+    USER_ROLES = (
             (ROLE_SUPER_USER, 'Super user'),
             (ROLE_INSTRUCTOR, 'Instructor'),
             (ROLE_TA, 'TA'),
             (ROLE_GRADER, 'Grader'),
             (ROLE_STUDENT, 'Student'),
     )
+    
+    #Connect to built-in User model, which already has firstname, lastname, email and password
     user = models.OneToOneField(User, on_delete = models.CASCADE)
-    first_name = models.CharField(max_length = 30)
-    last_name = models.CharField(max_length = 30)
-    email = models.EmailField()
+
+    #TODO: We may want to use in-built "Groups" feature of Django to make permissions easier
+    #TODO: The role of a user can change from TA to Student depending on a course
+    user_role = models.IntegerField(choices=USER_ROLES, default=ROLE_STUDENT)
 
 class Course(models.Model):
     instructor_id = models.ForeignKey(UserProfile, on_delete = models.CASCADE)
