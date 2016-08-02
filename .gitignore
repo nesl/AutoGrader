@@ -6,6 +6,7 @@
 #Compiled objects
 *.o
 *.pyc
+__pycache__
 
 #Swapfiles
 *.swp
