@@ -77,19 +77,19 @@ class TesterToDUTWiring(models.Model):
 
 #Wiring between two DUTs
 class DUTToDUTWiring(models.Model):
-    dut_a = models.ForeignKey(
+    DUT_first = models.ForeignKey(
         DUT,
-        on_delet=models.CASCADE,
-        related_name='dut_a'
+        on_delete=models.CASCADE,
+        related_name='DUT_first'
     )
-    dut_a_pin = models.CharField(max_length=5)
+    DUT_first_pin = models.CharField(max_length=5)
 
-    dut_b = models.ForeignKey(
+    DUT_second = models.ForeignKey(
         DUT,
-        on_delet=models.CASCADE,
-        related_name='dut_b'
+        on_delete=models.CASCADE,
+        related_name='DUT_second'
     )
-    dut_b_pin = models.CharField(max_length=5)
+    DUT_second_pin = models.CharField(max_length=5)
 
 
    
@@ -127,11 +127,17 @@ class Assignment(models.Model):
     deadline = models.DateTimeField()
     # TODO: tester type
     # TODO: DUT type
-    # TODO: DUT count
+    DUT_count = models.IntegerField()
     # TODO: Wiring information
-    # TODO: number of testbenches - reservation of IDs
+    # Testbenches are reserved using AssignmentTestBenches table
+    num_testbenches = models.IntegerField()
+    
     # TODO: status (what is this?)
     # TODO: grading script
+
+class AssignmentTestBenches(models.Model):
+    assignment_id = models.ForeignKey(Assignment, on_delete = models.CASCADE)
+    testbench_id = models.ForeignKey(HardwareTestBench, on_delete=models.CASCADE)
 
 class AssignmentTask(models.Model):
     assignment_id = models.ForeignKey(Assignment, on_delete = models.CASCADE)
@@ -145,7 +151,7 @@ class Submission(models.Model):
     assignment_id = models.ForeignKey(Assignment, on_delete = models.CASCADE)
     submission_time = models.DateTimeField()
     grading_result = models.FloatField()
-    #submission_status  TODO
+    #TODO: submission_status
 
 class SubmissionFile(models.Model):
     submission_id = models.ForeignKey(Submission, on_delete = models.CASCADE)
