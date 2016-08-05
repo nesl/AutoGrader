@@ -3,7 +3,8 @@ from __future__ import unicode_literals
 from django.db import models
 from django.contrib.auth.models import User
 
-# Create your models here.
+
+
 
 class HardwareTestBench(models.Model):
     STATUS_TYPES = (
@@ -112,7 +113,7 @@ class UserProfile(models.Model):
 
     #TODO: We may want to use in-built "Groups" feature of Django to make permissions easier
     #TODO: The role of a user can change from TA to Student depending on a course
-    user_role = models.IntegerField(choices=USER_ROLES, default=ROLE_STUDENT)
+    user_role = models.IntegerField(choices = USER_ROLES, default = ROLE_STUDENT)
 
 class Course(models.Model):
     instructor_id = models.ForeignKey(UserProfile, on_delete = models.CASCADE)
@@ -145,13 +146,26 @@ class AssignmentTask(models.Model):
     description = models.TextField()
     # TODO: test input
     # TODO: test output
+    # TODO: points as integer
+    # TODO: mode (public, feedback, hidden)
 
 class Submission(models.Model):
+    STAT_RECEIVED = 0
+    STAT_GRADING = 10
+    STAT_REGRADING = 11
+    STAT_GRADED = 20
+    SUBMISSION_STATES = (
+            (STAT_RECEIVED, "Received"),
+            (STAT_GRADING, "Grading"),
+            (STAT_REGRADING, "Rejudging"),
+            (STAT_GRADED, "Final result"),
+    )
+
     student_id = models.ForeignKey(UserProfile, on_delete = models.CASCADE)
     assignment_id = models.ForeignKey(Assignment, on_delete = models.CASCADE)
     submission_time = models.DateTimeField()
     grading_result = models.FloatField()
-    #TODO: submission_status
+    status = models.IntegerField(choices = SUBMISSION_STATES, default = STAT_RECEIVED)
 
 class SubmissionFile(models.Model):
     submission_id = models.ForeignKey(Submission, on_delete = models.CASCADE)
