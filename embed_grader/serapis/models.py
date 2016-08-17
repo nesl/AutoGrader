@@ -117,8 +117,8 @@ class UserProfile(models.Model):
 
 class Course(models.Model):
     instructor_id = models.ForeignKey(UserProfile, on_delete = models.CASCADE)
-    course_code = models.CharField(max_length=10)
-    name = models.CharField(max_length=100)
+    course_code = models.CharField(max_length = 10, default = '')
+    name = models.CharField(max_length = 100, default = '')
     description = models.TextField()
 
 class Assignment(models.Model):
