@@ -13,6 +13,16 @@
             <button class="btn btn-primary" type="button">Create New Course</button>
         </p>
 
+        {% if course_list %}
+        <ul>
+            {% for course in course_list %}
+            <li>{{ course.course_code }}: {{ course.name }}</li>
+            {% endfor %}
+        </ul>
+        {% else %}
+            <p>You have not created any courses yet.</p>
+        {% endif %}
+
     </div>
 
 {% endblock %}
