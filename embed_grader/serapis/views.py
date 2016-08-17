@@ -10,25 +10,9 @@ from django.template import RequestContext
 def index(request):
     return HttpResponse("Hello World!")
 
-
-def login_user(request):
-    logout(request)
-    uid = password = ''
-    if request.POST:
-        uid = request.POST['username']
-        password = request.POST['password']
-
-        myuser = authenticate(username=uid, password=password)
-        if myuser is not None:
-            if myuser.is_active:
-                login(request, myuser)
-                return HttpResponseRedirect('/homepage/')
-    return render_to_response('login.html', context_instance=RequestContext(request))
-
 @login_required(login_url='/login/')
 def homepage(request):
     return render(request, 'serapis/homepage.html', {'myuser':request.user})
-
 
 def registration(request):
     # if this is a POST request we need to process the form data
