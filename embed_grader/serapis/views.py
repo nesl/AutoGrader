@@ -39,5 +39,5 @@ def course(request, course_id):
         return HttpResponse("Course cannot be found")
 
     course = course_list[0]
-    return render(request, 'serapis/homepage.html', {'user_profile': user_profile, 'myuser': request.user})
+    return render(request, 'serapis/course.html', {'myuser': request.user, 'user_profile': user_profile, 'course': course})
 
