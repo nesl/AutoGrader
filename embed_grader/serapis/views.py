@@ -6,37 +6,8 @@ from django.template import RequestContext
 
 from serapis.models import *
 
-# import the logging library
-import logging, logging.config
-import sys
-"""
-LOGGING = {
-        'version': 1,
-        'handlers': {
-            'console': {
-                'class': 'logging.StreamHandler',
-                'stream': sys.stdout,
-                }
-            },
-        'root': {
-            'handlers': ['console'],
-            'level': 'INFO'
-            }
-        }
-# Get an instance of a logger
-logging.config.dictConfig(LOGGING)
-"""
-logger = logging.getLogger(__name__)
-
 def index(request):
     return HttpResponse("Hello World!")
-
-@login_required(login_url='/login/')
-def homepage(request):
-    username = request.user
-    user = User.objects.filter(username=username)[0]
-    user_profile = UserProfile.objects.filter(user=user)[0]
-    return render(request, 'serapis/homepage.html', {'user_profile': user_profile, 'myuser': request.user})
 
 def registration(request):
     if request.method == 'POST':
@@ -49,3 +20,24 @@ def registration(request):
 
 def logout_view(request):
     logout(request)
+
+@login_required(login_url='/login/')
+def homepage(request):
+    username = request.user
+    user = User.objects.filter(username=username)[0]
+    user_profile = UserProfile.objects.filter(user=user)[0]
+    return render(request, 'serapis/homepage.html', {'user_profile': user_profile, 'myuser': request.user})
+
+@login_required(login_url='/login/')
+def course(request, course_id):
+    username = request.user
+    user = User.objects.filter(username=username)[0]
+    user_profile = UserProfile.objects.filter(user=user)[0]
+    course_list = Course.objects.filter(id=course_id)
+    print(course_list)
+    if not course_list:
+        return HttpResponse("Course cannot be found")
+
+    course = course_list[0]
+    return render(request, 'serapis/homepage.html', {'user_profile': user_profile, 'myuser': request.user})
+
