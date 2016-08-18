@@ -7,12 +7,17 @@
 
 {% block content %}
     <div class="container">
-        <h1 class="page-header">Welcome</h1>
-        
-        <p>
-            <button class="btn btn-primary" type="button">Create New Course</button>
-        </p>
+        <h1 class="page-header">Course</h1>
+        <hr/>
+        <h2>Assignment List</h2>
+        <!-- TODO: show assignment list-->
 
+        {% if user_profile.user_role == user_profile.ROLE_SUPER_USER || user_profile.user_role == user_profile.ROLE_INSTRUCTOR || user_profile.user_role == user_profile.ROLE_TA %}
+            <hr/>
+            <p>
+                <a href='createassignment/{{course.id}}' class="btn btn-primary">Create a New Assignment</a>
+            </p>
+        {% endif %}
     </div>
 
 {% endblock %}
