@@ -9,5 +9,6 @@ urlpatterns = [
     url(r'^registration/$', views.registration, name='registration'),
     url(r'^logout/$', auth_views.logout, {'next_page': '/login/'}, name='logout'),
     url(r'^homepage/$', views.homepage, name='homepage'),
-    url(r'^course/([0-9]+)/$', views.course, name='course')
+    url(r'^course/([0-9]+)/$', views.course, name='course'),
+    url(r'^createassignment/([0-9]+)/$', views.create_assignment, name='create_assignment'),
 ]
