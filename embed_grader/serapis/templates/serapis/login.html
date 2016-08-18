@@ -10,35 +10,35 @@
 
   
 {% block content %}
-  <div class="container">
-		{% if form.errors %}
-			<!--div class="login-form-main-message"-->
-			<div class="alert alert-danger">
-				<p>Your username and password didn't match. Please try again.</p>
-			</div>
-			<!--/div-->
-		{% endif %}
+    <div class="container">
+        {% if form.errors %}
+            <!--div class="login-form-main-message"-->
+            <div class="alert alert-danger">
+                <p>Your username and password didn't match. Please try again.</p>
+            </div>
+            <!--/div-->
+        {% endif %}
 
-		<form class="form-signin" method="post" action="{% url 'login' %}">
-			{% csrf_token %}
-			<h2 class="form-signin-heading">Please sign in</h2>
-			<label for="id_username" class="sr-only">Email address</label>
-			<input type="email" id="id_username" name="username" class="form-control" placeholder="Email address" required autofocus>
-			<label for="id_password" class="sr-only">Password</label>
-			<input type="password" id="id_password" name="password" class="form-control" placeholder="Password" required>
-			<div class="checkbox">
-				<label>
-					<input type="checkbox" value="remember-me"> Remember me
-				</label>
-			</div>
-			<p class="forgot"><a href="#">Contact bbalaji@ucla.edu to reset password</a></p>
-			<button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
-			<input type="hidden" name="next" value="/homepage/">
-			<div>
-				<p><center>Not a User? Please <a href="{% url 'registration' %}">register</a>.</center></p>
-			</div> 
-		</form>
+        <form class="form-signin" method="post" action="{% url 'login' %}">
+            {% csrf_token %}
+            <h2 class="form-signin-heading">Please sign in</h2>
+            <label for="id_username" class="sr-only">Email address</label>
+            <input type="email" id="id_username" name="username" class="form-control" placeholder="Email address" required autofocus>
+            <label for="id_password" class="sr-only">Password</label>
+            <input type="password" id="id_password" name="password" class="form-control" placeholder="Password" required>
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox" value="remember-me"> Remember me
+                </label>
+            </div>
+            <p class="forgot"><a href="#">Contact bbalaji@ucla.edu to reset password</a></p>
+            <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+            <input type="hidden" name="next" value="/homepage/">
+            <div>
+                <p><center>Not a User? Please <a href="{% url 'registration' %}">register</a>.</center></p>
+            </div> 
+        </form>
 
-	</div> <!-- /container -->
+    </div> <!-- /container -->
 
 {% endblock %}
