@@ -114,6 +114,7 @@ class UserProfile(models.Model):
     #TODO: We may want to use in-built "Groups" feature of Django to make permissions easier
     #TODO: The role of a user can change from TA to Student depending on a course
     user_role = models.IntegerField(choices = USER_ROLES, default = ROLE_STUDENT)
+    uid = models.CharField(max_length=20, unique=True, default = 'A123456789', verbose_name = "University ID")
 
 class Course(models.Model):
     instructor_id = models.ForeignKey(UserProfile, on_delete = models.CASCADE)

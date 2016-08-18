@@ -5,6 +5,8 @@ from django.contrib.auth import authenticate, login, logout, context_processors
 from django.template import RequestContext
 
 from serapis.models import *
+from serapis.forms import UserCreateForm
+
 
 def index(request):
     return HttpResponse("Hello World!")
@@ -25,13 +27,21 @@ def homepage(request):
     return render(request, 'serapis/homepage.html', template_context)
 
 def registration(request):
-    if request.method == 'POST':
     # if this is a POST request we need to process the form data
-        return HttpResponse("Thanks.")
-    else:
+    if request.method == 'POST':
+        # create a form instance and populate it with data from the request:
+        form = UserCreateForm(request.POST)
+        # check whether it's valid:
+        if form.is_valid():
+            # process the data in form.cleaned_data as required
+            # ...
+            # redirect to a new URL:
+            form.save()
+            return HttpResponse("Thanks.")
     # if a GET (or any other method) we'll create a blank form
-        form = UserCreationForm()
-    return render(request, 'main/registration.html', {'form':form})
+    else:
+        form = UserCreateForm()
+    return render(request, 'serapis/registration.html', {'form':form})
 
 def logout_view(request):
     logout(request)
@@ -48,4 +58,5 @@ def course(request, course_id):
 
     course = course_list[0]
     return render(request, 'serapis/homepage.html', {'user_profile': user_profile, 'myuser': request.user})
+
 

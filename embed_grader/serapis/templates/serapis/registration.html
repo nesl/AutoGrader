@@ -1,4 +1,3 @@
-
 {% extends 'serapis/base.html' %}
 {% load staticfiles %}
 
@@ -8,14 +7,24 @@
 
 {% block content %}
 
+  <div class="container">
+ {% if form.errors %}
+     <!--div class="login-form-main-message"-->
+     <div class="alert alert-danger">
+       <!--p>Your username and password didn't match. Please try again.</p-->
+       {{ form.errors }}
+     </div>
+     <!--/div-->
+{% endif %}
+
     <div class="container">
             <form class="form-register" role="form" action="{% url 'registration' %}" method="post">
             {% csrf_token %}
               <h2 class="form-signin-heading">Registration Form</h2>
                 <div class="form-group">
-                    <label for="id_name" class="control-label">Full Name</label>
-                    <input type="text" id="id_name" name="name" placeholder="Full Name" class="form-control" autofocus>
-                    <span class="help-block">Firstname Lastname, eg.: Harry Smith</span>
+                    <label for="id_username" class="control-label">Username</label>
+                    <input type="text" id="id_username" name="username" placeholder="Username" class="form-control" autofocus>
+                    <span class="help-block">The username shown in your home page.</span>
                 </div>
                 <div class="form-group">
                     <label for="id_email" class="control-label">Email</label>
@@ -32,11 +41,12 @@
                 <div class="form-group">
                     <label for="id_uid" class="control-label">University ID</label>
                     <input type="text" id="id_uid" name="uid" placeholder="A234234" class="form-control" autofocus>
+		    <span class="help-block">The 9-digit UCLA ID, without hyphens.</span>
                 </div>
                 <div class="form-group">
                     <label class="control-label">User Type</label>
                         <div class="row">
-                            <div class="col-sm-6">
+                            <!--div class="col-sm-6">
                                 <label class="radio-inline" for="id_is_teacher_0">
                                     <input type="radio" name="is_teacher" id="id_is_teacher_0" value="teacher" checked="">Teacher
                                 </label>
@@ -45,13 +55,18 @@
                                 <label class="radio-inline" for="id_is_teacher_1">
                                     <input type="radio" name="is_teacher" id="id_is_teacher_1" value="student">Student
                                 </label>
-                            </div>
+                            </div-->
+                        {% for radio in form.user_role %}
+                        <div class="col-sm-6">
+                        {{ radio }}
+                        </div>
+                        {% endfor %}
                         </div>
                 </div> <!-- /.form-group -->
                 <div class="form-group">
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox">I accept the <a href="#">Terms and Condition</a>
+                                <input type="checkbox">I accept the <a href="#">Terms and Conditions</a>
                             </label>
                         </div>
                 </div> <!-- /.form-group -->
