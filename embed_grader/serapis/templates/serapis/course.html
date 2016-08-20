@@ -12,7 +12,7 @@
         <h2>Assignment List</h2>
         <!-- TODO: show assignment list-->
 
-        {% if user_profile.user_role == user_profile.ROLE_SUPER_USER || user_profile.user_role == user_profile.ROLE_INSTRUCTOR || user_profile.user_role == user_profile.ROLE_TA %}
+        {% if user_profile.user_role == user_profile.ROLE_SUPER_USER or user_profile.user_role == user_profile.ROLE_INSTRUCTOR or user_profile.user_role == user_profile.ROLE_TA %}
             <hr/>
             <p>
                 <a href='createassignment/{{course.id}}' class="btn btn-primary">Create a New Assignment</a>
