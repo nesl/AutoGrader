@@ -39,7 +39,6 @@ def homepage(request):
     user = User.objects.filter(username=username)[0]
     user_profile = UserProfile.objects.filter(user=user)[0]
 
-    #TODO: Check if user is student or instructor
     course_list = Course.objects.filter(instructor_id=user_profile)
     template_context = {
             'user_profile': user_profile,
@@ -47,24 +46,6 @@ def homepage(request):
             'course_list': course_list,
     }
     return render(request, 'serapis/homepage.html', template_context)
-
-
-@login_required(login_url='/login/')
-def course(request, course_id):
-    username = request.user
-    user = User.objects.filter(username=username)[0]
-    user_profile = UserProfile.objects.filter(user=user)[0]
-    course_list = Course.objects.filter(id=course_id)
-    if not course_list:
-        return HttpResponse("Course cannot be found")
-    course = course_list[0]
-    #assignments = Assignment.objects.filter(course)
-    template_context = {
-            'myuser': request.user,
-            'user_profile': user_profile,
-            'course': course
-    }
-    return render(request, 'serapis/course.html', template_context)
 
 
 @login_required(login_url='/login/')
@@ -90,9 +71,28 @@ def create_course(request):
     template_context = {
             'myuser': request.user,
             'user_profile': user_profile,
-            'form': form.as_p()
+            'form': form.as_p(),
     }
     return render(request, 'serapis/create_course.html', template_context)
+
+
+@login_required(login_url='/login/')
+def course(request, course_id):
+    username = request.user
+    user = User.objects.filter(username=username)[0]
+    user_profile = UserProfile.objects.filter(user=user)[0]
+    course_list = Course.objects.filter(id=course_id)
+    if not course_list:
+        return HttpResponse("Course cannot be found")
+    course = course_list[0]
+    assignment_list = Assignment.objects.filter(course_id=course_id)
+    template_context = {
+            'myuser': request.user,
+            'user_profile': user_profile,
+            'course': course,
+            'assignment_list': assignment_list,
+    }
+    return render(request, 'serapis/course.html', template_context)
 
 
 @login_required(login_url='/login/')
@@ -104,17 +104,26 @@ def create_assignment(request, course_id):
     if not user_profile.user_role == user_profile.ROLE_SUPER_USER and not user_profile.user_role == user_profile.ROLE_INSTRUCTOR and not user_profile.user_role == user_profile.ROLE_TA:
         return HttpResponse("Not enough privilege")
 
-    form = modelform_factory(Assignment, fields=('description', 'release_time', 'deadline', 'DUT_count', 'num_testbenches'))
-    print(form.as_table())
-    print('hello')
     course_list = Course.objects.filter(id=course_id)
     if not course_list:
         return HttpResponse("Course cannot be found")
     course = course_list[0]
 
+    if request.method == 'POST':
+        form = AssignmentForm(request.POST)
+        #if form.is_valid():
+        #    course = form.save()
+        #    course.save()
+        #    return HttpResponseRedirect(reverse('course', args=(course_id))
+    else:
+        form = AssignmentForm(initial={'course_id': course_id})
+    
+    form.fields['course_id'].widget = forms.NumberInput(attrs={'readonly':'readonly'})
+    
     template_context = {
             'myuser': request.user,
             'user_profile': user_profile,
-            'course': course
+            #'course': course,
+            'form': form.as_p(),
     }
     return render(request, 'serapis/create_assignment.html', template_context)

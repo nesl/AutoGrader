@@ -8,14 +8,25 @@
 {% block content %}
     <div class="container">
         <h1 class="page-header">Course - {{ course.course_code }}: {{ course.name }}</h1>
+        <p>{{course.description}}</p>
         <hr/>
         <h2>Assignment List</h2>
-        <!-- TODO: show assignment list-->
+        
+        {% if not assignment_list %}
+            <p>No assignments are available.</p>
+        {% else %}
+            <ul>
+                {% for assignment in assignment_list %}
+                    <li><a href="{% url 'assignment' assignment.id %}">{{ assignment.description }}</a></li>
+                {% endfor %}
+            </ul>
+        {% endif %}
 
         {% if user_profile.user_role == user_profile.ROLE_SUPER_USER or user_profile.user_role == user_profile.ROLE_INSTRUCTOR or user_profile.user_role == user_profile.ROLE_TA %}
             <hr/>
+            <h2>Instructor-Only Session</h2>
             <p>
-                <a href='createassignment/{{course.id}}' class="btn btn-primary">Create a New Assignment</a>
+                <a href='{% url 'create-assignment' course.id %}' class="btn btn-primary">Create a New Assignment</a>
             </p>
         {% endif %}
     </div>

@@ -19,6 +19,14 @@
         <!-- Google Fonts -->
         <link href='http://fonts.googleapis.com/css?family=Varela+Round' rel='stylesheet' type='text/css'>
         <link href='http://fonts.googleapis.com/css?family=Titillium+Web:400,300,600' rel='stylesheet' type='text/css'>
+        
+        <!-- JQuery -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+        <!-- Bootstrap Core JavaScript -->
+        <script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
+        <script src="{% static 'bootstrap/js/moment.js' %}"></script>
+        <script src="{% static 'bootstrap/js/bootstrap-datetimepicker.js' %}"></script>
+        {{ form.media }}
 
         <!-- CSS specific to Embed Autograder page-->
         {% block css %}
@@ -30,6 +38,7 @@
         <style>
         body {
                 padding-top: 70px;
+                padding-bottom: 70px;
                 /* Required padding for .navbar-fixed-top. Remove if using .navbar-static-top. Change if height of navigation changes. */
         }
         </style>
@@ -101,9 +110,5 @@
         </div>
         <!-- End Footer -->
 
-        <!-- Bootstrap Core JavaScript -->
-        <script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
-        <!-- JQuery -->
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
     </body>
 </html>

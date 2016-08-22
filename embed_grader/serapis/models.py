@@ -28,70 +28,6 @@ class UserProfile(models.Model):
     uid = models.CharField(max_length=20, unique=True, default = '123456789', verbose_name = "University ID")
 
 
-class Course(models.Model):
-    instructor_id = models.ForeignKey(UserProfile, on_delete = models.CASCADE)
-    course_code = models.CharField(max_length = 10, default = '')
-    name = models.CharField(max_length = 100, default = '')
-    description = models.TextField()
-
-
-class Assignment(models.Model):
-    course_id = models.ForeignKey(Course, on_delete = models.CASCADE)
-    # TODO: permission only for instructor
-    description = models.TextField()  # brief
-    # TODO: link to assignment page (do we need this?)
-    release_time = models.DateTimeField()
-    deadline = models.DateTimeField()
-    # TODO: tester type
-    # TODO: DUT type
-    DUT_count = models.IntegerField()
-    # TODO: Wiring information
-    # Testbenches are reserved using AssignmentTestBenches table
-    num_testbenches = models.IntegerField()
-    
-    # TODO: status (what is this?)
-    # TODO: grading script
-
-
-class AssignmentTestBenches(models.Model):
-    assignment_id = models.ForeignKey(Assignment, on_delete = models.CASCADE)
-    testbench_id = models.ForeignKey(HardwareTestBench, on_delete=models.CASCADE)
-
-
-class AssignmentTask(models.Model):
-    assignment_id = models.ForeignKey(Assignment, on_delete = models.CASCADE)
-    task_order = models.IntegerField()
-    description = models.TextField()
-    # TODO: test input
-    # TODO: test output
-    # TODO: points as integer
-    # TODO: mode (public, feedback, hidden)
-
-
-class Submission(models.Model):
-    STAT_RECEIVED = 0
-    STAT_GRADING = 10
-    STAT_REGRADING = 11
-    STAT_GRADED = 20
-    SUBMISSION_STATES = (
-            (STAT_RECEIVED, "Received"),
-            (STAT_GRADING, "Grading"),
-            (STAT_REGRADING, "Rejudging"),
-            (STAT_GRADED, "Final result"),
-    )
-
-    student_id = models.ForeignKey(UserProfile, on_delete = models.CASCADE)
-    assignment_id = models.ForeignKey(Assignment, on_delete = models.CASCADE)
-    submission_time = models.DateTimeField()
-    grading_result = models.FloatField()
-    status = models.IntegerField(choices = SUBMISSION_STATES, default = STAT_RECEIVED)
-
-
-class SubmissionFile(models.Model):
-    submission_id = models.ForeignKey(Submission, on_delete = models.CASCADE)
-    file = models.FileField()
-
-
 class HardwareTestBench(models.Model):
     STATUS_TYPES = (
         ('reserved','Reserved'),
@@ -179,4 +115,67 @@ class DUTToDUTWiring(models.Model):
     DUT_second_pin = models.CharField(max_length=5)
 
 
-   
+class Course(models.Model):
+    instructor_id = models.ForeignKey(UserProfile, on_delete = models.CASCADE)
+    course_code = models.CharField(max_length = 10, default = '')
+    name = models.CharField(max_length = 100, default = '')
+    description = models.TextField()
+
+
+class Assignment(models.Model):
+    course_id = models.ForeignKey(Course, on_delete = models.CASCADE)
+    # TODO: permission only for instructor
+    description = models.TextField()  # brief
+    # TODO: link to assignment page (do we need this?)
+    release_time = models.DateTimeField()
+    deadline = models.DateTimeField()
+    # TODO: tester type
+    # TODO: DUT type
+    DUT_count = models.IntegerField()
+    # TODO: Wiring information
+    # Testbenches are reserved using AssignmentTestBenches table
+    num_testbenches = models.IntegerField()
+    
+    # TODO: status (what is this?)
+    # TODO: grading script
+
+
+class AssignmentTestBenches(models.Model):
+    assignment_id = models.ForeignKey(Assignment, on_delete = models.CASCADE)
+    testbench_id = models.ForeignKey(HardwareTestBench, on_delete=models.CASCADE)
+
+
+class AssignmentTask(models.Model):
+    assignment_id = models.ForeignKey(Assignment, on_delete = models.CASCADE)
+    task_order = models.IntegerField()
+    description = models.TextField()
+    # TODO: test input
+    # TODO: test output
+    # TODO: points as integer
+    # TODO: mode (public, feedback, hidden)
+
+
+class Submission(models.Model):
+    STAT_RECEIVED = 0
+    STAT_GRADING = 10
+    STAT_REGRADING = 11
+    STAT_GRADED = 20
+    SUBMISSION_STATES = (
+            (STAT_RECEIVED, "Received"),
+            (STAT_GRADING, "Grading"),
+            (STAT_REGRADING, "Rejudging"),
+            (STAT_GRADED, "Final result"),
+    )
+
+    student_id = models.ForeignKey(UserProfile, on_delete = models.CASCADE)
+    assignment_id = models.ForeignKey(Assignment, on_delete = models.CASCADE)
+    submission_time = models.DateTimeField()
+    grading_result = models.FloatField()
+    status = models.IntegerField(choices = SUBMISSION_STATES, default = STAT_RECEIVED)
+
+
+class SubmissionFile(models.Model):
+    submission_id = models.ForeignKey(Submission, on_delete = models.CASCADE)
+    file = models.FileField()
+
+
