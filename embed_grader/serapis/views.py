@@ -1,11 +1,14 @@
 from django.shortcuts import render
-from django.http import HttpResponse
+from django.http import *
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout, context_processors
 from django.template import RequestContext
 from django.forms import modelform_factory
+from django import forms
+from django.core.urlresolvers import reverse
 
 from serapis.models import *
+from serapis.model_forms import *
 
 
 def registration(request):
@@ -73,13 +76,21 @@ def create_course(request):
     if not user_profile.user_role == user_profile.ROLE_SUPER_USER and not user_profile.user_role == user_profile.ROLE_INSTRUCTOR and not user_profile.user_role == user_profile.ROLE_TA:
         return HttpResponse("Not enough privilege")
 
-    form = modelform_factory(Course, fields=('course_code', 'name', 'description'))
-    print(form)
+    if request.method == 'POST':
+        form = CourseForm(request.POST)
+        if form.is_valid():
+            course = form.save()
+            course.save()
+            return HttpResponseRedirect(reverse('homepage'))
+    else:
+        form = CourseForm(initial={'instructor_id': user_profile})
+    
+    form.fields['instructor_id'].widget = forms.NumberInput(attrs={'readonly':'readonly'})
 
     template_context = {
             'myuser': request.user,
             'user_profile': user_profile,
-            'form': form
+            'form': form.as_p()
     }
     return render(request, 'serapis/create_course.html', template_context)
 
