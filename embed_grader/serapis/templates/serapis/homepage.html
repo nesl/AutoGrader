@@ -9,20 +9,21 @@
     <div class="container">
         <h1 class="page-header">Welcome</h1>
         
+        {% if not course_list %}
+            <p>No courses are available.</p>
+        {% else %}
+            <ul>
+                {% for course in course_list %}
+                    <li><a href="{% url 'course' course.id %}">{{ course.course_code }}: {{ course.name }}</a></li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
         {% if user_profile.user_role == user_profile.ROLE_SUPER_USER or user_profile.user_role == user_profile.ROLE_INSTRUCTOR or user_profile.user_role == user_profile.ROLE_TA %}
+            <hr/>
             <p>
                 <a href="/create-course/" class="btn btn-primary">Create New Course</a>
             </p>
-        {% endif %}
-
-        {% if course_list %}
-            <ul>
-                {% for course in course_list %}
-                    <li>{{ course.course_code }}: {{ course.name }}</li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p>No courses are available.</p>
         {% endif %}
 
     </div>
