@@ -130,3 +130,37 @@ def create_assignment(request, course_id):
 @login_required(login_url='/login/')
 def assignment(request, course_id):
     return HttpResponse("Under construction")
+
+@login_required(login_url='/login/')
+def modify_assignment(request, assignment_id):
+    username = request.user
+    user = User.objects.filter(username=username)[0]
+    user_profile = UserProfile.objects.filter(user=user)[0]
+    
+    if not user_profile.user_role == user_profile.ROLE_SUPER_USER and not user_profile.user_role == user_profile.ROLE_INSTRUCTOR and not user_profile.user_role == user_profile.ROLE_TA:
+        return HttpResponse("Not enough privilege")
+
+    assignment_list = Assignment.objects.filter(id=assignment_id)
+    if not assignment_list:
+        return HttpResponse("Assignment cannot be found")
+    assignment = assignment_list[0]
+
+    if request.method == 'POST':
+        pass
+    #    form = AssignmentBasicForm(request.POST)
+    #    #if form.is_valid():
+    #    #    assignment = form.save()
+    #    #    assignment.save()
+    #    #    return HttpResponseRedirect(reverse('course', args=(course_id)))
+    else:
+        form = AssignmentCompleteForm(instance = assignment)
+    
+    if not assignment.testbench_id:
+        form.fields.pop('num_testbenches')
+
+    template_context = {
+            'myuser': request.user,
+            'user_profile': user_profile,
+            'form': form.as_p(),
+    }
+    return render(request, 'serapis/modify_assignment.html', template_context)

@@ -23,3 +23,18 @@ class AssignmentBasicForm(ModelForm):
             'release_time': DateTimeWidget(bootstrap_version = 3, options = date_time_options),
             'deadline': DateTimeWidget(bootstrap_version = 3, options = date_time_options),
         }
+
+class AssignmentCompleteForm(ModelForm):
+    class Meta:
+        model = Assignment
+        fields = ['course_id', 'description', 'release_time', 'deadline', 'problem_statement', 'input_statement', 'output_statement',
+                'testbench_id', 'num_testbenches']
+        date_time_options = {
+                'format': 'mm/dd/yyyy hh:ii',
+                'autoclose': True,
+                'showMeridian' : False,
+        }
+        widgets = {
+            'release_time': DateTimeWidget(bootstrap_version = 3, options = date_time_options),
+            'deadline': DateTimeWidget(bootstrap_version = 3, options = date_time_options),
+        }

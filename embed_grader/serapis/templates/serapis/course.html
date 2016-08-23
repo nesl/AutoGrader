@@ -17,7 +17,16 @@
         {% else %}
             <ul>
                 {% for assignment in assignment_list %}
-                    <li><a href="{% url 'assignment' assignment.id %}">{{ assignment.description }}</a></li>
+                    <li>
+                        {% if assignment.testbench_id %}
+                            <a href="{% url 'assignment' assignment.id %}">{{ assignment.description }}</a>
+                        {% else %}
+                            {{ assignment.description }} (specifiction not complete)
+                        {% endif %}
+                        {% if user_profile.user_role == user_profile.ROLE_SUPER_USER or user_profile.user_role == user_profile.ROLE_INSTRUCTOR or user_profile.user_role == user_profile.ROLE_TA %}
+                            <a href="{% url 'modify-assignment' assignment.id %}">[Make change]</a>
+                        {% endif %}
+                    </li>
                 {% endfor %}
             </ul>
         {% endif %}
