@@ -12,4 +12,5 @@ urlpatterns = [
     url(r'^create-course/$', views.create_course, name='create-course'),
     url(r'^course/([0-9]+)/$', views.course, name='course'),
     url(r'^create-assignment/([0-9]+)/$', views.create_assignment, name='create-assignment'),
+    url(r'^assignment/([0-9]+)/$', views.assignment, name='assignment'),
 ]

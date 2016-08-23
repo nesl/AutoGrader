@@ -10,14 +10,14 @@ class CourseForm(ModelForm):
         fields = ['instructor_id', 'course_code', 'name', 'description']
 
 
-class AssignmentForm(ModelForm):
+class AssignmentBasicForm(ModelForm):
     class Meta:
         model = Assignment
-        fields = ['course_id', 'description', 'release_time', 'deadline', 'DUT_count', 'num_testbenches']
+        fields = ['course_id', 'description', 'release_time', 'deadline', 'problem_statement', 'input_statement', 'output_statement']
         date_time_options = {
-                'format': 'dd/mm/yyyy HH:ii P',
+                'format': 'mm/dd/yyyy hh:ii',
                 'autoclose': True,
-                'showMeridian' : True,
+                'showMeridian' : False,
         }
         widgets = {
             'release_time': DateTimeWidget(bootstrap_version = 3, options = date_time_options),

@@ -110,20 +110,23 @@ def create_assignment(request, course_id):
     course = course_list[0]
 
     if request.method == 'POST':
-        form = AssignmentForm(request.POST)
-        #if form.is_valid():
-        #    course = form.save()
-        #    course.save()
-        #    return HttpResponseRedirect(reverse('course', args=(course_id))
+        form = AssignmentBasicForm(request.POST)
+        if form.is_valid():
+            assignment = form.save()
+            assignment.save()
+            return HttpResponseRedirect(reverse('course', args=(course_id)))
     else:
-        form = AssignmentForm(initial={'course_id': course_id})
+        form = AssignmentBasicForm(initial={'course_id': course_id})
     
     form.fields['course_id'].widget = forms.NumberInput(attrs={'readonly':'readonly'})
     
     template_context = {
             'myuser': request.user,
             'user_profile': user_profile,
-            #'course': course,
             'form': form.as_p(),
     }
     return render(request, 'serapis/create_assignment.html', template_context)
+
+@login_required(login_url='/login/')
+def assignment(request, course_id):
+    return HttpResponse("Under construction")

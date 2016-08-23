@@ -10,7 +10,7 @@
         <h1 class="page-header">Course - {{ course.course_code }}: {{ course.name }}</h1>
         <p>{{course.description}}</p>
         <hr/>
-        <h2>Assignment List</h2>
+        <h3>Assignment List</h3>
         
         {% if not assignment_list %}
             <p>No assignments are available.</p>
@@ -24,7 +24,7 @@
 
         {% if user_profile.user_role == user_profile.ROLE_SUPER_USER or user_profile.user_role == user_profile.ROLE_INSTRUCTOR or user_profile.user_role == user_profile.ROLE_TA %}
             <hr/>
-            <h2>Instructor-Only Session</h2>
+            <h3>Instructor-Only Session</h2>
             <p>
                 <a href='{% url 'create-assignment' course.id %}' class="btn btn-primary">Create a New Assignment</a>
             </p>

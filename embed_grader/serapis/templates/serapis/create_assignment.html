@@ -14,6 +14,7 @@
             {% csrf_token %}
             {{ form }}
             <input type="submit" value="Submit" />
+            <p style='color:red'>Please note that assignment is incomplete at this stage.</p>
         </form>
 
         <p><a href="{% url 'homepage' %}">[Go back]</a></p>

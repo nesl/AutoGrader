@@ -28,21 +28,6 @@ class UserProfile(models.Model):
     uid = models.CharField(max_length=20, unique=True, default = '123456789', verbose_name = "University ID")
 
 
-class HardwareTestBench(models.Model):
-    STATUS_TYPES = (
-        ('reserved','Reserved'),
-        ('avail', 'Available'),
-    )
-    status = models.CharField(
-        max_length=10,
-        choices=STATUS_TYPES,
-        default='avail',
-    )
-   
-    #IP Address. Only allowing IPv4 as the testers are internal
-    ip_address = models.GenericIPAddressField(protocol='IPv4')
-
-
 class HardwareTester(models.Model):
     TESTER_TYPES = (
         ('beagle', 'BeagleBone'),
@@ -57,10 +42,11 @@ class HardwareTester(models.Model):
     #Tester firmware will be saved to 'media/documents/tester_code/date/'
     firmware = models.FileField(upload_to='documents/tester_code/%Y/%m/%d')
 
-    testbench = models.ForeignKey(
-        HardwareTestBench,
-        on_delete=models.CASCADE,
-    )  
+    #TODO: remove testbench attribute (BHARATH, can you confirm this deletion?)
+    #testbench = models.ForeignKey(
+    #    HardwareTestBench,
+    #    on_delete=models.CASCADE,
+    #)  
 
    
 #Device Under Test (DUT) Model
@@ -77,10 +63,34 @@ class DUT(models.Model):
 
     #TODO Regex to check binary is correct
 
-    testbench = models.ForeignKey(
-        HardwareTestBench,
-        on_delete=models.CASCADE,
+    #TODO: remove testbench attribute (BHARATH, can you confirm this deletion?)
+    #testbench = models.ForeignKey(
+    #    HardwareTestBench,
+    #    on_delete=models.CASCADE,
+    #)
+
+
+class HardwareTestBench(models.Model):
+    STATUS_TYPES = (
+        ('reserved','Reserved'),
+        ('avail', 'Available'),
     )
+    #IP Address. Only allowing IPv4 as the testers are internal
+    ip_address = models.GenericIPAddressField(protocol='IPv4')
+    
+    tester_type = models.ForeignKey(HardwareTester, on_delete=models.CASCADE)
+    DUT1_type = models.ForeignKey(DUT, related_name='DUT1_type', on_delete=models.CASCADE)
+    DUT2_type = models.ForeignKey(DUT, related_name='DUT2_type', on_delete=models.CASCADE)
+    DUT_count = models.IntegerField()
+    # TODO: Wiring information
+    
+    # internal
+    status = models.CharField(
+        max_length=10,
+        choices=STATUS_TYPES,
+        default='avail',
+    )
+   
 
 #Wiring between DUT and Tester
 class TesterToDUTWiring(models.Model):
@@ -123,21 +133,26 @@ class Course(models.Model):
 
 
 class Assignment(models.Model):
+    # basic information
     course_id = models.ForeignKey(Course, on_delete = models.CASCADE)
     # TODO: permission only for instructor
     description = models.TextField()  # brief
-    # TODO: link to assignment page (do we need this?)
     release_time = models.DateTimeField()
     deadline = models.DateTimeField()
-    # TODO: tester type
-    # TODO: DUT type
-    DUT_count = models.IntegerField()
-    # TODO: Wiring information
+    problem_statement = models.TextField()
+    input_statement = models.TextField()
+    output_statement = models.TextField()
+
+    # testbench related
+    testbench_id = models.ForeignKey(HardwareTestBench, on_delete = models.CASCADE, default = None, null = True)
     # Testbenches are reserved using AssignmentTestBenches table
-    num_testbenches = models.IntegerField()
+    num_testbenches = models.IntegerField(default = None, null = True)
     
-    # TODO: status (what is this?)
+    # grading related
     # TODO: grading script
+
+    # internal
+    # TODO: status (completition of problem statement, is it ready to submit)
 
 
 class AssignmentTestBenches(models.Model):
