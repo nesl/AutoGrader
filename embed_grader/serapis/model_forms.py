@@ -53,6 +53,7 @@ class UserCreateForm(UserCreationForm):
         password1 = self.cleaned_data.get("password1")
         password2 = self.cleaned_data.get("password2")
 
+
 class CourseForm(ModelForm):
     class Meta:
         model = Course
@@ -77,7 +78,7 @@ class AssignmentCompleteForm(ModelForm):
     class Meta:
         model = Assignment
         fields = ['course_id', 'description', 'release_time', 'deadline', 'problem_statement', 'input_statement', 'output_statement',
-                'testbench_id', 'num_testbenches']
+                'testbed_type_id', 'num_testbeds']
         date_time_options = {
                 'format': 'mm/dd/yyyy hh:ii',
                 'autoclose': True,

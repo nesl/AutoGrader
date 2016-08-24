@@ -50,6 +50,7 @@ class HardwareTypePin(models.Model):
 class TestbedType(models.Model):
     name = models.CharField(max_length=50, null=True, blank=True)
 
+
 #Model that links the TestbedType to it's list of hardware types
 class TestbedHardwareList(models.Model):
     hardware_type = models.ForeignKey(
@@ -59,41 +60,21 @@ class TestbedHardwareList(models.Model):
     hardware_index = models.IntegerField()
     firmware = models.FileField(null=True,blank=True)
 
+
 #Wiring for the TestbedType
 class TestbedTypeWiring(models.Model):
     testbed_type = models.ForeignKey(
         TestbedType,
-        on_delete = model.CASCADE,
+        on_delete = models.CASCADE,
     )
     #The device index should match the index in TestbedHardwareList model
     dev_1_index = models.IntegerField()
-    dev_1_pin = models.ForeignKey(
-        HardwareTypePin,
-        on_delete = models.CASCADE,
-    )
+    dev_1_pin = models.ForeignKey(HardwareTypePin, related_name = 'dev_1_pin', on_delete = models.CASCADE)
     #The device index should match the index in TestbedHardwareList model
     dev_2_index = models.IntegerField()
-    dev_2_pin = models.ForeignKey(
-        HardwareTypePin,
-        on_delete = models.CASCADE,
-    )
+    dev_2_pin = models.ForeignKey(HardwareTypePin, related_name = 'dev_2_pin', on_delete = models.CASCADE)
 
-class HardwareDevice(models.Model):
-    hardware_type = models.ForeignKey(
-        HardwareType,
-        on_delete = models.CASCADE,
-    )
 
-    #Tester firmware will be saved to 'media/documents/tester_code/date/'
-    firmware = models.FileField(upload_to='documents/tester_code/%Y/%m/%d')
-
-    #TODO: remove testbench attribute (BHARATH, can you confirm this deletion?)
-    #testbench = models.ForeignKey(
-    #    HardwareTestBench,
-    #    on_delete=models.CASCADE,
-    #)  
-
-   
 class Testbed(models.Model):
     STATUS_TYPES = (
         ('reserved','Reserved'),
@@ -111,6 +92,16 @@ class Testbed(models.Model):
         default='avail',
     )
 
+
+class HardwareDevice(models.Model):
+    hardware_type = models.ForeignKey(
+        HardwareType,
+        on_delete = models.CASCADE,
+    )
+
+    testbed = models.ForeignKey(Testbed, on_delete=models.CASCADE)
+
+   
 class Course(models.Model):
     instructor_id = models.ForeignKey(UserProfile, on_delete = models.CASCADE)
     course_code = models.CharField(max_length = 10, default = '')
@@ -130,9 +121,9 @@ class Assignment(models.Model):
     output_statement = models.TextField()
 
     # testbench related
-    testbench_id = models.ForeignKey(HardwareTestBench, on_delete = models.CASCADE, default = None, null = True)
+    testbed_type_id = models.ForeignKey(TestbedType, on_delete = models.CASCADE, default = None, null = True)
     # Testbenches are reserved using AssignmentTestBenches table
-    num_testbenches = models.IntegerField(default = None, null = True)
+    num_testbeds = models.IntegerField(default = None, null = True)
     
     # grading related
     # TODO: grading script
@@ -141,9 +132,9 @@ class Assignment(models.Model):
     # TODO: status (completition of problem statement, is it ready to submit)
 
 
-class AssignmentTestBenches(models.Model):
+class AssignmentTestbed(models.Model):
     assignment_id = models.ForeignKey(Assignment, on_delete = models.CASCADE)
-    testbench_id = models.ForeignKey(HardwareTestBench, on_delete=models.CASCADE)
+    testbed_id = models.ForeignKey(Testbed, on_delete = models.CASCADE)
 
 
 class AssignmentTask(models.Model):
