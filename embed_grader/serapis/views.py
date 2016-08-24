@@ -127,9 +127,11 @@ def create_assignment(request, course_id):
     }
     return render(request, 'serapis/create_assignment.html', template_context)
 
+
 @login_required(login_url='/login/')
 def assignment(request, course_id):
     return HttpResponse("Under construction")
+
 
 @login_required(login_url='/login/')
 def modify_assignment(request, assignment_id):
@@ -164,3 +166,75 @@ def modify_assignment(request, assignment_id):
             'form': form.as_p(),
     }
     return render(request, 'serapis/modify_assignment.html', template_context)
+
+
+@login_required(login_url='/login/')
+def testbed_type_list(request):
+    username = request.user
+    user = User.objects.filter(username=username)[0]
+    user_profile = UserProfile.objects.filter(user=user)[0]
+    
+    if not user_profile.user_role == user_profile.ROLE_SUPER_USER and not user_profile.user_role == user_profile.ROLE_INSTRUCTOR and not user_profile.user_role == user_profile.ROLE_TA:
+        return HttpResponse("Not enough privilege")
+
+    testbed_type_list = TestbedType.objects.all()
+    template_context = {
+            'myuser': request.user,
+            'user_profile': user_profile,
+            'testbed_type_list': testbed_type_list,
+    }
+    return render(request, 'serapis/testbed_type_list.html', template_context)
+
+
+@login_required(login_url='/login/')
+def testbed_type(request, testbed_type_id):
+    return HttpResponse("Under construction")
+
+
+@login_required(login_url='/login/')
+def create_testbed_type(request):
+    return HttpResponse("Under construction")
+
+
+@login_required(login_url='/login/')
+def hardware_type_list(request):
+    username = request.user
+    user = User.objects.filter(username=username)[0]
+    user_profile = UserProfile.objects.filter(user=user)[0]
+    
+    if not user_profile.user_role == user_profile.ROLE_SUPER_USER and not user_profile.user_role == user_profile.ROLE_INSTRUCTOR and not user_profile.user_role == user_profile.ROLE_TA:
+        return HttpResponse("Not enough privilege")
+    
+    hardware_type_list = HardwareType.objects.all()
+    template_context = {
+            'myuser': request.user,
+            'user_profile': user_profile,
+            'hardware_type_list': hardware_type_list,
+    }
+    return render(request, 'serapis/hardware_type_list.html', template_context)
+
+
+@login_required(login_url='/login/')
+def create_hardware_type(request):
+    username = request.user
+    user = User.objects.filter(username=username)[0]
+    user_profile = UserProfile.objects.filter(user=user)[0]
+    
+    if not user_profile.user_role == user_profile.ROLE_SUPER_USER and not user_profile.user_role == user_profile.ROLE_INSTRUCTOR and not user_profile.user_role == user_profile.ROLE_TA:
+        return HttpResponse("Not enough privilege")
+
+    if request.method == 'POST':
+        form = HardwareTypeForm(request.POST)
+        #if form.is_valid():
+        #    assignment = form.save()
+        #    assignment.save()
+        #    return HttpResponseRedirect(reverse('course', args=(course_id)))
+    else:
+        form = HardwareTypeForm()
+
+    template_context = {
+            'myuser': request.user,
+            'user_profile': user_profile,
+            'form': form.as_p(),
+    }
+    return render(request, 'serapis/create_hardware_type.html', template_context)

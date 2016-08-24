@@ -1,0 +1,29 @@
+{% extends 'serapis/base.html' %}
+{% load staticfiles %}
+
+{% block css %}
+{% endblock %}
+
+
+{% block content %}
+    <div class="container">
+        <h1 class="page-header">Testbed Type Gallery (instructor only)</h1>
+        
+        {% if not testbed_type_list %}
+            <p>No testbed type has been added.</p>
+        {% else %}
+            <ul>
+                {% for testbed_type in testbed_type_list %}
+                    <li><a href="{% url 'testbed_type' testbed_type.id %}">{{ testbed_type.id }}</a></li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        <p>
+            <a href="{% url 'create-testbed-type' %}" class="btn btn-primary">Create a New Testbed Type</a>
+            <a href="{% url 'hardware-type-list' %}" class="btn btn-default">View Hardware Type List</a>
+        </p>
+
+    </div>
+
+{% endblock %}

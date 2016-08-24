@@ -1,0 +1,29 @@
+{% extends 'serapis/base.html' %}
+{% load staticfiles %}
+
+{% block css %}
+{% endblock %}
+
+
+{% block content %}
+    <div class="container">
+        <h1 class="page-header">Hardware Type Gallery (instructor only)</h1>
+        
+        {% if not hardware_type_list %}
+            <p>No hardware type has been specified.</p>
+        {% else %}
+            <ul>
+                {% for hardware_type in hardware_type_list %}
+                    <li><a href="{% url 'hardware_type' hardware_type.id %}">{{ hardware_type.name }}</a></li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        <p>
+            <a href="{% url 'create-hardware-type' %}" class="btn btn-primary">Create a New Hardware Type</a>
+            <a href="{% url 'testbed-type-list' %}" class="btn btn-default">View Testbed Type List</a>
+        </p>
+
+    </div>
+
+{% endblock %}

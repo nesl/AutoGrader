@@ -88,3 +88,9 @@ class AssignmentCompleteForm(ModelForm):
             'release_time': DateTimeWidget(bootstrap_version = 3, options = date_time_options),
             'deadline': DateTimeWidget(bootstrap_version = 3, options = date_time_options),
         }
+
+        
+class HardwareTypeForm(ModelForm):
+    class Meta:
+        model = HardwareType
+        fields = ['name', 'pinout', 'link_to_manual', 'hardware_role']
