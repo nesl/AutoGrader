@@ -9,9 +9,23 @@
     <div class="container">
         <h1 class="page-header">Create a Hardware Type</h1>
         
-        <form action="." method="post">
+        <form action="." method="post" enctype="multipart/form-data">
             {% csrf_token %}
-            {{ form }}
+            {{ hardware_form.as_p }}
+            <hr/>
+            {{ pin_formset.management_form }}
+            <div id='div_pins'>
+                {% for form in pin_formset %}
+                    {{ form.as_p }}
+                {% endfor %}
+            </div>
+            {% if pin_formset.non_form_errors %}
+                <ul style='color:red'>
+                    {% for error in pin_formset.non_form_errors %}
+                        <li>{{ error|escape }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
             <input type="submit" value="Submit" />
         </form>
 
@@ -20,5 +34,12 @@
             <a href="{% url 'hardware-type-list' %}">[Go back to hardware type list]</a>
         </p>
     </div>
-
+    <script type="text/javascript">
+        $(function() {
+            $('#div_pins p').formset({
+                addText: 'add pin',
+                deleteText: 'remove'
+            });
+        })
+    </script>
 {% endblock %}

@@ -6,6 +6,8 @@ from django.template import RequestContext
 from django.forms import modelform_factory
 from django import forms
 from django.core.urlresolvers import reverse
+from django.db import IntegrityError
+from django.db import transaction
 
 from serapis.models import *
 from serapis.model_forms import *
@@ -148,7 +150,9 @@ def modify_assignment(request, assignment_id):
     assignment = assignment_list[0]
 
     if request.method == 'POST':
-        pass
+        print(request.POST)
+        for key in request.POST:
+            print(key, request.POST[key])
     #    form = AssignmentBasicForm(request.POST)
     #    #if form.is_valid():
     #    #    assignment = form.save()
@@ -157,8 +161,9 @@ def modify_assignment(request, assignment_id):
     else:
         form = AssignmentCompleteForm(instance = assignment)
     
-    if not assignment.testbench_id:
-        form.fields.pop('num_testbenches')
+    if not assignment.testbed_type_id:
+        form.fields.pop('testbed_type_id')
+        form.fields.pop('num_testbeds')
 
     template_context = {
             'myuser': request.user,
@@ -215,6 +220,11 @@ def hardware_type_list(request):
 
 
 @login_required(login_url='/login/')
+def hardware_type(request):
+    return HttpResponse("Under construction")
+
+
+@login_required(login_url='/login/')
 def create_hardware_type(request):
     username = request.user
     user = User.objects.filter(username=username)[0]
@@ -224,17 +234,36 @@ def create_hardware_type(request):
         return HttpResponse("Not enough privilege")
 
     if request.method == 'POST':
-        form = HardwareTypeForm(request.POST)
-        #if form.is_valid():
-        #    assignment = form.save()
-        #    assignment.save()
-        #    return HttpResponseRedirect(reverse('course', args=(course_id)))
+        hardware_form = HardwareTypeForm(request.POST, request.FILES)
+        pin_formset = HardwareTypePinFormSet(request.POST)
+        print(hardware_form.is_valid(), pin_formset.is_valid())
+        if hardware_form.is_valid() and pin_formset.is_valid():
+            hardware = hardware_form.save()
+            #print(hardware)
+            #print(hardware.id)
+            hardware.save()
+            
+            hardware_pins = []
+            for form in pin_formset:
+                pin_name = form.cleaned_data.get('pin_name')
+                hardware_pins.append(HardwareTypePin(hardware_type=hardware, pin_name=pin_name))
+
+            try:
+                with transaction.atomic():
+                    HardwareTypePin.objects.filter(hardware_type=hardware).delete()
+                    HardwareTypePin.objects.bulk_create(hardware_pins)
+
+            except IntegrityError: #If the transaction failed
+                messages.error(request, 'There was an error saving your profile.')
+            return HttpResponseRedirect(reverse('hardware-type-list'))
     else:
-        form = HardwareTypeForm()
+        hardware_form = HardwareTypeForm()
+        pin_formset = HardwareTypePinFormSet()
 
     template_context = {
             'myuser': request.user,
             'user_profile': user_profile,
-            'form': form.as_p(),
+            'hardware_form': hardware_form,
+            'pin_formset': pin_formset,
     }
     return render(request, 'serapis/create_hardware_type.html', template_context)

@@ -18,6 +18,7 @@ urlpatterns = [
     url(r'^testbed-type/([0-9]+)/$', views.testbed_type, name='testbed-type'),
     url(r'^create-testbed-type/$', views.create_testbed_type, name='create-testbed-type'),
     url(r'^hardware-type-list/$', views.hardware_type_list, name='hardware-type-list'),
+    url(r'^hardware-type/([0-9]+)/$', views.hardware_type, name='hardware-type'),
     url(r'^create-hardware-type/$', views.create_hardware_type, name='create-hardware-type'),
     #url(r'^hardware-engine-list/$', views.hardware-engine_list, name='hardware-engine-list'),
     #url(r'^hardware-engine/([0-9]+)/$', views.hardware-engine, name='hardware-engine'),

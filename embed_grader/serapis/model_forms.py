@@ -1,11 +1,13 @@
-from django.forms import ModelForm
-from datetimewidget.widgets import DateTimeWidget
-
-from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 
+from django import forms
+from django.forms import ModelForm
+from django.forms import modelformset_factory
+from datetimewidget.widgets import DateTimeWidget
+
 from serapis.models import *
+
 
 class UserCreateForm(UserCreationForm):
     ROLE_SUPER_USER = 0
@@ -74,6 +76,7 @@ class AssignmentBasicForm(ModelForm):
             'deadline': DateTimeWidget(bootstrap_version = 3, options = date_time_options),
         }
 
+
 class AssignmentCompleteForm(ModelForm):
     class Meta:
         model = Assignment
@@ -94,3 +97,22 @@ class HardwareTypeForm(ModelForm):
     class Meta:
         model = HardwareType
         fields = ['name', 'pinout', 'link_to_manual', 'hardware_role']
+
+
+class HardwareTypePinFormSet(modelformset_factory(HardwareTypePin, fields=['pin_name'])):
+    def clean(self):
+        if any(self.errors):
+            return
+
+        pin_names = set()
+        for form in self.forms:
+            if not form.cleaned_data:
+                raise forms.ValidationError('Pin names cannot be an empty string.',
+                        code='missing_pin_name')
+            else:
+                pin_name = form.cleaned_data['pin_name']
+                if pin_name in pin_names:
+                    raise forms.ValidationError('No two pin names should be identical.',
+                            code='duplicated_pin_names')
+                pin_names.add(pin_name)
+

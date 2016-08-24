@@ -23,7 +23,28 @@
             <a href="{% url 'create-hardware-type' %}" class="btn btn-primary">Create a New Hardware Type</a>
             <a href="{% url 'testbed-type-list' %}" class="btn btn-default">View Testbed Type List</a>
         </p>
-
+        <table>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td><input type="input" value="25" /></td>
+              <td><input type="input" value="28" /></td>
+            </tr>
+            <tr>
+              <td>o</td>
+              <td>3</td>
+              <td>4</td>
+            </tr>
+            <tr>
+              <td>o</td>
+              <td>5</td>
+              <td>6</td>
+            </tr>  
+          </tbody>    
+        </table>
+        <script>
+          $('tbody').sortable();
+        </script>
     </div>
 
 {% endblock %}

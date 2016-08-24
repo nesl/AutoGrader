@@ -25,6 +25,7 @@ class UserProfile(models.Model):
     user_role = models.IntegerField(choices = USER_ROLES, default = ROLE_STUDENT)
     uid = models.CharField(max_length=20, unique=True, default = '123456789', verbose_name = "University ID")
 
+
 #Common model for both DUT and Hardware Engines
 class HardwareType(models.Model):
     HARDWARE_ENGINE = 0
@@ -34,18 +35,16 @@ class HardwareType(models.Model):
         (DEVICE_UNDER_TEST, 'Device Under Test'),
     )
     name = models.CharField(max_length=50)
-    pinout = models.FileField()
+    pinout = models.FileField(upload_to='uploaded_files/')
     link_to_manual = models.URLField()
     hardware_role = models.IntegerField(choices=HARDWARE_ROLES)
 
+
 class HardwareTypePin(models.Model):
-    hardware_type = models.ForeignKey(
-        HardwareType,
-        on_delete = models.CASCADE,
-    )
-    
+    hardware_type = models.ForeignKey(HardwareType, on_delete = models.CASCADE)
     pin_name = models.CharField(max_length=10)
-    
+
+
 #Model that encapsulates the entire Testbed, including the Hardware Engines and DUTs
 class TestbedType(models.Model):
     name = models.CharField(max_length=50, null=True, blank=True)
