@@ -3,8 +3,6 @@ from __future__ import unicode_literals
 from django.db import models
 from django.contrib.auth.models import User
 
-
-
 class UserProfile(models.Model):
     ROLE_SUPER_USER = 0
     ROLE_INSTRUCTOR = 10
@@ -27,16 +25,63 @@ class UserProfile(models.Model):
     user_role = models.IntegerField(choices = USER_ROLES, default = ROLE_STUDENT)
     uid = models.CharField(max_length=20, unique=True, default = '123456789', verbose_name = "University ID")
 
-
-class HardwareTester(models.Model):
-    TESTER_TYPES = (
-        ('beagle', 'BeagleBone'),
-        ('rpi3', 'RaspberryPi3')
+#Common model for both DUT and Hardware Engines
+class HardwareType(models.Model):
+    HARDWARE_ENGINE = 0
+    DEVICE_UNDER_TEST = 1
+    HARDWARE_ROLES = (
+        (HARDWARE_ENGINE, 'Hardware Engine'),
+        (DEVICE_UNDER_TEST, 'Device Under Test'),
     )
-    tester_type = models.CharField(
-        max_length = 10,
-        choices = TESTER_TYPES,
-        default = 'beagle'
+    name = models.CharField(max_length=50)
+    pinout = models.FileField()
+    link_to_manual = models.URLField()
+    hardware_role = models.IntegerField(choices=HARDWARE_ROLES)
+
+class HardwareTypePin(models.Model):
+    hardware_type = models.ForeignKey(
+        HardwareType,
+        on_delete = models.CASCADE,
+    )
+    
+    pin_name = models.CharField(max_length=10)
+    
+#Model that encapsulates the entire Testbed, including the Hardware Engines and DUTs
+class TestbedType(models.Model):
+    name = models.CharField(max_length=50, null=True, blank=True)
+
+#Model that links the TestbedType to it's list of hardware types
+class TestbedHardwareList(models.Model):
+    hardware_type = models.ForeignKey(
+        HardwareType,
+        on_delete=models.CASCADE,
+    ) 
+    hardware_index = models.IntegerField()
+    firmware = models.FileField(null=True,blank=True)
+
+#Wiring for the TestbedType
+class TestbedTypeWiring(models.Model):
+    testbed_type = models.ForeignKey(
+        TestbedType,
+        on_delete = model.CASCADE,
+    )
+    #The device index should match the index in TestbedHardwareList model
+    dev_1_index = models.IntegerField()
+    dev_1_pin = models.ForeignKey(
+        HardwareTypePin,
+        on_delete = models.CASCADE,
+    )
+    #The device index should match the index in TestbedHardwareList model
+    dev_2_index = models.IntegerField()
+    dev_2_pin = models.ForeignKey(
+        HardwareTypePin,
+        on_delete = models.CASCADE,
+    )
+
+class HardwareDevice(models.Model):
+    hardware_type = models.ForeignKey(
+        HardwareType,
+        on_delete = models.CASCADE,
     )
 
     #Tester firmware will be saved to 'media/documents/tester_code/date/'
@@ -49,40 +94,15 @@ class HardwareTester(models.Model):
     #)  
 
    
-#Device Under Test (DUT) Model
-class DUT(models.Model):
-    DUT_TYPES = (
-        ('mbed', 'mbed'),
-        ('ice40', 'Lattice iCE40'),
-    )
-    dut_type = models.CharField(
-        max_length = 10,
-        choices = DUT_TYPES,
-        default = 'mbed',
-    )
-
-    #TODO Regex to check binary is correct
-
-    #TODO: remove testbench attribute (BHARATH, can you confirm this deletion?)
-    #testbench = models.ForeignKey(
-    #    HardwareTestBench,
-    #    on_delete=models.CASCADE,
-    #)
-
-
-class HardwareTestBench(models.Model):
+class Testbed(models.Model):
     STATUS_TYPES = (
         ('reserved','Reserved'),
         ('avail', 'Available'),
     )
     #IP Address. Only allowing IPv4 as the testers are internal
     ip_address = models.GenericIPAddressField(protocol='IPv4')
-    
-    tester_type = models.ForeignKey(HardwareTester, on_delete=models.CASCADE)
-    DUT1_type = models.ForeignKey(DUT, related_name='DUT1_type', on_delete=models.CASCADE)
-    DUT2_type = models.ForeignKey(DUT, related_name='DUT2_type', on_delete=models.CASCADE)
-    DUT_count = models.IntegerField()
-    # TODO: Wiring information
+   
+    testbed_type = models.ForeignKey(TestbedType, on_delete=models.CASCADE)
     
     # internal
     status = models.CharField(
@@ -90,40 +110,6 @@ class HardwareTestBench(models.Model):
         choices=STATUS_TYPES,
         default='avail',
     )
-   
-
-#Wiring between DUT and Tester
-class TesterToDUTWiring(models.Model):
-    tester = models.ForeignKey(
-        HardwareTester,
-        on_delete=models.CASCADE,
-    )
-
-    tester_pin = models.CharField(max_length = 5)
-
-    dut = models.ForeignKey(
-        DUT,
-        on_delete=models.CASCADE,
-    )
-
-    dut_pin = models.CharField(max_length = 5)
-
-#Wiring between two DUTs
-class DUTToDUTWiring(models.Model):
-    DUT_first = models.ForeignKey(
-        DUT,
-        on_delete=models.CASCADE,
-        related_name='DUT_first'
-    )
-    DUT_first_pin = models.CharField(max_length=5)
-
-    DUT_second = models.ForeignKey(
-        DUT,
-        on_delete=models.CASCADE,
-        related_name='DUT_second'
-    )
-    DUT_second_pin = models.CharField(max_length=5)
-
 
 class Course(models.Model):
     instructor_id = models.ForeignKey(UserProfile, on_delete = models.CASCADE)
