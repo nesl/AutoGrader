@@ -79,6 +79,11 @@ def create_course(request):
 
 
 @login_required(login_url='/login/')
+def modify_course(request, course_id):
+    return HttpResponse("Under construction")
+
+
+@login_required(login_url='/login/')
 def course(request, course_id):
     username = request.user
     user = User.objects.filter(username=username)[0]
@@ -220,8 +225,28 @@ def hardware_type_list(request):
 
 
 @login_required(login_url='/login/')
-def hardware_type(request):
-    return HttpResponse("Under construction")
+def hardware_type(request, hardware_type_id):
+    username = request.user
+    user = User.objects.filter(username=username)[0]
+    user_profile = UserProfile.objects.filter(user=user)[0]
+    
+    if not user_profile.user_role == user_profile.ROLE_SUPER_USER and not user_profile.user_role == user_profile.ROLE_INSTRUCTOR and not user_profile.user_role == user_profile.ROLE_TA:
+        return HttpResponse("Not enough privilege")
+    
+    hardware_type_list = HardwareType.objects.filter(id=hardware_type_id)
+    if not hardware_type_list:
+        return HttpResponse("Hardware type cannot be found")
+    hardware_type = hardware_type_list[0]
+
+    hardware_type_pins = HardwareTypePin.objects.filter(hardware_type=hardware_type)
+
+    template_context = {
+            'myuser': request.user,
+            'user_profile': user_profile,
+            'hardware_type': hardware_type,
+            'hardware_type_pins': hardware_type_pins
+    }
+    return render(request, 'serapis/hardware_type.html', template_context)
 
 
 @login_required(login_url='/login/')
@@ -236,11 +261,8 @@ def create_hardware_type(request):
     if request.method == 'POST':
         hardware_form = HardwareTypeForm(request.POST, request.FILES)
         pin_formset = HardwareTypePinFormSet(request.POST)
-        print(hardware_form.is_valid(), pin_formset.is_valid())
         if hardware_form.is_valid() and pin_formset.is_valid():
             hardware = hardware_form.save()
-            #print(hardware)
-            #print(hardware.id)
             hardware.save()
             
             hardware_pins = []
@@ -258,7 +280,7 @@ def create_hardware_type(request):
             return HttpResponseRedirect(reverse('hardware-type-list'))
     else:
         hardware_form = HardwareTypeForm()
-        pin_formset = HardwareTypePinFormSet()
+        pin_formset = HardwareTypePinFormSet(queryset=HardwareTypePin.objects.none())
 
     template_context = {
             'myuser': request.user,
@@ -267,3 +289,8 @@ def create_hardware_type(request):
             'pin_formset': pin_formset,
     }
     return render(request, 'serapis/create_hardware_type.html', template_context)
+
+
+@login_required(login_url='/login/')
+def modify_hardware_type(request, hardware_id):
+    return HttpResponse("Under construction")

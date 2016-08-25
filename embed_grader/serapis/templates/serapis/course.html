@@ -35,6 +35,7 @@
             <hr/>
             <h3>Instructor-Only Session</h2>
             <p>
+                <a href='{% url 'modify-course' course.id %}' class="btn btn-primary">Change Course Description</a>
                 <a href='{% url 'create-assignment' course.id %}' class="btn btn-primary">Create a New Assignment</a>
             </p>
         {% endif %}

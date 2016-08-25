@@ -14,7 +14,7 @@
         {% else %}
             <ul>
                 {% for hardware_type in hardware_type_list %}
-                    <li><a href="{% url 'hardware_type' hardware_type.id %}">{{ hardware_type.name }}</a></li>
+                    <li><a href="{% url 'hardware-type' hardware_type.id %}">{{ hardware_type.name }}</a></li>
                 {% endfor %}
             </ul>
         {% endif %}

@@ -35,7 +35,7 @@ class HardwareType(models.Model):
         (DEVICE_UNDER_TEST, 'Device Under Test'),
     )
     name = models.CharField(max_length=50)
-    pinout = models.FileField(upload_to='uploaded_files/')
+    pinout = models.FileField(upload_to='uploaded_files')
     link_to_manual = models.URLField()
     hardware_role = models.IntegerField(choices=HARDWARE_ROLES)
 
