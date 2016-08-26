@@ -290,11 +290,10 @@ def create_testbed_type(request):
             js_dev_options.append({'val': idx, 'text': hardware.name})
             pins = HardwareTypePin.objects.filter(hardware_type=hardware)
             js_pin_options.append([{'val': p.id, 'text': p.pin_name} for p in pins])
-        print(js_dev_options)
-        print(js_pin_options)
         js_dev_string = json.dumps(js_dev_options)
         js_pin_string = json.dumps(js_pin_options)
-        # wiring
+        wiring_form = TestbedTypeWiringForm()
+        print(wiring_form)
         template_context = {
                 'myuser': request.user,
                 'user_profile': user_profile,

@@ -40,13 +40,29 @@
     </div>
 
     <script type="text/javascript">
+    {% autoescape off %}
         var dev_options = {{ js_dev_string }};
         var pin_options = {{ js_pin_string }};
+        function make_select(data) {
+            var s = $("<select />");
+            for (var i = 0; i < data.length; i++) {
+                op = data[i]
+                $("<option />", {value: op.val, text: op.text}).appendTo(s);
+            }
+            return s;
+        }
+        var sample_dev_select = make_select(dev_options);
+        var sample_pin_selects = [];
+        for (var i = 0; i < pin_options.length; i++) {
+            sample_pin_selects[i] = make_select(pin_options[i]);
+        }
+        
         $(function() {
             $('#he_list p').formset({
                 addText: 'Add hardware',
                 deleteText: 'Remove'
             });
         })
+    {% endautoescape %}
     </script>
 {% endblock %}

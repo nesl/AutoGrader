@@ -110,7 +110,7 @@ class CourseCreationForm(forms.ModelForm):
         YEAR_CHOICES = []
         for r in range(2015, (datetime.datetime.now().year+2)):
             YEAR_CHOICES.append((r,r))      
-        QUARTER_CHOICES = ((1, 'Fall'),(2, 'Winter'), (3, 'Fall'), (4, 'Summer'))
+        QUARTER_CHOICES = ((1, 'Fall'), (2, 'Winter'), (3, 'Fall'), (4, 'Summer'))
         widgets = {
                 'description': forms.Textarea(attrs={'cols': 40, 'rows': 5}),
                 'year': forms.Select(choices=YEAR_CHOICES),
@@ -177,6 +177,18 @@ class TestbedTypeForm(ModelForm):
     class Meta:
         model = TestbedType
         fields = ['name']
+
+
+class TestbedTypeWiringForm(ModelForm):
+    class Meta:
+        model = TestbedTypeWiring
+        fields = ['dev_1_index', 'dev_1_pin', 'dev_2_index', 'dev_2_pin']
+        widgets = {
+                'dev_1_index': forms.Select(),
+                'dev_1_pin': forms.Select(),
+                'dev_2_index': forms.Select(),
+                'dev_2_pin': forms.Select(),
+        }
 
 
 # TODO: Refactor the TestbedHardwareList{HE/DUT}Form classes and TestbedHardwareList{HE/DUT}FormSet classes
