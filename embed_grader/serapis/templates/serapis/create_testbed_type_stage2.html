@@ -13,6 +13,16 @@
             {% csrf_token %}
             <h3>General info</h3>
             {{ testbed_form }}
+            <h3>Device list</h3>
+            {{ hardware_formset.management_form }}
+            <div class="row">
+                {% for form_dev in zip_hardware_form_dev %}
+                    <div class="col-lg-4">
+                        {{ form_dev.0.as_p }}
+                        <p><img src="{{ MEDIA_URL }}{{ form_dev.1.pinout.url }}" style="width:100%" alt="" /></p>
+                    </div>
+                {% endfor %}
+            </div>
             <div class="row">
                 <div class="col-lg-6">
                     <h3>Hardware engine list</h3>
