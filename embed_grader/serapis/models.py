@@ -27,6 +27,10 @@ class UserProfile(models.Model):
     user_role = models.IntegerField(choices = USER_ROLES, default = ROLE_STUDENT)
     uid = models.CharField(max_length=20, unique=True, default = '123456789', verbose_name = "University ID")
 
+    #for activation of user. One time use
+    activation_key = models.CharField(max_length=40)
+    key_expires = models.DateTimeField()
+
     def __str__(self):
         return self.user.first_name + ' ' + self.user.last_name
 
@@ -127,7 +131,7 @@ class Course(models.Model):
     year = models.IntegerField(choices=YEAR_CHOICES, default=datetime.datetime.now().year)
 
     def __str__(self):
-        return self.course_code + ': ' + self.name 
+        return self.course_code + ': ' + self.name + ' ' + self.quarter + ' ' + self.year 
 
 
 class Assignment(models.Model):
