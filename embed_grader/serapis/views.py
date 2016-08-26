@@ -1,3 +1,5 @@
+import json
+
 from django.shortcuts import render
 from django.http import *
 from django.contrib.auth.decorators import login_required
@@ -280,14 +282,18 @@ def create_testbed_type(request):
             return HttpResponse('Something is wrong or system is being hacked /__\\')
 
         zip_hardware_form_dev = []
-        for form in hardware_formset:
-            print('FORM', form)
-            print('FORM DATA', form.fields['hardware_type'].__dict__)
-            print('FORM FINAL', form.cleaned_data.get('hardware_type'))
-            print()
-            zip_hardware_form_dev.append((form, form.cleaned_data.get('hardware_type')))
-            #print(form.data['hardware_type'])
-        print(zip_hardware_form_dev)
+        js_dev_options = []
+        js_pin_options = []
+        for idx, form in enumerate(hardware_formset):
+            hardware = form.cleaned_data.get('hardware_type')
+            zip_hardware_form_dev.append((form, hardware))
+            js_dev_options.append({'val': idx, 'text': hardware.name})
+            pins = HardwareTypePin.objects.filter(hardware_type=hardware)
+            js_pin_options.append([{'val': p.id, 'text': p.pin_name} for p in pins])
+        print(js_dev_options)
+        print(js_pin_options)
+        js_dev_string = json.dumps(js_dev_options)
+        js_pin_string = json.dumps(js_pin_options)
         # wiring
         template_context = {
                 'myuser': request.user,
@@ -295,6 +301,8 @@ def create_testbed_type(request):
                 'testbed_form': testbed_form,
                 'hardware_formset': hardware_formset,
                 'zip_hardware_form_dev': zip_hardware_form_dev,
+                'js_dev_string': js_dev_options,
+                'js_pin_string': js_pin_options,
         }
         return render(request, 'serapis/create_testbed_type_stage2.html', template_context)
 
