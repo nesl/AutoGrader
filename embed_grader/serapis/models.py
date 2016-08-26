@@ -28,8 +28,8 @@ class UserProfile(models.Model):
     uid = models.CharField(max_length=20, unique=True, default = '123456789', verbose_name = "University ID")
 
     #for activation of user. One time use
-    activation_key = models.CharField(max_length=40)
-    key_expires = models.DateTimeField()
+    activation_key = models.CharField(max_length=40, null=True, blank=True)
+    key_expires = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return self.user.first_name + ' ' + self.user.last_name
