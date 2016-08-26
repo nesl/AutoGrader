@@ -122,7 +122,7 @@ class Course(models.Model):
     name = models.CharField(max_length = 100, default = '')
     description = models.TextField()
     quarter = models.IntegerField(choices=QUARTER_TYPES)
-    year = models.IntegerField(_(choices=YEAR_CHOICES, default=datetime.datetime.now().year)
+    year = models.IntegerField(choices=YEAR_CHOICES, default=datetime.datetime.now().year)
 
 
 class Assignment(models.Model):
