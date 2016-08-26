@@ -52,12 +52,9 @@ class TestbedType(models.Model):
 
 #Model that links the TestbedType to it's list of hardware types
 class TestbedHardwareList(models.Model):
-    hardware_type = models.ForeignKey(
-        HardwareType,
-        on_delete=models.CASCADE,
-    ) 
+    hardware_type = models.ForeignKey(HardwareType, on_delete=models.CASCADE) 
     hardware_index = models.IntegerField()
-    firmware = models.FileField(null=True,blank=True)
+    firmware = models.FileField(null=True, blank=True)
 
 
 #Wiring for the TestbedType

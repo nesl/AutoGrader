@@ -4,6 +4,8 @@ from django.contrib.auth.forms import UserCreationForm
 from django import forms
 from django.forms import ModelForm
 from django.forms import modelformset_factory
+from django.forms import formset_factory
+from django.forms.widgets import HiddenInput
 from datetimewidget.widgets import DateTimeWidget
 
 from serapis.models import *
@@ -93,6 +95,65 @@ class AssignmentCompleteForm(ModelForm):
         }
 
         
+class TestbedTypeForm(ModelForm):
+    class Meta:
+        model = TestbedType
+        fields = ['name']
+
+
+# TODO: Refactor the TestbedHardwareList{HE/DUT}Form classes and TestbedHardwareList{HE/DUT}FormSet classes
+#       as they are basically duplicated
+class TestbedHardwareListHEForm(ModelForm):
+    class Meta:
+        model = TestbedHardwareList
+        fields = ['hardware_type']
+    
+    def __init__(self, *args, **kwargs):
+        super(TestbedHardwareListHEForm, self).__init__(*args, **kwargs)
+        self.fields['hardware_type'].queryset = HardwareType.objects.filter(hardware_role=HardwareType.HARDWARE_ENGINE)
+        self.fields['hardware_type'].label_from_instance = lambda obj: obj.name
+
+
+class TestbedHardwareListDUTForm(ModelForm):
+    class Meta:
+        model = TestbedHardwareList
+        fields = ['hardware_type']
+    
+    def __init__(self, *args, **kwargs):
+        super(TestbedHardwareListDUTForm, self).__init__(*args, **kwargs)
+        self.fields['hardware_type'].queryset = HardwareType.objects.filter(hardware_role=HardwareType.DEVICE_UNDER_TEST)
+        self.fields['hardware_type'].label_from_instance = lambda obj: obj.name
+
+
+class TestbedHardwareListHEFormSet(formset_factory(TestbedHardwareListHEForm)):
+    def clean(self):
+        if any(self.errors):
+            return
+
+
+class TestbedHardwareListDUTFormSet(formset_factory(TestbedHardwareListDUTForm)):
+    def clean(self):
+        if any(self.errors):
+            return
+
+
+class TestbedHardwareListAllForm(ModelForm):
+    class Meta:
+        model = TestbedHardwareList
+        fields = ['hardware_type', 'hardware_index']
+    
+    def __init__(self, *args, **kwargs):
+        super(TestbedHardwareListAllForm, self).__init__(*args, **kwargs)
+        self.fields['hardware_type'].widget = HiddenInput()
+        self.fields['hardware_index'].widget = HiddenInput()
+
+
+class TestbedHardwareListAllFormSet(formset_factory(TestbedHardwareListAllForm)):
+    def clean(self):
+        if any(self.errors):
+            return
+
+
 class HardwareTypeForm(ModelForm):
     class Meta:
         model = HardwareType

@@ -1,0 +1,57 @@
+{% extends 'serapis/base.html' %}
+{% load staticfiles %}
+
+{% block css %}
+{% endblock %}
+
+
+{% block content %}
+    <div class="container">
+        <h1 class="page-header">Create a testbed (step 2/2)</h1>
+
+        <form action="." method="post">
+            {% csrf_token %}
+            <h3>General info</h3>
+            {{ testbed_form }}
+            <div class="row">
+                <div class="col-lg-6">
+                    <h3>Hardware engine list</h3>
+                    {{ he_formset.management_form }}
+                    <div id='he_list'>
+                        {% for form in he_formset %}
+                            {{ form.as_p }}
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <h3>DUT list</h3>
+                    {{ dut_formset.management_form }}
+                    <div id='dut_list'>
+                        {% for form in dut_formset %}
+                            {{ form.as_p }}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <input type="submit" value="Submit" />
+        </form>
+
+        <p><a href="{% url 'homepage' %}">[Go back]</a></p>
+    </div>
+
+    <script type="text/javascript">
+        $(function() {
+            $('#he_list p').formset({
+                addText: 'Add hardware',
+                deleteText: 'Remove'
+            });
+        })
+        $(function() {
+            $('#dut_list p').formset({
+                addText: 'Add hardware',
+                deleteText: 'Remove'
+            });
+        })
+    </script>
+{% endblock %}

@@ -203,7 +203,85 @@ def testbed_type(request, testbed_type_id):
 
 @login_required(login_url='/login/')
 def create_testbed_type(request):
-    return HttpResponse("Under construction")
+    username = request.user
+    user = User.objects.filter(username=username)[0]
+    user_profile = UserProfile.objects.filter(user=user)[0]
+    
+    if not user_profile.user_role == user_profile.ROLE_SUPER_USER and not user_profile.user_role == user_profile.ROLE_INSTRUCTOR and not user_profile.user_role == user_profile.ROLE_TA:
+        return HttpResponse("Not enough privilege")
+
+    was_in_stage = 1
+    if request.method == 'POST' and 'stage2' in request.POST:
+        was_in_stage = 2
+
+    if was_in_stage == 1:
+        render_stage = 1
+        if request.method == 'POST':
+            testbed_form = TestbedTypeForm(request.POST, prefix='testbed')
+            he_formset = TestbedHardwareListHEFormSet(request.POST, prefix='he')
+            dut_formset = TestbedHardwareListDUTFormSet(request.POST, prefix='dut')
+            #request.POST = QueryDict('people=Aaron&people=Randy&people=Chris&people=Andrew&message=Hello!')
+            #print(request.POST)
+            
+            #dict = {'a': 'one', 'b': 'two', }
+            #qdict = QueryDict('', mutable=True)
+            #qdict.update(dict)
+            #request.POST = qdict
+            #print(request.POST)
+
+            print(testbed_form.is_valid(), he_formset.is_valid(), dut_formset.is_valid())
+            if testbed_form.is_valid() and he_formset.is_valid() and dut_formset.is_valid():
+                tmp_dict = request.POST.dict()
+                num_he = int(tmp_dict['he-TOTAL_FORMS'])
+                num_dut = int(tmp_dict['dut-TOTAL_FORMS'])
+                num_hardware = 0
+                for i in range(num_he):
+                    t_src_k = 'he-%d-hardware_type' % i
+                    t_dst_k = 'hardware-%d-hardware_type' % num_hardware
+                    tmp_dict[t_dst_k] = tmp_dict[t_src_k]
+                    t_dst_k = 'hardware-%d-hardware_index' % num_hardware
+                    tmp_dict[t_dst_k] = str(num_hardware)
+                    num_hardware += 1
+                tmp_dict['hardware-INITIAL_FORMS'] = '0'
+                tmp_dict['hardware-TOTAL_FORMS'] = str(num_hardware)
+                tmp_dict['hardware-MIN_NUM_FORMS'] = '0'
+                tmp_dict['hardware-MAX_NUM_FORMS'] = str(num_hardware)
+                qdict = QueryDict('', mutable=True)
+                qdict.update(tmp_dict)
+                request.POST = qdict
+                render_stage = 2
+                print(request.POST)
+                #assignment = form.save()
+                #assignment.save()
+                #return HttpResponseRedirect(reverse('course', args=(course_id)))
+    elif was_in_stage == 2:
+        render_stage = 2
+        # if everything is valid
+        #     return HttpResponseRedirect(reverse('testbed-type-list'))
+        
+    if render_stage == 1:
+        testbed_form = TestbedTypeForm(prefix='testbed')
+        he_formset = TestbedHardwareListHEFormSet(prefix='he')
+        dut_formset = TestbedHardwareListDUTFormSet(prefix='dut')
+        template_context = {
+                'myuser': request.user,
+                'user_profile': user_profile,
+                'testbed_form': testbed_form,
+                'he_formset': he_formset,
+                'dut_formset': dut_formset,
+        }
+        return render(request, 'serapis/create_testbed_type_stage1.html', template_context)
+    elif render_stage == 2:
+        testbed_form = TestbedTypeForm(request.POST, prefix='testbed')
+        hardware_formset = TestbedHardwareListAllFormSet(request.POST, prefix='hardware')
+        # wiring
+        print(hardware_formset)
+        template_context = {
+                'myuser': request.user,
+                'user_profile': user_profile,
+                'hardware_formset': hardware_formset,
+        }
+        return render(request, 'serapis/create_testbed_type_stage2.html', template_context)
 
 
 @login_required(login_url='/login/')
