@@ -105,17 +105,17 @@ class CourseCreationForm(forms.ModelForm):
     }
 
     class Meta:
-      model = Course
-      fields = ['course_code', 'name', 'quarter', 'year', 'description']
-      YEAR_CHOICES = []
-      for r in range(2015, (datetime.datetime.now().year+2)):
-        YEAR_CHOICES.append((r,r))      
-      QUARTER_CHOICES = ((1, 'Fall'),(2, 'Winter'), (3, 'Fall'), (4, 'Summer'))
-      widgets = {
-            'description': Textarea(attrs={'cols': 40, 'rows': 5}),
-            'year': forms.Select(choices=YEAR_CHOICES),
-            'quarter': forms.Select(choices=QUARTER_CHOICES)
-      }
+        model = Course
+        fields = ['course_code', 'name', 'quarter', 'year', 'description']
+        YEAR_CHOICES = []
+        for r in range(2015, (datetime.datetime.now().year+2)):
+            YEAR_CHOICES.append((r,r))      
+        QUARTER_CHOICES = ((1, 'Fall'),(2, 'Winter'), (3, 'Fall'), (4, 'Summer'))
+        widgets = {
+                'description': forms.Textarea(attrs={'cols': 40, 'rows': 5}),
+                'year': forms.Select(choices=YEAR_CHOICES),
+                'quarter': forms.Select(choices=QUARTER_CHOICES)
+        }
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)

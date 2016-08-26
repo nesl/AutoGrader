@@ -13,26 +13,25 @@
             {% csrf_token %}
             <h3>General info</h3>
             {{ testbed_form }}
+            <h3>Device list</h3>
+            {{ hardware_formset.management_form }}
             <div class="row">
-                <div class="col-lg-6">
-                    <h3>Hardware engine list</h3>
-                    {{ he_formset.management_form }}
-                    <div id='he_list'>
-                        {% for form in he_formset %}
-                            {{ form.as_p }}
-                        {% endfor %}
+                {% for form_dev in zip_hardware_form_dev %}
+                    <div class="col-lg-4">
+                        {{ form_dev.0.as_p }}
+                        <p><img src="{{ MEDIA_URL }}{{ form_dev.1.pinout.url }}" style="width:100%" alt="" /></p>
+                        <p>{{ form_dev.1.get_hardware_role_display }}</p>
+                        <p>{{ form_dev.1.name }}</p>
                     </div>
-                </div>
-                <div class="col-lg-6">
-                    <h3>DUT list</h3>
-                    {{ dut_formset.management_form }}
+                {% endfor %}
+            </div>
+            
+            <h3>Wiring</h3>
                     <div id='dut_list'>
                         {% for form in dut_formset %}
                             {{ form.as_p }}
                         {% endfor %}
                     </div>
-                </div>
-            </div>
 
             <input type="submit" value="Submit" />
         </form>
@@ -41,14 +40,10 @@
     </div>
 
     <script type="text/javascript">
+        var dev_options = {{ js_dev_string }};
+        var pin_options = {{ js_pin_string }};
         $(function() {
             $('#he_list p').formset({
-                addText: 'Add hardware',
-                deleteText: 'Remove'
-            });
-        })
-        $(function() {
-            $('#dut_list p').formset({
                 addText: 'Add hardware',
                 deleteText: 'Remove'
             });
