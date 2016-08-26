@@ -114,7 +114,7 @@ class Course(models.Model):
 
     #Django does not support years field by default. So this is a hack to get a list of valid years.
     YEAR_CHOICES = []
-    for r in range(1980, (datetime.datetime.now().year+1)):
+    for r in range(1980, (datetime.datetime.now().year+2)):
         YEAR_CHOICES.append((r,r))
 
     instructor_id = models.ForeignKey(UserProfile, on_delete = models.CASCADE)
@@ -122,7 +122,7 @@ class Course(models.Model):
     name = models.CharField(max_length = 100, default = '')
     description = models.TextField()
     quarter = models.IntegerField(choices=QUARTER_TYPES)
-    year = models.IntegerField(_('year'), max_length=4, choices=YEAR_CHOICES, default=datetime.datetime.now().year)
+    year = models.IntegerField(_(choices=YEAR_CHOICES, default=datetime.datetime.now().year)
 
 
 class Assignment(models.Model):
