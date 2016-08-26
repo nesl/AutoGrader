@@ -27,6 +27,8 @@ class UserProfile(models.Model):
     user_role = models.IntegerField(choices = USER_ROLES, default = ROLE_STUDENT)
     uid = models.CharField(max_length=20, unique=True, default = '123456789', verbose_name = "University ID")
 
+    def __str__(self):
+        return self.user.first_name + ' ' + self.user.last_name
 
 #Common model for both DUT and Hardware Engines
 class HardwareType(models.Model):
@@ -114,7 +116,7 @@ class Course(models.Model):
 
     #Django does not support years field by default. So this is a hack to get a list of valid years.
     YEAR_CHOICES = []
-    for r in range(1980, (datetime.datetime.now().year+2)):
+    for r in range(2015, (datetime.datetime.now().year+2)):
         YEAR_CHOICES.append((r,r))
 
     instructor_id = models.ForeignKey(UserProfile, on_delete = models.CASCADE)
@@ -124,12 +126,16 @@ class Course(models.Model):
     quarter = models.IntegerField(choices=QUARTER_TYPES, default=FALL)
     year = models.IntegerField(choices=YEAR_CHOICES, default=datetime.datetime.now().year)
 
+    def __str__(self):
+        return self.course_code + ': ' + self.name 
+
 
 class Assignment(models.Model):
     # basic information
     course_id = models.ForeignKey(Course, on_delete = models.CASCADE)
     # TODO: permission only for instructor
-    description = models.TextField()  # brief
+    name = models.CharField(max_length=50)
+    description = models.TextField(default='')  # brief
     release_time = models.DateTimeField()
     deadline = models.DateTimeField()
     problem_statement = models.TextField()
@@ -147,6 +153,8 @@ class Assignment(models.Model):
     # internal
     # TODO: status (completition of problem statement, is it ready to submit)
 
+    def __str__(self):
+        return self.name
 
 class AssignmentTestbed(models.Model):
     assignment_id = models.ForeignKey(Assignment, on_delete = models.CASCADE)
