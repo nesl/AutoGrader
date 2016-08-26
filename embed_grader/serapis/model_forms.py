@@ -1,29 +1,28 @@
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from django.contrib.auth.forms import UserCreationForm
 
 from django import forms
-from django.forms import ModelForm
+from django.forms import ModelForm, Textarea
 from django.forms import modelformset_factory
 from django.forms import formset_factory
 from django.forms.widgets import HiddenInput
-from datetimewidget.widgets import DateTimeWidget
-
+from datetimewidget.widgets import DateTimeWidget, DateWidget, TimeWidget
+from django.template.loader import get_template
+from django.template import Context
 from django.core.mail import send_mail
 
 from serapis.models import *
 
+from datetime import datetime, timedelta
+
 
 class UserCreateForm(UserCreationForm):
-    ROLE_SUPER_USER = 0
     ROLE_INSTRUCTOR = 10
     ROLE_TA = 11
-    ROLE_GRADER = 12
     ROLE_STUDENT = 20
     USER_ROLES = (
-            (ROLE_SUPER_USER, 'Super user'),
             (ROLE_INSTRUCTOR, 'Instructor'),
             (ROLE_TA, 'TA'),
-            (ROLE_GRADER, 'Grader'),
             (ROLE_STUDENT, 'Student'),
     )
     MIN_LENGTH = 8
@@ -90,9 +89,18 @@ class UserCreateForm(UserCreationForm):
             user.save()
         role = self.cleaned_data['user_role']
         role_string = dict(self.USER_ROLES).get(int(role))
-        user_profile = UserProfile(user=user, uid=self.cleaned_data['uid'],
-            user_role=role)
+        user_profile = UserProfile(user=user, 
+                                   uid=self.cleaned_data['uid'],
+                                   user_role=role,
+                                   activation_key=datas['activation_key'],
+                                   key_expires=datetime.strftime(datetime.now() + timedelta(days=2), "%Y-%m-%d %H:%M:%S") 
+                                  )
         user_profile.save()
+        group = Group.objects.get(name=role_string)
+        group.user_set.add(user)
+        return user, user_profile
+
+
 
 class CourseForm(ModelForm):
     class Meta:
@@ -108,7 +116,7 @@ class CourseCreationForm(forms.ModelForm):
         model = Course
         fields = ['course_code', 'name', 'quarter', 'year', 'description']
         YEAR_CHOICES = []
-        for r in range(2015, (datetime.datetime.now().year+2)):
+        for r in range(2015, (datetime.now().year+2)):
             YEAR_CHOICES.append((r,r))      
         QUARTER_CHOICES = ((1, 'Fall'),(2, 'Winter'), (3, 'Fall'), (4, 'Summer'))
         widgets = {
