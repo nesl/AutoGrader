@@ -121,7 +121,7 @@ class Course(models.Model):
     course_code = models.CharField(max_length = 10, default = '')
     name = models.CharField(max_length = 100, default = '')
     description = models.TextField()
-    quarter = models.IntegerField(choices=QUARTER_TYPES)
+    quarter = models.IntegerField(choices=QUARTER_TYPES, default=FALL)
     year = models.IntegerField(choices=YEAR_CHOICES, default=datetime.datetime.now().year)
 
 
