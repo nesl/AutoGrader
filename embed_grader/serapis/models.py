@@ -3,6 +3,8 @@ from __future__ import unicode_literals
 from django.db import models
 from django.contrib.auth.models import User
 
+import datetime
+
 class UserProfile(models.Model):
     ROLE_SUPER_USER = 0
     ROLE_INSTRUCTOR = 10
@@ -99,10 +101,28 @@ class HardwareDevice(models.Model):
 
    
 class Course(models.Model):
+    FALL = 0
+    WINTER = 1
+    SPRING = 2
+    SUMMER = 3
+    QUARTER_TYPES = (
+        (FALL, 'Fall'),
+        (WINTER, 'Winter'),
+        (SPRING, 'Spring'),
+        (SUMMER, 'Summer'),
+    )
+
+    #Django does not support years field by default. So this is a hack to get a list of valid years.
+    YEAR_CHOICES = []
+    for r in range(1980, (datetime.datetime.now().year+1)):
+        YEAR_CHOICES.append((r,r))
+
     instructor_id = models.ForeignKey(UserProfile, on_delete = models.CASCADE)
     course_code = models.CharField(max_length = 10, default = '')
     name = models.CharField(max_length = 100, default = '')
     description = models.TextField()
+    quarter = models.IntegerField(choices=QUARTER_TYPES)
+    year = models.IntegerField(_('year'), max_length=4, choices=YEAR_CHOICES, default=datetime.datetime.now().year)
 
 
 class Assignment(models.Model):
