@@ -8,6 +8,8 @@ from django.forms import formset_factory
 from django.forms.widgets import HiddenInput
 from datetimewidget.widgets import DateTimeWidget
 
+from django.core.mail import send_mail
+
 from serapis.models import *
 
 
@@ -40,7 +42,7 @@ class UserCreateForm(UserCreationForm):
 
     class Meta:
         model = User
-        fields = ['username', 'email']
+        fields = ['first_name', 'last_name', 'username', 'email']
 
     def clean_email(self):
         email = self.cleaned_data.get("email")
@@ -56,12 +58,88 @@ class UserCreateForm(UserCreationForm):
     def clean_password2(self):
         password1 = self.cleaned_data.get("password1")
         password2 = self.cleaned_data.get("password2")
+        if password1 and password2 and password1 != password2:
+            raise forms.ValidationError(
+                self.error_messages['password_mismatch'],
+                code='password_mismatch',
+            )
+        # At least MIN_LENGTH
+        elif len(password1) < self.MIN_LENGTH:
+            raise forms.ValidationError("The new password must be at least %d characters long." % self.MIN_LENGTH)
 
+        # At least one letter and one non-letter
+        first_isalpha = password1[0].isalpha()
+        if all(c.isalpha() == first_isalpha for c in password1):
+            raise forms.ValidationError("The new password must contain at least one letter and at least one digit or" \
+                                        " punctuation character.")
+        return password2
+
+    def sendEmail(self, datas):
+        link="http://128.97.93.16:8000/activate/"+datas['activation_key']
+        template = get_template(datas['email_path'])
+        context = Context({'activation_link':link,'uid':datas['uid']})
+        message = template.render(context)
+        #print unicode(message).encode('utf8')
+        send_mail(datas['email_subject'], message, 'NESL Embed AutoGrader', [datas['email']], fail_silently=False)
+
+    def save(self, datas, commit=True):
+        user = super(UserCreateForm, self).save(commit=False)
+        user.set_password(self.cleaned_data['password1'])
+        user.is_active = False
+        if commit:
+            user.save()
+        role = self.cleaned_data['user_role']
+        role_string = dict(self.USER_ROLES).get(int(role))
+        user_profile = UserProfile(user=user, uid=self.cleaned_data['uid'],
+            user_role=role)
+        user_profile.save()
 
 class CourseForm(ModelForm):
     class Meta:
         model = Course
         fields = ['instructor_id', 'course_code', 'name', 'description']
+
+class CourseCreationForm(forms.ModelForm):
+    error_messages = {
+        'course_already_created': "Course already exists. Please modify the existing course or ask admin to delete it.",
+    }
+
+    class Meta:
+      model = Course
+      fields = ['course_code', 'name', 'quarter', 'year', 'description']
+      YEAR_CHOICES = []
+      for r in range(2015, (datetime.datetime.now().year+2)):
+        YEAR_CHOICES.append((r,r))      
+      QUARTER_CHOICES = ((1, 'Fall'),(2, 'Winter'), (3, 'Fall'), (4, 'Summer'))
+      widgets = {
+            'description': Textarea(attrs={'cols': 40, 'rows': 5}),
+            'year': forms.Select(choices=YEAR_CHOICES),
+            'quarter': forms.Select(choices=QUARTER_CHOICES)
+      }
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super(CourseCreationForm, self).__init__(*args, **kwargs)
+
+    def clean(self):
+        a = self.cleaned_data.get("course_code")
+        b = str(self.cleaned_data.get("year"))
+        c = str(self.cleaned_data.get("quarter"))
+        if Group.objects.filter(name=a+b+c).count():
+            raise forms.ValidationError(self.error_messages['course_already_created'],
+                code='course_already_created')
+        return self.cleaned_data
+
+    def save(self, commit=True):
+        a = self.cleaned_data['course_code']
+        b = str(self.cleaned_data['year'])
+        c = str(self.cleaned_data['quarter'])
+        course = super(CourseCreationForm, self).save(commit=False)
+        group = Group.objects.create(name=a+'_'+b+'_'+c)
+        group.user_set.add(self.user)
+        if commit:
+          course.save()
+        return course
 
 
 class AssignmentBasicForm(ModelForm):
