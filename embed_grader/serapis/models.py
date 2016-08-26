@@ -127,7 +127,7 @@ class Course(models.Model):
     year = models.IntegerField(choices=YEAR_CHOICES, default=datetime.datetime.now().year)
 
     def __str__(self):
-        return self.course_code + ': ' + self.name 
+        return self.course_code + ': ' + self.name + ' ' + self.quarter + ' ' + self.year 
 
 
 class Assignment(models.Model):
