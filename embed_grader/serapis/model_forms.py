@@ -199,6 +199,12 @@ class TestbedTypeWiringForm(ModelForm):
         }
 
 
+class TestbedTypeWiringFormSet(formset_factory(TestbedTypeWiringForm)):
+    def clean(self):
+        if any(self.errors):
+            return
+
+
 # TODO: Refactor the TestbedHardwareList{HE/DUT}Form classes and TestbedHardwareList{HE/DUT}FormSet classes
 #       as they are basically duplicated
 class TestbedHardwareListHEForm(ModelForm):
