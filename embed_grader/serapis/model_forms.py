@@ -105,7 +105,7 @@ class UserCreateForm(UserCreationForm):
 class CourseForm(ModelForm):
     class Meta:
         model = Course
-        fields = ['instructor_id', 'course_code', 'name', 'description']
+        fields = ['owner_id', 'course_code', 'name', 'description']
 
 class CourseCreationForm(ModelForm):
     error_messages = {
@@ -153,8 +153,7 @@ class CourseCreationForm(ModelForm):
 
 class CourseEnrollForm(Form):
     current_year = datetime.now().year
-    list_of_courses = Course.objects.filter(year=current_year) 
-    course_select = forms.ChoiceField(choices=list_of_courses)
+    course_select = forms.ModelChoiceField(queryset=Course.objects.filter(year=current_year))
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)

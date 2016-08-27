@@ -128,9 +128,9 @@ def create_course(request):
             course.save()
             return HttpResponseRedirect(reverse('homepage'))
     else:
-        form = CourseForm(initial={'instructor_id': user_profile})
+        form = CourseForm(initial={'owner_id': user})
     
-    form.fields['instructor_id'].widget = forms.NumberInput(attrs={'readonly':'readonly'})
+    form.fields['owner_id'].widget = forms.NumberInput(attrs={'readonly':'readonly'})
 
     template_context = {
             'myuser': request.user,
