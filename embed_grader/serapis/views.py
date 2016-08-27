@@ -122,7 +122,7 @@ def create_course(request):
         return HttpResponse("Not enough privilege")
 
     if request.method == 'POST':
-        form = CourseForm(request.POST)
+        form = CourseCreationForm(request.POST)
         if form.is_valid():
             course = form.save()
             course.save()
@@ -348,7 +348,6 @@ def create_testbed_type(request):
     elif render_stage == 2:
         testbed_form = TestbedTypeForm(request.POST, prefix='testbed')
         hardware_formset = TestbedHardwareListAllFormSet(request.POST, prefix='hardware')
-        print(hardware_formset)
         if not hardware_formset.is_valid():
             return HttpResponse('Something is wrong or system is being hacked /__\\')
 
@@ -363,8 +362,7 @@ def create_testbed_type(request):
             js_pin_options.append([{'val': p.id, 'text': p.pin_name} for p in pins])
         js_dev_string = json.dumps(js_dev_options)
         js_pin_string = json.dumps(js_pin_options)
-        wiring_form = TestbedTypeWiringForm()
-        print(wiring_form)
+        wiring_formset = TestbedTypeWiringFormSet(request.POST, prefix='wire')
         template_context = {
                 'myuser': request.user,
                 'user_profile': user_profile,
@@ -373,6 +371,7 @@ def create_testbed_type(request):
                 'zip_hardware_form_dev': zip_hardware_form_dev,
                 'js_dev_string': js_dev_options,
                 'js_pin_string': js_pin_options,
+                'wiring_formset': wiring_formset,
         }
         return render(request, 'serapis/create_testbed_type_stage2.html', template_context)
 

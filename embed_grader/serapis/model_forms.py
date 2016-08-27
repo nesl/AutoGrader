@@ -100,8 +100,6 @@ class UserCreateForm(UserCreationForm):
         group.user_set.add(user)
         return user, user_profile
 
-
-
 class CourseForm(ModelForm):
     class Meta:
         model = Course
@@ -114,7 +112,7 @@ class CourseCreationForm(ModelForm):
 
     class Meta:
         model = Course
-        fields = ['course_code', 'name', 'quarter', 'year', 'description']
+        fields = ['owner_id', 'course_code', 'name', 'quarter', 'year', 'description']
         YEAR_CHOICES = []
         for r in range(2015, (datetime.now().year+2)):
             YEAR_CHOICES.append((r,r))      
@@ -213,6 +211,12 @@ class TestbedTypeWiringForm(ModelForm):
                 'dev_2_index': forms.Select(),
                 'dev_2_pin': forms.Select(),
         }
+
+
+class TestbedTypeWiringFormSet(formset_factory(TestbedTypeWiringForm)):
+    def clean(self):
+        if any(self.errors):
+            return
 
 
 # TODO: Refactor the TestbedHardwareList{HE/DUT}Form classes and TestbedHardwareList{HE/DUT}FormSet classes

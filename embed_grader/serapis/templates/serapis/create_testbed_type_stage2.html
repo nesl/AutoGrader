@@ -27,11 +27,16 @@
             </div>
             
             <h3>Wiring</h3>
-                    <div id='dut_list'>
-                        {% for form in dut_formset %}
-                            {{ form.as_p }}
+            {{ wiring_formset.management_form }}
+            <table id='wiring_list'>
+                {% for form in wiring_formset %}
+                    <tr>
+                        {% for field in form %}
+                            <td>{{ field.label_tag }}{{ field }}</td>
                         {% endfor %}
-                    </div>
+                    </tr>
+                {% endfor %}
+            </table>
 
             <input type="submit" value="Submit" />
         </form>
@@ -43,24 +48,39 @@
     {% autoescape off %}
         var dev_options = {{ js_dev_string }};
         var pin_options = {{ js_pin_string }};
-        function make_select(data) {
-            var s = $("<select />");
+
+        function refill_select(select, data) {
+            $('option', select).remove();
             for (var i = 0; i < data.length; i++) {
                 op = data[i]
-                $("<option />", {value: op.val, text: op.text}).appendTo(s);
+                $("<option />", {value: op.val, text: op.text}).appendTo(select);
             }
-            return s;
-        }
-        var sample_dev_select = make_select(dev_options);
-        var sample_pin_selects = [];
-        for (var i = 0; i < pin_options.length; i++) {
-            sample_pin_selects[i] = make_select(pin_options[i]);
         }
         
+        function row_init(tr) {
+            tds = $('td', tr);
+            refill_select($('select', tds[0]), dev_options);
+            refill_select($('select', tds[1]), pin_options[0]);
+            refill_select($('select', tds[2]), dev_options);
+            refill_select($('select', tds[3]), pin_options[0]);
+            $('select', tds[0]).attr('onChange', 'change_pin(this);');
+            $('select', tds[2]).attr('onChange', 'change_pin(this);');
+        }
+        function change_pin(callee_sel) {
+            var dst_sel = $('select', $(callee_sel).parent().next());
+            var choice = $(callee_sel).val();
+            refill_select(dst_sel, pin_options[choice]);
+        }
+        trs = $('#wiring_list tr');
+        for (var i = 0; i < trs.length; i++)
+            row_init(trs[i]);
         $(function() {
-            $('#he_list p').formset({
-                addText: 'Add hardware',
-                deleteText: 'Remove'
+            $('#wiring_list tr').formset({
+                addText: 'Add wire',
+                deleteText: 'Remove',
+                added: function(row) {
+                    row_init(row)
+                }
             });
         })
     {% endautoescape %}
