@@ -122,15 +122,15 @@ def create_course(request):
         return HttpResponse("Not enough privilege")
 
     if request.method == 'POST':
-        form = CourseForm(request.POST)
+        form = CourseCreationForm(request.POST)
         if form.is_valid():
             course = form.save()
             course.save()
             return HttpResponseRedirect(reverse('homepage'))
     else:
-        form = CourseForm(initial={'instructor_id': user_profile})
+        form = CourseCreationForm(initial={'owner_id': user})
     
-    form.fields['instructor_id'].widget = forms.NumberInput(attrs={'readonly':'readonly'})
+    form.fields['owner_id'].widget = forms.NumberInput(attrs={'readonly':'readonly'})
 
     template_context = {
             'myuser': request.user,

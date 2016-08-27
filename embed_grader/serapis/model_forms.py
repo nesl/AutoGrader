@@ -101,12 +101,6 @@ class UserCreateForm(UserCreationForm):
         return user, user_profile
 
 
-
-class CourseForm(ModelForm):
-    class Meta:
-        model = Course
-        fields = ['instructor_id', 'course_code', 'name', 'description']
-
 class CourseCreationForm(ModelForm):
     error_messages = {
         'course_already_created': "Course already exists. Please modify the existing course or ask admin to delete it.",
@@ -114,7 +108,7 @@ class CourseCreationForm(ModelForm):
 
     class Meta:
         model = Course
-        fields = ['course_code', 'name', 'quarter', 'year', 'description']
+        fields = ['owner_id', 'course_code', 'name', 'quarter', 'year', 'description']
         YEAR_CHOICES = []
         for r in range(2015, (datetime.now().year+2)):
             YEAR_CHOICES.append((r,r))      
