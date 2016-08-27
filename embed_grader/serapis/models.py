@@ -123,7 +123,7 @@ class Course(models.Model):
     for r in range(2015, (datetime.datetime.now().year+2)):
         YEAR_CHOICES.append((r,r))
 
-    instructor_id = models.ForeignKey(UserProfile, on_delete = models.CASCADE)
+    owner_id = models.ForeignKey(User, on_delete = models.CASCADE)
     course_code = models.CharField(max_length = 10, default = '')
     name = models.CharField(max_length = 100, default = '')
     description = models.TextField()
@@ -133,6 +133,10 @@ class Course(models.Model):
     def __str__(self):
         return self.course_code + ': ' + self.name + ' ' + self.quarter + ' ' + self.year 
 
+class CourseUserList(models.Model):
+    course_id = models.ForeignKey(Course, on_delete=models.CASCADE)
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    
 
 class Assignment(models.Model):
     # basic information

@@ -12,6 +12,7 @@ urlpatterns = [
     url(r'^logout/$', auth_views.logout, {'next_page': '/login/'}, name='logout'),
     url(r'^homepage/$', views.homepage, name='homepage'),
     url(r'^create-course/$', views.create_course, name='create-course'),
+    url(r'^enroll-course/$', views.enroll_course, name='enroll-course'),
     url(r'^course/([0-9]+)/$', views.course, name='course'),
     url(r'^modify-course/([0-9]+)/$', views.modify_course, name='modify-course'),
     url(r'^create-assignment/([0-9]+)/$', views.create_assignment, name='create-assignment'),

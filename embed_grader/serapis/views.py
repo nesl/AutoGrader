@@ -103,7 +103,7 @@ def homepage(request):
     user = User.objects.filter(username=username)[0]
     user_profile = UserProfile.objects.filter(user=user)[0]
 
-    course_list = Course.objects.filter(instructor_id=user_profile)
+    course_list = CourseUserList.objects.filter(user_id=user)
     template_context = {
             'user_profile': user_profile,
             'myuser': request.user,
@@ -138,6 +138,17 @@ def create_course(request):
             'form': form.as_p(),
     }
     return render(request, 'serapis/create_course.html', template_context)
+
+@login_required(login_url='/login/')
+def enroll_course(request):
+    if request.method == 'POST':
+        form = CourseEnrollmentForm(request.POST)
+        if form.is_valid():    
+            form.save()
+    else:
+        form = CourseEnrollmentForm(user=request.user)
+
+    return render(request, 'serapis/enroll_course.html', template_context)
 
 
 @login_required(login_url='/login/')

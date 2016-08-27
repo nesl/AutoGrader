@@ -2,7 +2,7 @@ from django.contrib.auth.models import User, Group
 from django.contrib.auth.forms import UserCreationForm
 
 from django import forms
-from django.forms import ModelForm, Textarea
+from django.forms import Form, ModelForm, Textarea
 from django.forms import modelformset_factory
 from django.forms import formset_factory
 from django.forms.widgets import HiddenInput
@@ -107,7 +107,7 @@ class CourseForm(ModelForm):
         model = Course
         fields = ['instructor_id', 'course_code', 'name', 'description']
 
-class CourseCreationForm(forms.ModelForm):
+class CourseCreationForm(ModelForm):
     error_messages = {
         'course_already_created': "Course already exists. Please modify the existing course or ask admin to delete it.",
     }
@@ -131,23 +131,40 @@ class CourseCreationForm(forms.ModelForm):
 
     def clean(self):
         a = self.cleaned_data.get("course_code")
-        b = str(self.cleaned_data.get("year"))
-        c = str(self.cleaned_data.get("quarter"))
-        if Group.objects.filter(name=a+b+c).count():
+        b = str(self.cleaned_data.get("quarter"))
+        c = str(self.cleaned_data.get("year"))
+        if Group.objects.filter(name=a+'_'+b+'_'+c).count():
             raise forms.ValidationError(self.error_messages['course_already_created'],
                 code='course_already_created')
         return self.cleaned_data
 
     def save(self, commit=True):
         a = self.cleaned_data['course_code']
-        b = str(self.cleaned_data['year'])
-        c = str(self.cleaned_data['quarter'])
+        b = str(self.cleaned_data['quarter'])
+        c = str(self.cleaned_data['year'])
         course = super(CourseCreationForm, self).save(commit=False)
         group = Group.objects.create(name=a+'_'+b+'_'+c)
         group.user_set.add(self.user)
+        course_user_list = CourseUserList.objects.create(user_id=self.user, course_id=course)
         if commit:
           course.save()
         return course
+
+
+class CourseEnrollForm(Form):
+    current_year = datetime.now().year
+    list_of_courses = Course.objects.filter(year=current_year) 
+    course_select = forms.ChoiceField(choices=list_of_courses)
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super(CourseEnrollmentForm, self).__init__(*args, **kwargs)
+    
+    def save(self, commit=True):
+        course=self.cleaned_data['course_select'] 
+        group = Groups.objects.get(name=course.course_code+'_'+course.quarter+'_'+course.year)
+        group.user_set.add(self.user)
+        course_user_list = CourseUserList.objects.create(user_id=self.user, course_id=course)
 
 
 class AssignmentBasicForm(ModelForm):

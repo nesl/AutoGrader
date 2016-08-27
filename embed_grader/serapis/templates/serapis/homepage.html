@@ -14,7 +14,7 @@
         {% else %}
             <ul>
                 {% for course in course_list %}
-                    <li><a href="{% url 'course' course.id %}">{{ course.course_code }}: {{ course.name }}</a></li>
+                    <li><a href="{% url 'course' course.id %}">{{ course }}</a></li>
                 {% endfor %}
             </ul>
         {% endif %}
@@ -22,7 +22,10 @@
         {% if user_profile.user_role == user_profile.ROLE_SUPER_USER or user_profile.user_role == user_profile.ROLE_INSTRUCTOR or user_profile.user_role == user_profile.ROLE_TA %}
             <hr/>
             <p>
+                {% if perms.serapis.add_course %}
                 <a href="{% url 'create-course' %}" class="btn btn-primary">Create New Course</a>
+                {% end if %}
+                <a href="{% url 'enroll-course' %}" class="btn btn-primary">Enroll in a Course</a>
                 <a href="{% url 'testbed-type-list' %}" class="btn btn-default">View Testbed Type List</a>
             </p>
         {% endif %}
