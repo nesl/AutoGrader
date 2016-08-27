@@ -131,7 +131,7 @@ class Course(models.Model):
     year = models.IntegerField(choices=YEAR_CHOICES, default=datetime.datetime.now().year)
 
     def __str__(self):
-        return self.course_code + ': ' + self.name + ' ' + self.quarter + ' ' + self.year 
+        return '%s: %s %s %d' % (self.course_code, self.name, self.get_quarter_display(), self.year)
 
 class CourseUserList(models.Model):
     course_id = models.ForeignKey(Course, on_delete=models.CASCADE)

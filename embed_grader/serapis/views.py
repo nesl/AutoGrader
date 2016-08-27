@@ -103,7 +103,8 @@ def homepage(request):
     user = User.objects.filter(username=username)[0]
     user_profile = UserProfile.objects.filter(user=user)[0]
 
-    course_list = CourseUserList.objects.filter(user_id=user)
+    course_user_list = CourseUserList.objects.filter(user_id=user)
+    course_list = [Course.objects.filter(id=cu.course_id.id)[0] for cu in course_user_list]
     template_context = {
             'user_profile': user_profile,
             'myuser': request.user,
