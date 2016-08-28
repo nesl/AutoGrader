@@ -26,27 +26,28 @@ def registration(request):
     if request.method == 'POST':
         form = UserCreateForm(request.POST)
         if form.is_valid():
-            datas={}
-            datas['uid']=form.cleaned_data['uid']
-            datas['email']=form.cleaned_data['email']
-            datas['password1']=form.cleaned_data['password1']
+            datas = {}
+            datas['uid'] = form.cleaned_data['uid']
+            datas['email'] = form.cleaned_data['email']
+            datas['password1'] = form.cleaned_data['password1']
             #We will generate a random activation key
             salt = hashlib.sha1(str(random.random())).hexdigest()[:5]
             usernamesalt = datas['uid']
             if isinstance(usernamesalt, unicode):
                 usernamesalt = usernamesalt.encode('utf8')
-            datas['activation_key']= hashlib.sha1(salt+usernamesalt).hexdigest()
-            datas['email_path']="serapis/activation_email.html"
-            datas['email_subject']="Account Activation"
+            datas['activation_key'] = hashlib.sha1(salt+usernamesalt).hexdigest()
+            datas['email_path'] = "serapis/activation_email.html"
+            datas['email_subject'] = "Account Activation"
 
             form.sendEmail(datas) #Send validation email
             form.save(datas) #Save the user and his profile
 
-            request.session['registered']=True #For display purposes
+            request.session['registered'] = True #For display purposes
             return render(request, 'serapis/registration_done.html', locals())
     else:
         form = UserCreateForm()
     return render(request, 'serapis/registration.html', {'form':form})
+
 
 #View called from activation email. Activate user if link didn't expire (48h default), or offer to
 #send a second link if the first expired.
@@ -88,7 +89,7 @@ def new_activation(request, user_id):
         user_profile.key_expires = datetime.strftime(datetime.now() + timedelta(days=2), "%Y-%m-%d %H:%M:%S")
         user_profile.save()
         form.sendEmail(datas)
-        request.session['new_link']=True #Display : new link send
+        request.session['new_link'] = True  # Display : new link send
 
     return HttpResponse("The new verification link has been sent to your email. Please check.")
 
@@ -125,7 +126,7 @@ def create_course(request):
     if request.method == 'POST':
         form = CourseCreationForm(request.POST)
         if form.is_valid():
-            course = form.save()
+            form.save()
             return HttpResponseRedirect(reverse('homepage'))
     else:
         form = CourseForm(initial={'owner_id': user})
@@ -192,7 +193,7 @@ def create_assignment(request, course_id):
     if request.method == 'POST':
         form = AssignmentBasicForm(request.POST)
         if form.is_valid():
-            assignment = form.save()
+            form.save()
             return HttpResponseRedirect(reverse('course', args=(course_id)))
     else:
         form = AssignmentBasicForm(initial={'course_id': course_id})
@@ -293,14 +294,6 @@ def create_testbed_type(request):
             testbed_form = TestbedTypeForm(request.POST, prefix='testbed')
             he_formset = TestbedHardwareListHEFormSet(request.POST, prefix='he')
             dut_formset = TestbedHardwareListDUTFormSet(request.POST, prefix='dut')
-            #request.POST = QueryDict('people=Aaron&people=Randy&people=Chris&people=Andrew&message=Hello!')
-            #print(request.POST)
-            
-            #dict = {'a': 'one', 'b': 'two', }
-            #qdict = QueryDict('', mutable=True)
-            #qdict.update(dict)
-            #request.POST = qdict
-            #print(request.POST)
 
             if testbed_form.is_valid() and he_formset.is_valid() and dut_formset.is_valid():
                 tmp_dict = request.POST.dict()
@@ -329,7 +322,6 @@ def create_testbed_type(request):
         testbed_form = TestbedTypeForm(request.POST, prefix='testbed')
         hardware_formset = TestbedHardwareListAllFormSet(request.POST, prefix='hardware')
         wiring_formset = TestbedTypeWiringFormSet(request.POST, prefix='wire')
-        print(testbed_form.is_valid(), hardware_formset.is_valid(), wiring_formset.is_valid())
         if testbed_form.is_valid() and hardware_formset.is_valid() and wiring_formset.is_valid():
             testbed = testbed_form.save()
 
@@ -373,7 +365,6 @@ def create_testbed_type(request):
         }
         return render(request, 'serapis/create_testbed_type_stage1.html', template_context)
     elif render_stage == 2:
-        print(request.POST)
         if not hardware_formset.is_valid():
             return HttpResponse('Something is wrong or system is being hacked /__\\')
 
