@@ -60,17 +60,15 @@ class TestbedType(models.Model):
 
 #Model that links the TestbedType to it's list of hardware types
 class TestbedHardwareList(models.Model):
-    hardware_type = models.ForeignKey(HardwareType, on_delete=models.CASCADE) 
+    testbed_type = models.ForeignKey(TestbedType, on_delete = models.CASCADE)
+    hardware_type = models.ForeignKey(HardwareType, on_delete = models.CASCADE) 
     hardware_index = models.IntegerField()
     firmware = models.FileField(null=True, blank=True)
 
 
 #Wiring for the TestbedType
 class TestbedTypeWiring(models.Model):
-    testbed_type = models.ForeignKey(
-        TestbedType,
-        on_delete = models.CASCADE,
-    )
+    testbed_type = models.ForeignKey(TestbedType, on_delete = models.CASCADE)
     #The device index should match the index in TestbedHardwareList model
     dev_1_index = models.IntegerField()
     dev_1_pin = models.ForeignKey(HardwareTypePin, related_name = 'dev_1_pin', on_delete = models.CASCADE)
@@ -132,6 +130,7 @@ class Course(models.Model):
 
     def __str__(self):
         return '%s: %s %s %d' % (self.course_code, self.name, self.get_quarter_display(), self.year)
+
 
 class CourseUserList(models.Model):
     course_id = models.ForeignKey(Course, on_delete=models.CASCADE)

@@ -14,7 +14,7 @@
         {% else %}
             <ul>
                 {% for testbed_type in testbed_type_list %}
-                    <li><a href="{% url 'testbed_type' testbed_type.id %}">{{ testbed_type.id }}</a></li>
+                    <li><a href="{% url 'testbed-type' testbed_type.id %}">{{ testbed_type.name }}</a></li>
                 {% endfor %}
             </ul>
         {% endif %}

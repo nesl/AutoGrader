@@ -100,10 +100,12 @@ class UserCreateForm(UserCreationForm):
         group.user_set.add(user)
         return user, user_profile
 
+
 class CourseForm(ModelForm):
     class Meta:
         model = Course
         fields = ['owner_id', 'course_code', 'name', 'description']
+
 
 class CourseCreationForm(ModelForm):
     error_messages = {

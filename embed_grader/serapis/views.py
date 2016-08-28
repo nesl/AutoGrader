@@ -126,7 +126,6 @@ def create_course(request):
         form = CourseCreationForm(request.POST)
         if form.is_valid():
             course = form.save()
-            course.save()
             return HttpResponseRedirect(reverse('homepage'))
     else:
         form = CourseForm(initial={'owner_id': user})
@@ -194,7 +193,6 @@ def create_assignment(request, course_id):
         form = AssignmentBasicForm(request.POST)
         if form.is_valid():
             assignment = form.save()
-            assignment.save()
             return HttpResponseRedirect(reverse('course', args=(course_id)))
     else:
         form = AssignmentBasicForm(initial={'course_id': course_id})
@@ -289,8 +287,9 @@ def create_testbed_type(request):
         was_in_stage = 2
 
     if was_in_stage == 1:
-        render_stage = 1
+        render_stage, render_first_time = 1, True
         if request.method == 'POST':
+            render_first_time = False
             testbed_form = TestbedTypeForm(request.POST, prefix='testbed')
             he_formset = TestbedHardwareListHEFormSet(request.POST, prefix='he')
             dut_formset = TestbedHardwareListDUTFormSet(request.POST, prefix='dut')
@@ -303,7 +302,6 @@ def create_testbed_type(request):
             #request.POST = qdict
             #print(request.POST)
 
-            print(testbed_form.is_valid(), he_formset.is_valid(), dut_formset.is_valid())
             if testbed_form.is_valid() and he_formset.is_valid() and dut_formset.is_valid():
                 tmp_dict = request.POST.dict()
                 num_he = int(tmp_dict['he-TOTAL_FORMS'])
@@ -324,20 +322,48 @@ def create_testbed_type(request):
                 qdict = QueryDict('', mutable=True)
                 qdict.update(tmp_dict)
                 request.POST = qdict
-                render_stage = 2
-                print(request.POST)
-                #assignment = form.save()
-                #assignment.save()
-                #return HttpResponseRedirect(reverse('course', args=(course_id)))
+                hardware_formset = TestbedHardwareListAllFormSet(request.POST, prefix='hardware')
+                render_stage, render_first_time = 2, True
     elif was_in_stage == 2:
-        render_stage = 2
-        # if everything is valid
-        #     return HttpResponseRedirect(reverse('testbed-type-list'))
+        render_stage, render_first_time = 2, False
+        testbed_form = TestbedTypeForm(request.POST, prefix='testbed')
+        hardware_formset = TestbedHardwareListAllFormSet(request.POST, prefix='hardware')
+        wiring_formset = TestbedTypeWiringFormSet(request.POST, prefix='wire')
+        print(testbed_form.is_valid(), hardware_formset.is_valid(), wiring_formset.is_valid())
+        if testbed_form.is_valid() and hardware_formset.is_valid() and wiring_formset.is_valid():
+            testbed = testbed_form.save()
+
+            testbed_hardware_list = []
+            for form in hardware_formset:
+                testbed_hardware_list.append(TestbedHardwareList(
+                        testbed_type=testbed,
+                        hardware_type=form.cleaned_data.get('hardware_type'),
+                        hardware_index=form.cleaned_data.get('hardware_index')))
+
+            wiring_list = []
+            for form in wiring_formset:
+                wiring_list.append(TestbedTypeWiring(
+                        testbed_type=testbed,
+                        dev_1_index=form.cleaned_data.get('dev_1_index'),
+                        dev_1_pin=form.cleaned_data.get('dev_1_pin'),
+                        dev_2_index=form.cleaned_data.get('dev_2_index'),
+                        dev_2_pin=form.cleaned_data.get('dev_2_pin')))
+
+            try:
+                with transaction.atomic():
+                    TestbedHardwareList.objects.filter(testbed_type=testbed).delete()
+                    TestbedHardwareList.objects.bulk_create(testbed_hardware_list)
+                    TestbedTypeWiring.objects.filter(testbed_type=testbed).delete()
+                    TestbedTypeWiring.objects.bulk_create(wiring_list)
+            except IntegrityError:  # if the transaction failed
+                messages.error(request, 'There was an error saving your profile.')
+            return HttpResponseRedirect(reverse('testbed-type-list'))
         
     if render_stage == 1:
-        testbed_form = TestbedTypeForm(prefix='testbed')
-        he_formset = TestbedHardwareListHEFormSet(prefix='he')
-        dut_formset = TestbedHardwareListDUTFormSet(prefix='dut')
+        if render_first_time:
+            testbed_form = TestbedTypeForm(prefix='testbed')
+            he_formset = TestbedHardwareListHEFormSet(prefix='he')
+            dut_formset = TestbedHardwareListDUTFormSet(prefix='dut')
         template_context = {
                 'myuser': request.user,
                 'user_profile': user_profile,
@@ -347,8 +373,7 @@ def create_testbed_type(request):
         }
         return render(request, 'serapis/create_testbed_type_stage1.html', template_context)
     elif render_stage == 2:
-        testbed_form = TestbedTypeForm(request.POST, prefix='testbed')
-        hardware_formset = TestbedHardwareListAllFormSet(request.POST, prefix='hardware')
+        print(request.POST)
         if not hardware_formset.is_valid():
             return HttpResponse('Something is wrong or system is being hacked /__\\')
 
@@ -361,17 +386,29 @@ def create_testbed_type(request):
             js_dev_options.append({'val': idx, 'text': hardware.name})
             pins = HardwareTypePin.objects.filter(hardware_type=hardware)
             js_pin_options.append([{'val': p.id, 'text': p.pin_name} for p in pins])
-        js_dev_string = json.dumps(js_dev_options)
-        js_pin_string = json.dumps(js_pin_options)
-        wiring_formset = TestbedTypeWiringFormSet(request.POST, prefix='wire')
+        js_dev_opt_string = json.dumps(js_dev_options)
+        js_pin_opt_string = json.dumps(js_pin_options)
+        if render_first_time:
+            wiring_formset = TestbedTypeWiringFormSet(prefix='wire')
+        js_pin_init_val = []
+        # TODO: data integrity checking
+        if 'wire-TOTAL_FORMS' in request.POST:
+            for i in range(int(request.POST['wire-TOTAL_FORMS'])):
+                row = []
+                for field in ['dev_1_index', 'dev_1_pin', 'dev_2_index', 'dev_2_pin']:
+                    k = 'wire-%d-%s' % (i, field)
+                    row.append(request.POST[k])
+                js_pin_init_val.append(row)
+        js_pin_init_val_string = json.dumps(js_pin_init_val)
         template_context = {
                 'myuser': request.user,
                 'user_profile': user_profile,
                 'testbed_form': testbed_form,
                 'hardware_formset': hardware_formset,
                 'zip_hardware_form_dev': zip_hardware_form_dev,
-                'js_dev_string': js_dev_options,
-                'js_pin_string': js_pin_options,
+                'js_dev_opt_string': js_dev_opt_string,
+                'js_pin_opt_string': js_pin_opt_string,
+                'js_pin_init_val_string': js_pin_init_val_string,
                 'wiring_formset': wiring_formset,
         }
         return render(request, 'serapis/create_testbed_type_stage2.html', template_context)
@@ -434,7 +471,6 @@ def create_hardware_type(request):
         pin_formset = HardwareTypePinFormSet(request.POST)
         if hardware_form.is_valid() and pin_formset.is_valid():
             hardware = hardware_form.save()
-            hardware.save()
             
             hardware_pins = []
             for form in pin_formset:
@@ -445,8 +481,7 @@ def create_hardware_type(request):
                 with transaction.atomic():
                     HardwareTypePin.objects.filter(hardware_type=hardware).delete()
                     HardwareTypePin.objects.bulk_create(hardware_pins)
-
-            except IntegrityError: #If the transaction failed
+            except IntegrityError:  # if the transaction failed
                 messages.error(request, 'There was an error saving your profile.')
             return HttpResponseRedirect(reverse('hardware-type-list'))
     else:

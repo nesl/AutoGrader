@@ -38,6 +38,7 @@
                 {% endfor %}
             </table>
 
+            <input type="hidden" name="stage2" value="1" />
             <input type="submit" value="Submit" />
         </form>
 
@@ -46,8 +47,9 @@
 
     <script type="text/javascript">
     {% autoescape off %}
-        var dev_options = {{ js_dev_string }};
-        var pin_options = {{ js_pin_string }};
+        var dev_options = {{ js_dev_opt_string }};
+        var pin_options = {{ js_pin_opt_string }};
+        var pin_init_vals = {{ js_pin_init_val_string }};
 
         function refill_select(select, data) {
             $('option', select).remove();
@@ -57,14 +59,22 @@
             }
         }
         
-        function row_init(tr) {
+        function row_init_with_value(tr, vals) {
             tds = $('td', tr);
-            refill_select($('select', tds[0]), dev_options);
-            refill_select($('select', tds[1]), pin_options[0]);
-            refill_select($('select', tds[2]), dev_options);
-            refill_select($('select', tds[3]), pin_options[0]);
-            $('select', tds[0]).attr('onChange', 'change_pin(this);');
-            $('select', tds[2]).attr('onChange', 'change_pin(this);');
+            sels = [];
+            for (var i = 0; i < 4; i++)
+                sels[i] = $('select', tds[i]);
+            refill_select(sels[0], dev_options);
+            refill_select(sels[1], pin_options[vals[0]]);
+            refill_select(sels[2], dev_options);
+            refill_select(sels[3], pin_options[vals[2]]);
+            for (var i = 0; i < 4; i++)
+                $(sels[i]).val(vals[i])
+            $(sels[0]).attr('onChange', 'change_pin(this);');
+            $(sels[2]).attr('onChange', 'change_pin(this);');
+        }
+        function row_init(tr) {
+            row_init_with_value(tr, ['0', pin_options[0].val, '0', pin_options[0].val]);
         }
         function change_pin(callee_sel) {
             var dst_sel = $('select', $(callee_sel).parent().next());
@@ -72,10 +82,15 @@
             refill_select(dst_sel, pin_options[choice]);
         }
         trs = $('#wiring_list tr');
-        for (var i = 0; i < trs.length; i++)
-            row_init(trs[i]);
+        for (var i = 0; i < trs.length; i++) {
+            if (i < pin_init_vals.length)
+                row_init_with_value(trs[i], pin_init_vals[i]);
+            else
+                row_init(trs[i]);
+        }
         $(function() {
-            $('#wiring_list tr').formset({
+            $('#wiring_list tbody tr').formset({
+                prefix: 'wire',
                 addText: 'Add wire',
                 deleteText: 'Remove',
                 added: function(row) {
