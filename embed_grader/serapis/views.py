@@ -22,6 +22,10 @@ from serapis.model_forms import *
 
 import hashlib, random
 
+
+#TODO(timestring): recheck whether I should use disabled instead of readonly to enforce data integrity
+
+
 def registration(request):
     if request.method == 'POST':
         form = UserCreateForm(request.POST)
@@ -30,7 +34,7 @@ def registration(request):
             datas['uid'] = form.cleaned_data['uid']
             datas['email'] = form.cleaned_data['email']
             datas['password1'] = form.cleaned_data['password1']
-            #We will generate a random activation key
+            # We will generate a random activation key
             salt = hashlib.sha1(str(random.random())).hexdigest()[:5]
             usernamesalt = datas['uid']
             if isinstance(usernamesalt, unicode):
@@ -39,10 +43,10 @@ def registration(request):
             datas['email_path'] = "serapis/activation_email.html"
             datas['email_subject'] = "Account Activation"
 
-            form.sendEmail(datas) #Send validation email
-            form.save(datas) #Save the user and his profile
+            form.sendEmail(datas)  #Send validation email
+            form.save(datas)  #Save the user and his profile
 
-            request.session['registered'] = True #For display purposes
+            request.session['registered'] = True  # For display purposes
             return render(request, 'serapis/registration_done.html', locals())
     else:
         form = UserCreateForm()
@@ -58,14 +62,14 @@ def activation(request, key):
     if user_profile.user.is_active == False:
         if timezone.now() > user_profil.key_expires:
             activation_expired = True 
-            #Display : offer to user to have another activation link (a link in template sending to the view new_activation_link)
+            # Display : offer to user to have another activation link (a link in template sending to the view new_activation_link)
             id_user = user_profile.user.id
-        else: #Activation successful
+        else:  # Activation successful
             user_profile.user.is_active = True
             user_profile.user.save()
-    #If user is already active, simply display error message
+    # If user is already active, simply display error message
     else:
-        already_active = True #Display : error message
+        already_active = True  # Display : error message
     return render(request, 'serapis/activation.html', locals())
 
 def new_activation(request, user_id):
@@ -228,25 +232,25 @@ def modify_assignment(request, assignment_id):
     assignment = assignment_list[0]
 
     if request.method == 'POST':
-        print(request.POST)
-        for key in request.POST:
-            print(key, request.POST[key])
-    #    form = AssignmentBasicForm(request.POST)
-    #    #if form.is_valid():
-    #    #    assignment = form.save()
-    #    #    assignment.save()
-    #    #    return HttpResponseRedirect(reverse('course', args=(course_id)))
+        form = AssignmentCompleteForm(request.POST, instance=assignment)
+        print(form.is_valid())
+        if form.is_valid():
+            assignment = form.save()
     else:
-        form = AssignmentCompleteForm(instance = assignment)
+        form = AssignmentCompleteForm(instance=assignment)
     
-    if not assignment.testbed_type_id:
-        form.fields.pop('testbed_type_id')
-        form.fields.pop('num_testbeds')
+    tasks = None
+    if assignment.testbed_type_id:
+        form.fields['testbed_type_id'].widget = forms.NumberInput(attrs={'readonly':'readonly'})
+        tasks = AssignmentTask.objects.filter(assignment_id=assignment)
+
+    form.fields['course_id'].widget = forms.NumberInput(attrs={'readonly':'readonly'})
 
     template_context = {
             'myuser': request.user,
             'user_profile': user_profile,
             'form': form.as_p(),
+            'tasks': tasks,
     }
     return render(request, 'serapis/modify_assignment.html', template_context)
 

@@ -53,12 +53,15 @@ class HardwareTypePin(models.Model):
     pin_name = models.CharField(max_length=10)
 
 
-#Model that encapsulates the entire Testbed, including the Hardware Engines and DUTs
+# Model that encapsulates the entire Testbed, including the Hardware Engines and DUTs
 class TestbedType(models.Model):
     name = models.CharField(max_length=50, null=True, blank=True)
+    
+    def __str__(self):
+        return self.name
 
 
-#Model that links the TestbedType to it's list of hardware types
+# Model that links the TestbedType to it's list of hardware types
 class TestbedHardwareList(models.Model):
     testbed_type = models.ForeignKey(TestbedType, on_delete = models.CASCADE)
     hardware_type = models.ForeignKey(HardwareType, on_delete = models.CASCADE) 
@@ -66,7 +69,7 @@ class TestbedHardwareList(models.Model):
     firmware = models.FileField(null=True, blank=True)
 
 
-#Wiring for the TestbedType
+# Wiring for the TestbedType
 class TestbedTypeWiring(models.Model):
     testbed_type = models.ForeignKey(TestbedType, on_delete = models.CASCADE)
     #The device index should match the index in TestbedHardwareList model
@@ -142,6 +145,7 @@ class Assignment(models.Model):
     course_id = models.ForeignKey(Course, on_delete = models.CASCADE)
     # TODO: permission only for instructor
     name = models.CharField(max_length=50)
+    # TODO: should we get rid of description field?
     description = models.TextField(default='')  # brief
     release_time = models.DateTimeField()
     deadline = models.DateTimeField()
@@ -170,8 +174,7 @@ class AssignmentTestbed(models.Model):
 
 class AssignmentTask(models.Model):
     assignment_id = models.ForeignKey(Assignment, on_delete = models.CASCADE)
-    task_order = models.IntegerField()
-    description = models.TextField()
+    brief_description = models.CharField(max_length=100)
     # TODO: test input
     # TODO: test output
     # TODO: points as integer

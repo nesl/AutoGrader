@@ -8,15 +8,29 @@
 {% block content %}
     <div class="container">
         <h1 class="page-header">Modify an assignment</h1>
-        <hr/>
 
         <form action="." method="post">
             {% csrf_token %}
             {{ form }}
-            <p>Cannot find an ideal testbench? <a href="#">Create one!</a></p>
+            <p>Cannot find the testbed you want? Just <a href="{% url 'create-testbed-type' %}">create one!</a></p>
             <input type="submit" value="Submit" />
+            {% if tasks is not None %}
+                <hr/>
+                <h3>Assignment tasks</h3>
+                {% if not tasks %}
+                    <p>No tasks assigned yet.</p>
+                {% else %}
+                    <ul>
+                    {% for task in tasks %}
+                        <li>{{ task }}</li>
+                    {% endfor %}
+                    </ul>
+                {% endif %}
+                <p><a href="">Create an assignment task</a></p>
+            {% endif %}
         </form>
 
+        <hr/>
         <p><a href="{% url 'homepage' %}">[Go back]</a></p>
     </div>
 
