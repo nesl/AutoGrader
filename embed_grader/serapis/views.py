@@ -256,6 +256,11 @@ def modify_assignment(request, assignment_id):
 
 
 @login_required(login_url='/login/')
+def create_assignment_task(request, assignment_id):
+    return HttpResponse("Under construction")
+
+
+@login_required(login_url='/login/')
 def testbed_type_list(request):
     username = request.user
     user = User.objects.filter(username=username)[0]
