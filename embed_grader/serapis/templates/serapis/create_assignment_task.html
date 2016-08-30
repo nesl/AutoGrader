@@ -1,0 +1,21 @@
+{% extends 'serapis/base.html' %}
+{% load staticfiles %}
+
+{% block css %}
+{% endblock %}
+
+
+{% block content %}
+    <div class="container">
+        <h1 class="page-header">Create a course</h1>
+        
+        <form action="." method="post">
+            {% csrf_token %}
+            {{ form }}
+            <input type="submit" value="Submit" />
+        </form>
+
+        <p><a href="{% url 'homepage' %}">[Go back]</a></p>
+    </div>
+
+{% endblock %}

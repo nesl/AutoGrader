@@ -173,12 +173,21 @@ class AssignmentTestbed(models.Model):
 
 
 class AssignmentTask(models.Model):
+    MODE_PUBLIC = 0
+    MODE_FEEDBACK = 1
+    MODE_HIDDEN = 2
+    EVAL_MODES = (
+        (MODE_PUBLIC, 'Public'),
+        (MODE_FEEDBACK, 'Feedback'),
+        (MODE_HIDDEN, 'Hidden'),
+    )
+
     assignment_id = models.ForeignKey(Assignment, on_delete = models.CASCADE)
     brief_description = models.CharField(max_length=100)
-    # TODO: test input
-    # TODO: test output
-    # TODO: points as integer
-    # TODO: mode (public, feedback, hidden)
+    mode = models.IntegerField(choices=EVAL_MODES)
+    points = models.FloatField()
+    test_input = models.FileField()
+    grading_script = models.FileField()
 
 
 class Submission(models.Model):

@@ -249,6 +249,7 @@ def modify_assignment(request, assignment_id):
     template_context = {
             'myuser': request.user,
             'user_profile': user_profile,
+            'assignment': assignment,
             'form': form.as_p(),
             'tasks': tasks,
     }

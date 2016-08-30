@@ -18,7 +18,7 @@
             <ul>
                 {% for assignment in assignment_list %}
                     <li>
-                        {% if assignment.testbench_id %}
+                        {% if assignment.testbed_type_id %}
                             <a href="{% url 'assignment' assignment.id %}">{{ assignment.description }}</a>
                         {% else %}
                             {{ assignment.description }} (specification not complete)
@@ -33,7 +33,7 @@
 
         {% if user_profile.user_role == user_profile.ROLE_SUPER_USER or user_profile.user_role == user_profile.ROLE_INSTRUCTOR or user_profile.user_role == user_profile.ROLE_TA %}
             <hr/>
-            <h3>Instructor-Only Session</h2>
+            <h3>Instructor-only section</h2>
             <p>
                 <a href='{% url 'modify-course' course.id %}' class="btn btn-primary">Change Course Description</a>
                 <a href='{% url 'create-assignment' course.id %}' class="btn btn-primary">Create a New Assignment</a>
