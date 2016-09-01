@@ -7,15 +7,15 @@
 
 {% block content %}
     <div class="container">
-        <h1 class="page-header">Create a course</h1>
+        <h1 class="page-header">Create a task</h1>
         
-        <form action="." method="post">
+        <form action="." method="post" enctype="multipart/form-data">
             {% csrf_token %}
             {{ form }}
             <input type="submit" value="Submit" />
         </form>
 
-        <p><a href="{% url 'homepage' %}">[Go back]</a></p>
+        <p><a href="{% url 'modify-assignment' assignment.id %}">[Go back to assignment]</a></p>
     </div>
 
 {% endblock %}

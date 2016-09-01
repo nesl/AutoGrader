@@ -13,6 +13,7 @@ from django import forms
 from django.core.urlresolvers import reverse
 from django.db import IntegrityError
 from django.db import transaction
+from django.views.decorators.csrf import csrf_exempt
 
 from django.utils import timezone
 from datetime import datetime, timedelta
@@ -20,6 +21,7 @@ from datetime import datetime, timedelta
 from serapis.models import *
 from serapis.model_forms import *
 
+from ipware.ip import get_ip
 import hashlib, random
 
 
@@ -213,8 +215,12 @@ def create_assignment(request, course_id):
 
 
 @login_required(login_url='/login/')
-def assignment(request, course_id):
-    return HttpResponse("Under construction")
+def assignment(request, assignment_id):
+    username = request.user
+    user = User.objects.filter(username=username)[0]
+    user_profile = UserProfile.objects.filter(user=user)[0]
+
+    return render(request, 'serapis/assignment.html', template_context)
 
 
 @login_required(login_url='/login/')
@@ -233,7 +239,6 @@ def modify_assignment(request, assignment_id):
 
     if request.method == 'POST':
         form = AssignmentCompleteForm(request.POST, instance=assignment)
-        print(form.is_valid())
         if form.is_valid():
             assignment = form.save()
     else:
@@ -258,7 +263,37 @@ def modify_assignment(request, assignment_id):
 
 @login_required(login_url='/login/')
 def create_assignment_task(request, assignment_id):
-    return HttpResponse("Under construction")
+    username = request.user
+    user = User.objects.filter(username=username)[0]
+    user_profile = UserProfile.objects.filter(user=user)[0]
+    
+    if not user_profile.user_role == user_profile.ROLE_SUPER_USER and not user_profile.user_role == user_profile.ROLE_INSTRUCTOR and not user_profile.user_role == user_profile.ROLE_TA:
+        return HttpResponse("Not enough privilege")
+
+    assignment_list = Assignment.objects.filter(id=assignment_id)
+    if not assignment_list:
+        return HttpResponse("Assignment cannot be found")
+    assignment = assignment_list[0]
+    course = assignment.course_id
+    
+    if request.method == 'POST':
+        form = AssignmentTaskForm(request.POST, request.FILES)
+        if form.is_valid():
+            assignment_task = form.save(commit=False)
+            assignment_task.assignment_id = assignment
+            assignment_task.save()
+            return HttpResponseRedirect(reverse('modify-assignment', args=(assignment_id)))
+    else:
+        form = AssignmentTaskForm()
+    
+    template_context = {
+            'myuser': request.user,
+            'user_profile': user_profile,
+            'form': form,
+            'course': course,
+            'assignment': assignment,
+    }
+    return render(request, 'serapis/create_assignment_task.html', template_context)
 
 
 @login_required(login_url='/login/')
@@ -500,4 +535,18 @@ def create_hardware_type(request):
 
 @login_required(login_url='/login/')
 def modify_hardware_type(request, hardware_id):
-    return HttpResponse("Under construction")
+    return HttpResponse("under construction")
+
+
+@csrf_exempt
+def testbed_summary_report(request):
+    print(request.POST)
+    print(request)
+    ip = get_ip(request)
+    print(ip)
+    return HttpResponse("under construction")
+
+@csrf_exempt
+def testbed_status_report(request):
+    print(request.POST)
+    return HttpResponse("Gotcha!")

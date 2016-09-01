@@ -22,7 +22,10 @@
                 {% else %}
                     <ul>
                     {% for task in tasks %}
-                        <li>{{ task }}</li>
+                        <li>
+                            {{ task.brief_description }} ({{ task.get_mode_display }}, {{ task.points }}pts)
+                            <a href="#">[modify]</a> <a href="#">[delete]</a>
+                        </li>
                     {% endfor %}
                     </ul>
                 {% endif %}

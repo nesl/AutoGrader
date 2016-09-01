@@ -66,7 +66,7 @@ class TestbedHardwareList(models.Model):
     testbed_type = models.ForeignKey(TestbedType, on_delete = models.CASCADE)
     hardware_type = models.ForeignKey(HardwareType, on_delete = models.CASCADE) 
     hardware_index = models.IntegerField()
-    firmware = models.FileField(null=True, blank=True)
+    firmware = models.FileField(null=True, blank=True, upload_to='uploaded_files')
 
 
 # Wiring for the TestbedType
@@ -158,9 +158,6 @@ class Assignment(models.Model):
     # Testbenches are reserved using AssignmentTestBenches table
     num_testbeds = models.IntegerField(default = None, null = True)
     
-    # grading related
-    # TODO: grading script
-
     # internal
     # TODO: status (completition of problem statement, is it ready to submit)
 
@@ -186,8 +183,8 @@ class AssignmentTask(models.Model):
     brief_description = models.CharField(max_length=100)
     mode = models.IntegerField(choices=EVAL_MODES)
     points = models.FloatField()
-    test_input = models.FileField()
-    grading_script = models.FileField()
+    test_input = models.FileField(upload_to='uploaded_files')
+    grading_script = models.FileField(upload_to='uploaded_files')
 
 
 class Submission(models.Model):
@@ -211,6 +208,6 @@ class Submission(models.Model):
 
 class SubmissionFile(models.Model):
     submission_id = models.ForeignKey(Submission, on_delete = models.CASCADE)
-    file = models.FileField()
+    file = models.FileField(upload_to='uploaded_files')
 
 

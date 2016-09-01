@@ -196,7 +196,13 @@ class AssignmentCompleteForm(ModelForm):
             'deadline': DateTimeWidget(bootstrap_version = 3, options = date_time_options),
         }
 
+
+class AssignmentTaskForm(ModelForm):
+    class Meta:
+        model = AssignmentTask
+        fields = ['brief_description', 'mode', 'points', 'test_input', 'grading_script']
         
+
 class TestbedTypeForm(ModelForm):
     class Meta:
         model = TestbedType

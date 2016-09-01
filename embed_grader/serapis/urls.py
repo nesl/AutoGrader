@@ -24,6 +24,9 @@ urlpatterns = [
     url(r'^hardware-type-list/$', views.hardware_type_list, name='hardware-type-list'),
     url(r'^hardware-type/([0-9]+)/$', views.hardware_type, name='hardware-type'),
     url(r'^create-hardware-type/$', views.create_hardware_type, name='create-hardware-type'),
-    url(r'^modify-hardware-type/([0-9]+)$', views.modify_hardware_type, name='modify-hardware-type'),
-    url(r'^create-assignment-task/([0-9]+)$', views.create_assignment_task, name='create-assignment-task'),
+    url(r'^modify-hardware-type/([0-9]+)/$', views.modify_hardware_type, name='modify-hardware-type'),
+    url(r'^create-assignment-task/([0-9]+)/$', views.create_assignment_task, name='create-assignment-task'),
+    
+    url(r'^tb/summary/$', views.testbed_summary_report, name='tb-summary'),
+    url(r'^tb/status/$', views.testbed_status_report, name='tb-status'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
