@@ -303,3 +303,8 @@ class HardwareTypePinFormSet(modelformset_factory(HardwareTypePin, fields=['pin_
                             code='duplicated_pin_names')
                 pin_names.add(pin_name)
 
+
+class AssignmentSubmissionForm(ModelForm):
+    class Meta:
+        model = Submission
+        fields = ['file']

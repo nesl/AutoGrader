@@ -25,7 +25,7 @@ class UserProfile(models.Model):
     #TODO: We may want to use in-built "Groups" feature of Django to make permissions easier
     #TODO: The role of a user can change from TA to Student depending on a course
     user_role = models.IntegerField(choices = USER_ROLES, default = ROLE_STUDENT)
-    uid = models.CharField(max_length=20, unique=True, default = '123456789', verbose_name = "University ID")
+    uid = models.CharField(max_length=20, unique=True, verbose_name = "University ID")
 
     #for activation of user. One time use
     activation_key = models.CharField(max_length=40, null=True, blank=True)
@@ -81,9 +81,11 @@ class TestbedTypeWiring(models.Model):
 
 
 class Testbed(models.Model):
-    STATUS_TYPES = (
-        ('reserved','Reserved'),
-        ('avail', 'Available'),
+    STATUS_RESERVED = 0
+    STATUS_AVAILABLE = 1
+    TESTBED_STATUS = (
+        (STATUS_RESERVED, 'Reserved'),
+        (STATUS_AVAILABLE, 'Available'),
     )
     #IP Address. Only allowing IPv4 as the testers are internal
     ip_address = models.GenericIPAddressField(protocol='IPv4')
@@ -91,11 +93,7 @@ class Testbed(models.Model):
     testbed_type = models.ForeignKey(TestbedType, on_delete=models.CASCADE)
     
     # internal
-    status = models.CharField(
-        max_length=10,
-        choices=STATUS_TYPES,
-        default='avail',
-    )
+    status = models.IntegerField(choices=TESTBED_STATUS)
 
 
 class HardwareDevice(models.Model):
@@ -146,14 +144,14 @@ class Assignment(models.Model):
     # TODO: permission only for instructor
     name = models.CharField(max_length=50)
     # TODO: should we get rid of description field?
-    description = models.TextField(default='')  # brief
+    description = models.TextField()  # brief
     release_time = models.DateTimeField()
     deadline = models.DateTimeField()
     problem_statement = models.TextField()
     input_statement = models.TextField()
     output_statement = models.TextField()
 
-    # testbench related
+    # testbed related
     testbed_type_id = models.ForeignKey(TestbedType, on_delete = models.CASCADE, default = None, null = True)
     # Testbenches are reserved using AssignmentTestBenches table
     num_testbeds = models.IntegerField(default = None, null = True)
@@ -196,16 +194,38 @@ class Submission(models.Model):
             (STAT_RECEIVED, "Received"),
             (STAT_GRADING, "Grading"),
             (STAT_REGRADING, "Rejudging"),
-            (STAT_GRADED, "Final result"),
+            (STAT_GRADED, "Result is ready"),
     )
 
-    student_id = models.ForeignKey(UserProfile, on_delete = models.CASCADE)
+    student_id = models.ForeignKey(User, on_delete = models.CASCADE)
     assignment_id = models.ForeignKey(Assignment, on_delete = models.CASCADE)
     submission_time = models.DateTimeField()
     grading_result = models.FloatField()
     status = models.IntegerField(choices = SUBMISSION_STATES, default = STAT_RECEIVED)
+    #TODO: let's say the student is going to submit the binary only,
+    #      we'll worry about the multiple submission files later
+    file = models.FileField(upload_to='uploaded_files')
 
 
+class TaskGradingStatus(models.Model):
+    STAT_RECEIVED = 0
+    STAT_GRADING = 10
+    STAT_SEG_FAULT = 100
+    STAT_FINISHED = 110
+
+    GRADING_STATES = (
+            (STAT_RECEIVED, "Received"),
+            (STAT_GRADING, "Grading"),
+            (STAT_SEG_FAULT, "Segmentation fault"),
+    )
+    
+    submission_id = models.ForeignKey(Submission, on_delete=models.CASCADE)
+    assignment_task_id = models.ForeignKey(AssignmentTask, on_delete=models.CASCADE)
+    status = models.IntegerField(choices=GRADING_STATES, default=STAT_RECEIVED)
+    points = models.FloatField(default=0.0)
+    
+
+#TODO: We're not going to use it for now
 class SubmissionFile(models.Model):
     submission_id = models.ForeignKey(Submission, on_delete = models.CASCADE)
     file = models.FileField(upload_to='uploaded_files')

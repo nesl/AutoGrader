@@ -220,6 +220,19 @@ def assignment(request, assignment_id):
     user = User.objects.filter(username=username)[0]
     user_profile = UserProfile.objects.filter(user=user)[0]
 
+    assignment_list = Assignment.objects.filter(id=assignment_id)
+    if not assignment_list:
+        return HttpResponse("Assignment cannot be found")
+    assignment = assignment_list[0]
+
+    submission_form = AssignmentSubmissionForm()
+
+    template_context = {
+            'myuser': request.user,
+            'user_profile': user_profile,
+            'assignment': assignment,
+    }
+
     return render(request, 'serapis/assignment.html', template_context)
 
 
