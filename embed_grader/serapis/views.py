@@ -146,6 +146,7 @@ def create_course(request):
     }
     return render(request, 'serapis/create_course.html', template_context)
 
+
 @login_required(login_url='/login/')
 def enroll_course(request):
     if request.method == 'POST':
@@ -225,12 +226,27 @@ def assignment(request, assignment_id):
         return HttpResponse("Assignment cannot be found")
     assignment = assignment_list[0]
 
+    if request.method == 'POST':
+        form = AssignmentSubmissionForm(request.POST, request.FILES)
+        if form.is_valid():
+            submission = form.save(commit=False)
+            submission.student_id = user
+            submission.assignment_id = assignment
+            submission.submission_time = datetime.now()
+            submission.grading_result = 0.
+            submission.status = Submission.STAT_RECEIVED
+            submission.save()
+
     submission_form = AssignmentSubmissionForm()
+
+    submission_short_list = Submission.objects.filter(student_id=user, assignment_id=assignment).order_by('-id')
 
     template_context = {
             'myuser': request.user,
             'user_profile': user_profile,
             'assignment': assignment,
+            'submission_form': submission_form,
+            'submission_short_list': submission_short_list,
     }
 
     return render(request, 'serapis/assignment.html', template_context)

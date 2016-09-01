@@ -200,6 +200,7 @@ class Submission(models.Model):
     student_id = models.ForeignKey(User, on_delete = models.CASCADE)
     assignment_id = models.ForeignKey(Assignment, on_delete = models.CASCADE)
     submission_time = models.DateTimeField()
+    #TODO: Consider remove grading_result field
     grading_result = models.FloatField()
     status = models.IntegerField(choices = SUBMISSION_STATES, default = STAT_RECEIVED)
     #TODO: let's say the student is going to submit the binary only,

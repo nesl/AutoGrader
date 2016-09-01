@@ -20,8 +20,24 @@
         <p><b>Release time: </b>{{ assignment.release_time }}</p>
         <p><b>Deadline: </b>{{ assignment.deadline }}(how much time remaining, or it's closed)</p>
 
+        <form action="." method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ submission_form.as_p }}
+            <input type="submit" value="Submit" />
+        </form>
+
         <hr/>
         <h3>Submission history</h3>
+        {% if not submission_short_list %}
+            <p>No submissions to this question yet.</p>
+        {% else %}
+            <table>
+                <tr><th>ID</th><th>Result</th><th>Submission time</th><th>&nbsp;</th></tr>
+                {% for s in submission_short_list %}
+                    <tr><td>{{ s.id }}</td><td>{{ s.get_status_display }}</td><td>{{ s.submission_time }}</td><td><a href="{{ MEDIA_URL }}{{ s.file.url }}">[Download]</a></tr>
+                {% endfor %}
+            </table>
+        {% endif %}
     </div>
 
 {% endblock %}
