@@ -12,11 +12,20 @@
         {% if not testbed_type_list %}
             <p>No testbed type has been added.</p>
         {% else %}
-            <ul>
+            <div class="table-responsive">
+            <table class="table table-hover">
+                <tr>
+                    <th>Name</th>
+                </tr>
                 {% for testbed_type in testbed_type_list %}
-                    <li><a href="{% url 'testbed-type' testbed_type.id %}">{{ testbed_type.name }}</a></li>
+                <tr>
+                    <td><a href="{% url 'testbed-type' testbed_type.id %}">{{ testbed_type.name }}</a></td>
+                </tr>
                 {% endfor %}
-            </ul>
+            </table>
+            </div>
+            <!--end table-->
+
         {% endif %}
 
         <p>
