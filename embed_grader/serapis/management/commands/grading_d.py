@@ -34,10 +34,12 @@ class Command(BaseCommand):
             if timer_testbed_invalidation_remove <= 0:
                 threshold_time = now - datetime.deltatime(0, K_TESTBED_INVALIDATION_REMOVE_SEC)
                 Testbed.objects.filter(report_time__gt=threshold_time).delete()
+                timer_testbed_invalidation_remove = K_TESTBED_INVALIDATION_REMOVE_SEC
 
             if timer_testbed_invalidation_offline <= 0:
                 threshold_time = now - datetime.deltatime(0, K_TESTBED_INVALIDATION_OFFLINE_SEC)
                 Testbed.objects.filter(report_time__gt=threshold_time).update(status=STATUS_OFFLINE)
+                timer_testbed_invalidation_offline = K_TESTBED_INVALIDATION_OFFLINE_SEC
 
             if timer_submission_invalidation <= 0:
                 threshold_time = now - datetime.deltatime(0, K_SUBMISSION_INVALIDATION_SEC)
@@ -45,6 +47,7 @@ class Command(BaseCommand):
                         grading_status=TaskGradingStatus.STAT_EXECUTING,
                         status_update_time__gt=threshold_time
                         ).update(grading_status=TaskGradingStatus.STAT_PENDING)
+                timer_submission_invalidation = K_SUBMISSION_INVALIDATION_SEC
 
             #
             # task assignment

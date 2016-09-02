@@ -103,6 +103,7 @@ class Testbed(models.Model):
     testbed_type = models.ForeignKey(TestbedType, on_delete=models.CASCADE)
 
     #IP Address. Only allowing IPv4 as the testers are internal
+    #TODO: consider index this field
     ip_address = models.GenericIPAddressField(protocol='IPv4')
    
     # internal
@@ -178,6 +179,7 @@ class Assignment(models.Model):
         return self.name
 
 
+#TODO: this should be deleted
 class AssignmentTestbed(models.Model):
     assignment_id = models.ForeignKey(Assignment, on_delete = models.CASCADE)
     testbed_id = models.ForeignKey(Testbed, on_delete = models.CASCADE)

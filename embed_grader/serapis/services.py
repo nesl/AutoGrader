@@ -1,6 +1,9 @@
+import json
+
 from django.views.decorators.csrf import csrf_exempt
 
 from django.utils import timezone
+from django.http import *
 from datetime import datetime, timedelta
 
 from serapis.models import *
@@ -11,18 +14,27 @@ from ipware.ip import get_ip
 
 @csrf_exempt
 def testbed_summary_report(request):
-    print(request.POST)
-    print(request)
+    #print(request.POST)
     ip = get_ip(request)
-    print(ip)
-    #port
+    #print(ip)
+    info_json_string = request.POST['testbench']
+    info = json.loads(info_json_string)
+    for k in info:
+        print('  field', k, info[k])
+    port = info['localport']
+    #print('A', 'localport', port)
+    print('----------')
+    
     testbed = Testbed()
     #TODO: choose the correct testbed type, as right now just assign a dummy type
     testbed.testbed_type = TestbedType.objects.first()
-    #testbed.ip_address =
-    #testbed.report_status = 
+    testbed.ip_address = '%s:%d' % (ip, port)
+    #TODO: report_status should be based on request
+    testbed.report_status = Testbed.STATUS_AVAILABLE
     testbed.report_time = datetime.now()
-    #testbed.status = 
+    #TODO: status should be based on request
+    testbed.status = Testbed.STATUS_AVAILABLE
+    testbed.save()
     return HttpResponse("Gotcha!")
 
 

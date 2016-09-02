@@ -4,6 +4,8 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 from . import views
+from . import services
+
 
 urlpatterns = [
     url(r'^$', views.homepage, name='homepage'),
