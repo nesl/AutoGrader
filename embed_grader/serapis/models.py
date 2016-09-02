@@ -103,8 +103,8 @@ class Testbed(models.Model):
     testbed_type = models.ForeignKey(TestbedType, on_delete=models.CASCADE)
 
     #IP Address. Only allowing IPv4 as the testers are internal
-    #TODO: consider index this field
     ip_address = models.GenericIPAddressField(protocol='IPv4')
+    unique_hardware_id = models.CharField(max_length=30)
    
     # internal
     status = models.IntegerField(choices=TESTBED_STATUS)
