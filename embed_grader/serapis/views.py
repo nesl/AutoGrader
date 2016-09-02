@@ -73,6 +73,7 @@ def activation(request, key):
         already_active = True  # Display : error message
     return render(request, 'serapis/activation.html', locals())
 
+
 def new_activation(request, user_id):
     form = UserCreationForm()
     datas={}
@@ -168,6 +169,9 @@ def course(request, course_id):
     username = request.user
     user = User.objects.filter(username=username)[0]
     user_profile = UserProfile.objects.filter(user=user)[0]
+    #TODO: redo permission checking
+    alter_course_permission = user_profile.user_role in [UserProfile.ROLE_SUPER_USER, UserProfile.ROLE_INSTRUCTOR, UserProfile.ROLE_TA]
+
     course_list = Course.objects.filter(id=course_id)
     if not course_list:
         return HttpResponse("Course cannot be found")
@@ -176,6 +180,7 @@ def course(request, course_id):
     template_context = {
             'myuser': request.user,
             'user_profile': user_profile,
+            'alter_course_permission': alter_course_permission,
             'course': course,
             'assignment_list': assignment_list,
     }
