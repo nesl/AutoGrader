@@ -34,6 +34,7 @@ class UserProfile(models.Model):
     def __str__(self):
         return self.user.first_name + ' ' + self.user.last_name
 
+
 #Common model for both DUT and Hardware Engines
 class HardwareType(models.Model):
     HARDWARE_ENGINE = 0
@@ -81,19 +82,35 @@ class TestbedTypeWiring(models.Model):
 
 
 class Testbed(models.Model):
-    STATUS_RESERVED = 0
+    #STATUS_RESERVED = 0
     STATUS_AVAILABLE = 1
+    STATUS_BUSY = 2
+    STATUS_OFFLINE = -1
+    STATUS_UNKNOWN = -2
+
     TESTBED_STATUS = (
-        (STATUS_RESERVED, 'Reserved'),
+        #(STATUS_RESERVED, 'Reserved'),
         (STATUS_AVAILABLE, 'Available'),
+        (STATUS_BUSY, 'Busy'),
+        (STATUS_OFFLINE, 'Offline'),
     )
+    REPORT_STATUS = (
+        (STATUS_AVAILABLE, 'Available'),
+        (STATUS_BUSY, 'Busy'),
+        (STATUS_UNKNOWN, 'Unknown'),
+    )
+
+    testbed_type = models.ForeignKey(TestbedType, on_delete=models.CASCADE)
+
     #IP Address. Only allowing IPv4 as the testers are internal
     ip_address = models.GenericIPAddressField(protocol='IPv4')
    
-    testbed_type = models.ForeignKey(TestbedType, on_delete=models.CASCADE)
-    
     # internal
     status = models.IntegerField(choices=TESTBED_STATUS)
+
+    # report message
+    report_time = models.DateTimeField()
+    report_status = models.IntegerField(choices=REPORT_STATUS)
 
 
 class HardwareDevice(models.Model):
@@ -117,7 +134,7 @@ class Course(models.Model):
         (SUMMER, 'Summer'),
     )
 
-    #Django does not support years field by default. So this is a hack to get a list of valid years.
+    # Django does not support years field by default. So this is a hack to get a list of valid years.
     YEAR_CHOICES = []
     for r in range(2015, (datetime.datetime.now().year+2)):
         YEAR_CHOICES.append((r,r))
@@ -143,8 +160,6 @@ class Assignment(models.Model):
     course_id = models.ForeignKey(Course, on_delete = models.CASCADE)
     # TODO: permission only for instructor
     name = models.CharField(max_length=50)
-    # TODO: should we get rid of description field?
-    description = models.TextField()  # brief
     release_time = models.DateTimeField()
     deadline = models.DateTimeField()
     problem_statement = models.TextField()
@@ -161,6 +176,7 @@ class Assignment(models.Model):
 
     def __str__(self):
         return self.name
+
 
 class AssignmentTestbed(models.Model):
     assignment_id = models.ForeignKey(Assignment, on_delete = models.CASCADE)
@@ -200,7 +216,6 @@ class Submission(models.Model):
     student_id = models.ForeignKey(User, on_delete = models.CASCADE)
     assignment_id = models.ForeignKey(Assignment, on_delete = models.CASCADE)
     submission_time = models.DateTimeField()
-    #TODO: Consider remove grading_result field
     grading_result = models.FloatField()
     status = models.IntegerField(choices = SUBMISSION_STATES, default = STAT_RECEIVED)
     #TODO: let's say the student is going to submit the binary only,
@@ -209,20 +224,32 @@ class Submission(models.Model):
 
 
 class TaskGradingStatus(models.Model):
-    STAT_RECEIVED = 0
-    STAT_GRADING = 10
-    STAT_SEG_FAULT = 100
-    STAT_FINISHED = 110
+    STAT_PENDING = 0
+    STAT_EXECUTING = 10
+    STAT_OUTPUT_TO_BE_CHECKED = 100
+    STAT_FINISH = 110
+
+    EXEC_UNKNOWN = -1
+    EXEC_OK = 0
+    EXEC_SEG_FAULT = 1
 
     GRADING_STATES = (
-            (STAT_RECEIVED, "Received"),
-            (STAT_GRADING, "Grading"),
-            (STAT_SEG_FAULT, "Segmentation fault"),
+            (STAT_PENDING, 'Pending'),
+            (STAT_EXECUTING, 'Executing'),
+            (STAT_OUTPUT_TO_BE_CHECKED, 'Checking output'),
+            (STAT_FINISH, 'Finished'),
+    )
+    EXECUTION_STATUS = (
+            (EXEC_UNKNOWN, 'Haven\'t executed yet'),
+            (EXEC_OK, 'Successful execution'),
+            (EXEC_SEG_FAULT, 'Segmentation fault'),
     )
     
     submission_id = models.ForeignKey(Submission, on_delete=models.CASCADE)
     assignment_task_id = models.ForeignKey(AssignmentTask, on_delete=models.CASCADE)
-    status = models.IntegerField(choices=GRADING_STATES, default=STAT_RECEIVED)
+    grading_status = models.IntegerField(choices=GRADING_STATES, default=STAT_PENDING)
+    execution_status = models.IntegerField(choices=EXECUTION_STATUS, default=EXECUTION_STATUS)
+    status_update_time = models.DateTimeField()
     points = models.FloatField(default=0.0)
     
 
