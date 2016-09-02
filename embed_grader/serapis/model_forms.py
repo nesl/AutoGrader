@@ -145,28 +145,42 @@ class CourseCreationForm(ModelForm):
         course = super(CourseCreationForm, self).save(commit=False)
         group = Group.objects.create(name=a+'_'+b+'_'+c)
         group.user_set.add(self.user)
-        course_user_list = CourseUserList.objects.create(user_id=self.user, course_id=course)
         if commit:
           course.save()
+        course_user_list = CourseUserList.objects.create(user_id=self.user, course_id=course)
         return course
 
 
-class CourseEnrollForm(Form):
+class CourseEnrollmentForm(Form):
+    error_messages = {
+        'course_already_enrolled': "You have already enrolled in this course.",
+    }
     current_year = datetime.now().year
     course_select = forms.ModelChoiceField(queryset=Course.objects.filter(year=current_year))
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
         super(CourseEnrollmentForm, self).__init__(*args, **kwargs)
-    
+
+    def clean(self):
+        course=self.cleaned_data.get("course_select") 
+        if self.user.groups.filter(name=course.course_code+'_'+str(course.quarter)+'_'+str(course.year)).count():
+            raise forms.ValidationError(self.error_messages['course_already_enrolled'],
+                code='course_already_enrolled')
+        return self.cleaned_data
+
     def save(self, commit=True):
         course=self.cleaned_data['course_select'] 
-        group = Groups.objects.get(name=course.course_code+'_'+course.quarter+'_'+course.year)
+        group = Group.objects.get(name=course.course_code+'_'+str(course.quarter)+'_'+str(course.year))
         group.user_set.add(self.user)
         course_user_list = CourseUserList.objects.create(user_id=self.user, course_id=course)
 
 
 class AssignmentBasicForm(ModelForm):
+    error_messages = {
+        'time_conflict': "Release time must be earlier than deadline.",
+    }
+    
     class Meta:
         model = Assignment
         fields = ['course_id', 'name', 'description', 'release_time', 'deadline', 'problem_statement', 'input_statement', 'output_statement']
@@ -179,6 +193,14 @@ class AssignmentBasicForm(ModelForm):
             'release_time': DateTimeWidget(bootstrap_version = 3, options = date_time_options),
             'deadline': DateTimeWidget(bootstrap_version = 3, options = date_time_options),
         }
+
+    def clean(self):
+        rt=self.cleaned_data.get("release_time")
+        dl=self.cleaned_data.get("deadline")
+        if rt>=dl:
+            raise forms.ValidationError(self.error_messages['time_conflict'],
+                code='time_conflict')
+        return self.cleaned_data
 
 
 class AssignmentCompleteForm(ModelForm):

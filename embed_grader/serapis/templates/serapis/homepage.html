@@ -31,7 +31,6 @@
             <!--end table-->
         {% endif %}
 
-        {% if user_profile.user_role == user_profile.ROLE_SUPER_USER or user_profile.user_role == user_profile.ROLE_INSTRUCTOR or user_profile.user_role == user_profile.ROLE_TA %}
             <hr/>
             <p>
                 {% if perms.serapis.add_course %}
@@ -40,8 +39,6 @@
                 <a href="{% url 'enroll-course' %}" class="btn btn-primary">Enroll in a Course</a>
                 <a href="{% url 'testbed-type-list' %}" class="btn btn-default">View Testbed Type List</a>
             </p>
-        {% endif %}
-
     </div>
 
 {% endblock %}

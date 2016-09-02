@@ -2,10 +2,67 @@
 {% load staticfiles %}
 
 {% block css %}
+<link href="{% static "serapis/sidebar-revised.css" %}" rel="stylesheet">
 {% endblock %}
 
 
 {% block content %}
+
+<!--
+Sidebar by @keenthemes
+-->
+
+<div class="container">
+<aside>
+    <div class="row profile">
+        <div class="col-md-3">
+            <div class="profile-sidebar">
+                <!-- SIDEBAR USERPIC -->
+                <div class="profile-userpic">
+                    <img src="{% static "serapis/nesl-logo.png" %}" class="img-responsive" alt="">
+                </div>
+                <!-- END SIDEBAR USERPIC -->
+                <!-- SIDEBAR USER TITLE -->
+                <div class="profile-usertitle">
+                    <div class="profile-usertitle-name">
+                        {{ course.course_code }}
+                    </div>
+                    <div class="profile-usertitle-job">
+                        {{ course.name }}
+                    </div>
+                </div>
+                <!-- END SIDEBAR USER TITLE -->
+                <!-- SIDEBAR MENU -->
+                <div class="profile-usermenu">
+                    <ul class="nav">
+                        <li class="active">
+                            <a href="#">
+                            <i class="glyphicon glyphicon-home"></i>
+                            Dashboard</a>
+                        </li>
+                        <li>
+                            <a href="{% url 'membership' course.id %}">
+                            <i class="glyphicon glyphicon-user"></i>
+                            Roster</a>
+                        </li>
+                        <li>
+                            <a href="{% url 'modify-course' course.id %}" target="_blank">
+                            <i class="glyphicon glyphicon-ok"></i>
+                            Settings</a>
+                        </li>
+                    </ul>
+                </div>
+                <!-- END MENU -->
+            </div>
+        </div> 
+    </div>
+    </aside>
+</div>
+
+
+
+
+<!--MAIN CONTENT-->
     <div class="container">
         <h1 class="page-header">Course - {{ course.course_code }}: {{ course.name }}</h1>
         <p>{{course.description}}</p>
@@ -25,13 +82,13 @@
                 </tr>
                 {% for assignment in assignment_list %}
                 <tr>
-                    <td><a href="{% url 'assignment' assignment.id %}">{{ assignment.name }}</a></td> 
+                    <td><a href="{% url 'assignment' course.id assignment.id %}">{{ assignment.name }}</a></td> 
                     {% if assignment.testbed_type_id %}
                         <td>{{ assignment.tested_type_id }}</td>   
                     {% else %}
                         <td>To be assigned</td>
                     {% endif %}
-                    <td><a href="{% url 'modify-assignment' assignment.id %}">Edit</a></td>
+                    <td><a href="{% url 'modify-assignment' course.id assignment.id %}">Edit</a></td>
                 </tr>
                 {% endfor %}
             </table>
@@ -41,12 +98,12 @@
                 {% for assignment in assignment_list %}
                     <li>
                         {% if assignment.testbed_type_id %}
-                            <a href="{% url 'assignment' assignment.id %}">{{ assignment.description }}</a>
+                            <a href="{% url 'assignment' course.id assignment.id %}">{{ assignment.description }}</a>
                         {% else %}
                             {{ assignment.description }} (specification not complete)
                         {% endif %}
                         {% if user_profile.user_role == user_profile.ROLE_SUPER_USER or user_profile.user_role == user_profile.ROLE_INSTRUCTOR or user_profile.user_role == user_profile.ROLE_TA %}
-                            <a href="{% url 'modify-assignment' assignment.id %}">[Make change]</a>
+                            <a href="{% url 'modify-assignment' course.id assignment.id %}">[Make change]</a>
                         {% endif %}
                     </li>
                 {% endfor %}
