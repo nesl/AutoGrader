@@ -31,7 +31,7 @@
                     {% else %}
                         <td>To be assigned</td>
                     {% endif %}
-                    <td><a href="{% url 'modify-assignment' assignment.id %}">Edit</a></td>
+                    <td><a class="btn btn-primary" href="{% url 'modify-assignment' assignment.id %}">Edit</a></td>
                 </tr>
                 {% endfor %}
             </table>

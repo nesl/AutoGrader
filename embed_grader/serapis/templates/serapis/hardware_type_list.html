@@ -12,39 +12,26 @@
         {% if not hardware_type_list %}
             <p>No hardware type has been specified.</p>
         {% else %}
-            <ul>
+            <div class="table-responsive">
+            <table class="table table-hover">
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                </tr>
                 {% for hardware_type in hardware_type_list %}
-                    <li><a href="{% url 'hardware-type' hardware_type.id %}">[{{ hardware_type.get_hardware_role_display }}] {{ hardware_type.name }}</a></li>
+                <tr>
+                    <td><a href="{% url 'hardware-type' hardware_type.id %}">{{hardware_type.name}}</a></td>
+                    <td>{{ hardware_type.get_hardware_role_display }}</td>
+                </tr>     
                 {% endfor %}
-            </ul>
+            </table>
+            </div>
         {% endif %}
 
         <p>
             <a href="{% url 'create-hardware-type' %}" class="btn btn-primary">Create a New Hardware Type</a>
             <a href="{% url 'testbed-type-list' %}" class="btn btn-default">View Testbed Type List</a>
         </p>
-        <table>
-          <tbody>
-            <tr>
-              <td>1</td>
-              <td><input type="input" value="25" /></td>
-              <td><input type="input" value="28" /></td>
-            </tr>
-            <tr>
-              <td>o</td>
-              <td>3</td>
-              <td>4</td>
-            </tr>
-            <tr>
-              <td>o</td>
-              <td>5</td>
-              <td>6</td>
-            </tr>  
-          </tbody>    
-        </table>
-        <script>
-          $('tbody').sortable();
-        </script>
     </div>
 
 {% endblock %}

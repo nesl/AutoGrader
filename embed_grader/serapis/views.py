@@ -345,6 +345,16 @@ def testbed_type_list(request):
 
 @login_required(login_url='/login/')
 def testbed_type(request, testbed_type_id):
+    username=request.user
+    
+    testbed_type = TestbedType.objects.filter(id=testbed_type_id).first()
+    if not testbed_type:
+        return HttpResponse("Testbed type not found")
+
+    testbed_type_form = TestbedTypeForm()
+
+    template_context = { "myuser": request.user, "testbed_type_form": testbed_type_form }
+
     return HttpResponse("Under construction")
 
 
