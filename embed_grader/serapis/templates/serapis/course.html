@@ -10,11 +10,33 @@
         <h1 class="page-header">Course - {{ course.course_code }}: {{ course.name }}</h1>
         <p>{{course.description}}</p>
         <hr/>
+
         <h3>Assignment List</h3>
         
         {% if not assignment_list %}
             <p>No assignments are available.</p>
         {% else %}
+            <div class="table-responsive">
+            <table class="table table-hover">
+                <tr>
+                    <th>Name</th>
+                    <th>Testbed Type</th>
+                    <th>Change</th>
+                </tr>
+                {% for assignment in assignment_list %}
+                <tr>
+                    <td><a href="{% url 'assignment' assignment.id %}">{{ assignment.name }}</a></td> 
+                    {% if assignment.testbed_type_id %}
+                        <td>{{ assignment.tested_type_id }}</td>   
+                    {% else %}
+                        <td>To be assigned</td>
+                    {% endif %}
+                    <td><a href="{% url 'modify-assignment' assignment.id %}">Edit</a></td>
+                </tr>
+                {% endfor %}
+            </table>
+            </div>
+
             <ul>
                 {% for assignment in assignment_list %}
                     <li>
