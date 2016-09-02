@@ -142,7 +142,7 @@ def create_course(request):
     template_context = {
             'myuser': request.user,
             'user_profile': user_profile,
-            'form': form.as_p(),
+            'form': form,
     }
     return render(request, 'serapis/create_course.html', template_context)
 
@@ -214,7 +214,7 @@ def create_assignment(request, course_id):
     template_context = {
             'myuser': request.user,
             'user_profile': user_profile,
-            'form': form.as_p(),
+            'form': form,
     }
     return render(request, 'serapis/create_assignment.html', template_context)
 

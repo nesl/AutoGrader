@@ -1,5 +1,6 @@
 {% extends 'serapis/base.html' %}
 {% load staticfiles %}
+{% load bootstrap3 %}
 
 {% block css %}
 {% endblock %}
@@ -10,9 +11,9 @@
         <h1 class="page-header">Create an assignment</h1>
         <hr/>
 
-        <form action="." method="post">
+        <form action="." method="post" class="form">
             {% csrf_token %}
-            {{ form }}
+            {% bootstrap_form form %}
             <input type="submit" value="Submit" />
             <p style='color:red'>Please note that assignment is incomplete at this stage.</p>
         </form>
