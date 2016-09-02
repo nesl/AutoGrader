@@ -21,7 +21,6 @@ from datetime import datetime, timedelta
 from serapis.models import *
 from serapis.model_forms import *
 
-from ipware.ip import get_ip
 import hashlib, random
 
 
@@ -577,15 +576,3 @@ def modify_hardware_type(request, hardware_id):
     return HttpResponse("under construction")
 
 
-@csrf_exempt
-def testbed_summary_report(request):
-    print(request.POST)
-    print(request)
-    ip = get_ip(request)
-    print(ip)
-    return HttpResponse("under construction")
-
-@csrf_exempt
-def testbed_status_report(request):
-    print(request.POST)
-    return HttpResponse("Gotcha!")
