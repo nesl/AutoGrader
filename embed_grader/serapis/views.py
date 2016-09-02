@@ -21,7 +21,6 @@ from datetime import datetime, timedelta
 from serapis.models import *
 from serapis.model_forms import *
 
-from ipware.ip import get_ip
 import hashlib, random
 
 
@@ -78,6 +77,7 @@ def activation(request, key):
     else:
         already_active = True  # Display : error message
     return render(request, 'serapis/activation.html', locals())
+
 
 def new_activation(request, user_id):
     form = UserCreationForm()
@@ -146,7 +146,7 @@ def create_course(request):
     template_context = {
             'myuser': request.user,
             'user_profile': user_profile,
-            'form': form.as_p(),
+            'form': form,
     }
     return render(request, 'serapis/create_course.html', template_context)
 
@@ -175,6 +175,9 @@ def course(request, course_id):
     username = request.user
     user = User.objects.filter(username=username)[0]
     user_profile = UserProfile.objects.filter(user=user)[0]
+    #TODO: redo permission checking
+    alter_course_permission = user_profile.user_role in [UserProfile.ROLE_SUPER_USER, UserProfile.ROLE_INSTRUCTOR, UserProfile.ROLE_TA]
+
     course_list = Course.objects.filter(id=course_id)
     if not course_list:
         return HttpResponse("Course cannot be found")
@@ -185,6 +188,7 @@ def course(request, course_id):
     template_context = {
             'myuser': request.user,
             'user_profile': user_profile,
+            'alter_course_permission': alter_course_permission,
             'course': course,
             'assignment_list': assignment_list,
     }
@@ -239,7 +243,7 @@ def create_assignment(request, course_id):
     template_context = {
             'myuser': request.user,
             'user_profile': user_profile,
-            'form': form.as_p(),
+            'form': form,
     }
     return render(request, 'serapis/create_assignment.html', template_context)
 
@@ -383,6 +387,16 @@ def testbed_type_list(request):
 
 @login_required(login_url='/login/')
 def testbed_type(request, testbed_type_id):
+    username=request.user
+    
+    testbed_type = TestbedType.objects.filter(id=testbed_type_id).first()
+    if not testbed_type:
+        return HttpResponse("Testbed type not found")
+
+    testbed_type_form = TestbedTypeForm()
+
+    template_context = { "myuser": request.user, "testbed_type_form": testbed_type_form }
+
     return HttpResponse("Under construction")
 
 
@@ -605,15 +619,3 @@ def modify_hardware_type(request, hardware_id):
     return HttpResponse("under construction")
 
 
-@csrf_exempt
-def testbed_summary_report(request):
-    print(request.POST)
-    print(request)
-    ip = get_ip(request)
-    print(ip)
-    return HttpResponse("under construction")
-
-@csrf_exempt
-def testbed_status_report(request):
-    print(request.POST)
-    return HttpResponse("Gotcha!")
