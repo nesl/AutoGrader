@@ -1,0 +1,16 @@
+{% extends "serapis/base.html" %}
+
+{% load staticfiles %}
+
+{% block css %}
+  <link href="{% static "serapis/signin.css" %}" rel="stylesheet">
+{% endblock %}
+
+{% block nav %}
+{% endblock %}
+
+{% block title %} Activation done {% endblock %}
+
+{% block content %}
+<p>Thanks for signing up. A verification link has been sent to your email. Please check.</p>
+{% endblock %}

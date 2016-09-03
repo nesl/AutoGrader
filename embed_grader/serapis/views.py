@@ -139,7 +139,7 @@ def create_course(request):
             form.save()
             return HttpResponseRedirect(reverse('homepage'))
     else:
-        form = CourseForm(initial={'owner_id': user})
+        form = CourseCreationForm(initial={'owner_id': user})
     
     form.fields['owner_id'].widget = forms.NumberInput(attrs={'readonly':'readonly'})
 

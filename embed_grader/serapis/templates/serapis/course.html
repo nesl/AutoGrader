@@ -78,51 +78,27 @@ Sidebar by @keenthemes
                 <tr>
                     <th>Name</th>
                     <th>Testbed Type</th>
-<<<<<<< HEAD
-                    <th>Change</th>
-                </tr>
-                {% for assignment in assignment_list %}
-                <tr>
-                    <td><a href="{% url 'assignment' course.id assignment.id %}">{{ assignment.name }}</a></td> 
-                    {% if assignment.testbed_type_id %}
-                        <td>{{ assignment.tested_type_id }}</td>   
-                    {% else %}
-                        <td>To be assigned</td>
-                    {% endif %}
-                    <td><a href="{% url 'modify-assignment' course.id assignment.id %}">Edit</a></td>
-=======
-                    {% if alter_course_permission %}
+                    {% if perms.serapis.add_course %}
                         <th>Change</th>
                     {% endif %}
->>>>>>> df7554fcc0c55da0e6ba948d50cb9d628934b98c
                 </tr>
                 {% for assignment in assignment_list %}
                     <tr>
-                        <td><a href="{% url 'assignment' assignment.id %}">{{ assignment.name }}</a></td> 
+                        <td><a href="{% url 'assignment' course.id assignment.id %}">{{ assignment.name }}</a></td> 
                         {% if assignment.testbed_type_id %}
-<<<<<<< HEAD
-                            <a href="{% url 'assignment' course.id assignment.id %}">{{ assignment.description }}</a>
-=======
                             <td>{{ assignment.testbed_type_id.name }}</td>   
->>>>>>> df7554fcc0c55da0e6ba948d50cb9d628934b98c
                         {% else %}
                             <td>To be assigned</td>
                         {% endif %}
-<<<<<<< HEAD
-                        {% if user_profile.user_role == user_profile.ROLE_SUPER_USER or user_profile.user_role == user_profile.ROLE_INSTRUCTOR or user_profile.user_role == user_profile.ROLE_TA %}
-                            <a href="{% url 'modify-assignment' course.id assignment.id %}">[Make change]</a>
-=======
-                        {% if alter_course_permission %}
-                            <td><a class="btn btn-primary" href="{% url 'modify-assignment' assignment.id %}">Edit</a></td>
->>>>>>> df7554fcc0c55da0e6ba948d50cb9d628934b98c
+                        {% if perms.serapis.add_assignment %}
+                            <td><a class="btn btn-primary" href="{% url 'modify-assignment' course.id assignment.id %}">Edit</a></td>
                         {% endif %}
                     </tr>
                 {% endfor %}
             </table>
             </div>
         {% endif %}
-
-        {% if alter_course_permission %}
+        {% if perms.serapis.add_assignment %}
             <hr/>
             <h3>Instructor-only section</h2>
             <p>
