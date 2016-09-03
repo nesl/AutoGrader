@@ -4,19 +4,14 @@ A component of Metronic Theme - #1 Selling Bootstrap 3 Admin Theme in Themefores
 Licensed under MIT
 ***/
 
-body {
-  background: #F1F3FA;
-}
-
 /* Profile container */
 .profile {
-  margin: 20px 0;
 }
 
 /* Profile sidebar */
 .profile-sidebar {
   padding: 20px 0 10px 0;
-  background: #fff;
+  background: #F1F3FA;
   height: 600px;
 }
 
@@ -108,7 +103,5 @@ body {
 
 /* Profile Content */
 .profile-content {
-  padding: 20px;
-  background: #F1F3FA;
   min-height: 460px;
 }
