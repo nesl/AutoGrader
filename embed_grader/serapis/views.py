@@ -25,7 +25,12 @@ import hashlib, random
 
 
 #TODO(timestring): recheck whether I should use disabled instead of readonly to enforce data integrity
-
+def course_check(user, course_id):
+    course_list = Course.objects.filter(id=course_id)
+    if not course_list:
+        return True
+    course = course_list[0]
+    return user.groups.filter(name=course.course_code+'_'+str(course.quarter)+'_'+str(course.year)).exists()
 
 def registration(request):
     if request.method == 'POST':
@@ -61,7 +66,7 @@ def activation(request, key):
     already_active = False
     user_profile = get_object_or_404(UserProfile, activation_key=key)
     if user_profile.user.is_active == False:
-        if timezone.now() > user_profil.key_expires:
+        if timezone.now() > user_profile.key_expires:
             activation_expired = True 
             # Display : offer to user to have another activation link (a link in template sending to the view new_activation_link)
             id_user = user_profile.user.id
@@ -122,20 +127,19 @@ def homepage(request):
 
 @login_required(login_url='/login/')
 def create_course(request):
+    if not request.user.has_perm('serapis.add_course'):
+        raise PermissionDenied
     username = request.user
     user = User.objects.filter(username=username)[0]
     user_profile = UserProfile.objects.filter(user=user)[0]
-    
-    if not user_profile.user_role == user_profile.ROLE_SUPER_USER and not user_profile.user_role == user_profile.ROLE_INSTRUCTOR and not user_profile.user_role == user_profile.ROLE_TA:
-        return HttpResponse("Not enough privilege")
 
     if request.method == 'POST':
-        form = CourseCreationForm(request.POST)
+        form = CourseCreationForm(request.POST, user=request.user)
         if form.is_valid():
             form.save()
             return HttpResponseRedirect(reverse('homepage'))
     else:
-        form = CourseForm(initial={'owner_id': user})
+        form = CourseCreationForm(initial={'owner_id': user})
     
     form.fields['owner_id'].widget = forms.NumberInput(attrs={'readonly':'readonly'})
 
@@ -150,13 +154,13 @@ def create_course(request):
 @login_required(login_url='/login/')
 def enroll_course(request):
     if request.method == 'POST':
-        form = CourseEnrollmentForm(request.POST)
+        form = CourseEnrollmentForm(request.POST, user=request.user)
         if form.is_valid():    
             form.save()
     else:
         form = CourseEnrollmentForm(user=request.user)
 
-    return render(request, 'serapis/enroll_course.html', template_context)
+    return render(request, 'serapis/enroll_course.html', {'form': form})
 
 
 @login_required(login_url='/login/')
@@ -166,6 +170,8 @@ def modify_course(request, course_id):
 
 @login_required(login_url='/login/')
 def course(request, course_id):
+    if not request.user.has_perm('serapis.add_course'):
+        raise PermissionDenied
     username = request.user
     user = User.objects.filter(username=username)[0]
     user_profile = UserProfile.objects.filter(user=user)[0]
@@ -176,6 +182,8 @@ def course(request, course_id):
     if not course_list:
         return HttpResponse("Course cannot be found")
     course = course_list[0]
+    if not course_check(user, course_id):
+        raise PermissionDenied
     assignment_list = Assignment.objects.filter(course_id=course_id)
     template_context = {
             'myuser': request.user,
@@ -188,19 +196,40 @@ def course(request, course_id):
 
 
 @login_required(login_url='/login/')
-def create_assignment(request, course_id):
+def membership(request, course_id):
+    if not request.user.has_perm('auth.view_membership'):
+        raise PermissionDenied
     username = request.user
     user = User.objects.filter(username=username)[0]
     user_profile = UserProfile.objects.filter(user=user)[0]
-    
-    if not user_profile.user_role == user_profile.ROLE_SUPER_USER and not user_profile.user_role == user_profile.ROLE_INSTRUCTOR and not user_profile.user_role == user_profile.ROLE_TA:
-        return HttpResponse("Not enough privilege")
+    course_list = Course.objects.filter(id=course_id)
+    if not course_list:
+        return HttpResponse("Course cannot be found")
+    course = course_list[0]
+    if not course_check(user, course_id):
+        raise PermissionDenied
+    user_enrolled = []
+    user_list = User.objects.all()
+    for u in user_list:
+        if u.groups.filter(name=course.course_code+'_'+str(course.quarter)+'_'+str(course.year)).exists():
+          up = UserProfile.objects.get(user=u)
+          user_enrolled.append(up)
+    return render(request, 'serapis/roster.html', {'course': course, 'user_enrolled': user_enrolled})
+
+@login_required(login_url='/login/')
+def create_assignment(request, course_id):
+    if not request.user.has_perm('serapis.add_course'):
+        raise PermissionDenied
+    username = request.user
+    user = User.objects.filter(username=username)[0]
+    user_profile = UserProfile.objects.filter(user=user)[0]
 
     course_list = Course.objects.filter(id=course_id)
     if not course_list:
         return HttpResponse("Course cannot be found")
     course = course_list[0]
-
+    if not course_check(user, course_id):
+        raise PermissionDenied
     if request.method == 'POST':
         form = AssignmentBasicForm(request.POST)
         if form.is_valid():
@@ -220,14 +249,20 @@ def create_assignment(request, course_id):
 
 
 @login_required(login_url='/login/')
-def assignment(request, assignment_id):
+def assignment(request, course_id, assignment_id):
     username = request.user
     user = User.objects.filter(username=username)[0]
     user_profile = UserProfile.objects.filter(user=user)[0]
-
-    assignment_list = Assignment.objects.filter(id=assignment_id)
+    course_list = Course.objects.filter(id=course_id)
+    if not course_list:
+        return HttpResponse("Course cannot be found")
+    course = course_list[0]
+    if not course_check(user, course_id):
+        raise PermissionDenied
+    assignment_list = course.assignment_set.filter(id=assignment_id)
     if not assignment_list:
         return HttpResponse("Assignment cannot be found")
+
     assignment = assignment_list[0]
 
     if request.method == 'POST':
@@ -257,17 +292,20 @@ def assignment(request, assignment_id):
 
 
 @login_required(login_url='/login/')
-def modify_assignment(request, assignment_id):
+def modify_assignment(request, course_id, assignment_id):
     username = request.user
     user = User.objects.filter(username=username)[0]
     user_profile = UserProfile.objects.filter(user=user)[0]
-    
-    if not user_profile.user_role == user_profile.ROLE_SUPER_USER and not user_profile.user_role == user_profile.ROLE_INSTRUCTOR and not user_profile.user_role == user_profile.ROLE_TA:
-        return HttpResponse("Not enough privilege")
-
-    assignment_list = Assignment.objects.filter(id=assignment_id)
+    course_list = Course.objects.filter(id=course_id)
+    if not course_list:
+        return HttpResponse("Course cannot be found")
+    course = course_list[0]
+    if not course_check(user, course_id):
+        raise PermissionDenied
+    assignment_list = course.assignment_set.filter(id=assignment_id)
     if not assignment_list:
         return HttpResponse("Assignment cannot be found")
+
     assignment = assignment_list[0]
 
     if request.method == 'POST':
