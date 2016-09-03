@@ -23,8 +23,8 @@ body {
 .profile-userpic img {
   float: none;
   margin: 0 auto;
-  width: 50%;
-  height: 50%;
+  width: 30%;
+  height: 30%;
   -webkit-border-radius: 50% !important;
   -moz-border-radius: 50% !important;
   border-radius: 50% !important;
@@ -109,6 +109,6 @@ body {
 /* Profile Content */
 .profile-content {
   padding: 20px;
-  background: #fff;
+  background: #F1F3FA;
   min-height: 460px;
 }

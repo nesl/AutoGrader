@@ -12,10 +12,8 @@
 Sidebar by @keenthemes
 -->
 
-<div class="container">
-<aside>
     <div class="row profile">
-        <div class="col-md-3">
+        <div class="col-md-2">
             <div class="profile-sidebar">
                 <!-- SIDEBAR USERPIC -->
                 <div class="profile-userpic">
@@ -55,15 +53,9 @@ Sidebar by @keenthemes
                 <!-- END MENU -->
             </div>
         </div> 
-    </div>
-    </aside>
-</div>
-
-
-
-
-<!--MAIN CONTENT-->
-    <div class="container">
+        <!--MAIN CONTENT-->
+    <div class="col-md-9">
+    <div class="profile-content">
         <h1 class="page-header">Course - {{ course.course_code }}: {{ course.name }}</h1>
         <p>{{course.description}}</p>
         <hr/>
@@ -100,12 +92,19 @@ Sidebar by @keenthemes
         {% endif %}
         {% if perms.serapis.add_assignment %}
             <hr/>
-            <h3>Instructor-only section</h2>
+            <h3>Instructor-only section</h3>
             <p>
                 <a href='{% url 'modify-course' course.id %}' class="btn btn-primary">Change Course Description</a>
                 <a href='{% url 'create-assignment' course.id %}' class="btn btn-primary">Create a New Assignment</a>
             </p>
         {% endif %}
     </div>
+</div>
+    </div>
+
+
+
+
+
 
 {% endblock %}
