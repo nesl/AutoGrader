@@ -1,5 +1,6 @@
 import requests
 import datetime
+import time
 
 from django.core.management.base import BaseCommand
 
@@ -22,6 +23,7 @@ class Command(BaseCommand):
         timer_submission_invalidation = 0
 
         while True:
+            """
             timer_testbed_invalidation_offline -= K_CYCLE_DURATION_SEC
             timer_testbed_invalidation_remove -= K_CYCLE_DURATION_SEC
             timer_submission_invalidation -= K_CYCLE_DURATION_SEC
@@ -77,14 +79,21 @@ class Command(BaseCommand):
                 files = {'firmware': ('filename', open(filename, 'rb'), 'text/plain')}
                 r = requests.post(testbed.ip_address + 'dut/program/', data={'dut': 1}, files=files)
 
+            """
             #
             # output checking
             #
-            task_list = TaskGradingStatus.objects.filter(grading_status=TaskGradingStatus.STAT_OUTPUT_TO_BE_CHECKED)
-            for task in task_list:
-                pass
+            grading_task_list = TaskGradingStatus.objects.filter(grading_status=TaskGradingStatus.STAT_OUTPUT_TO_BE_CHECKED)
+            for grading_task in grading_task_list:
+                assignment_task = grading_task.assignment_task_id
+                grading_script_filename = assignment_task.grading_script
+                output_filename = grading_task.output_file
                 #TODO: execute the grading script
+                proc = subprocess.Popen(
+                        ['python3', grading_script_filename, output_file_name], 
+                        stdout=subprocess.PIPE)
+                print(proc.communicate()[0])
                 #TODO: update database
-
-            # Sleep for n seconds
             
+            # go to sleep
+            time.sleep(K_CYCLE_DURATION_SEC)
