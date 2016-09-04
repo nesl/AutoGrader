@@ -8,18 +8,18 @@
 
 {% block content %}
     <div class="container">
+        <h2 class="form-signin-heading">Create a course</h2>
         <form class="form-register" role="form" method="post" action=".">
         {% csrf_token %}
-        <h2 class="form-signin-heading">Create a course</h2>
-        {% for field in form %}  
-           <div class="form-group">
-           <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-           {{ field|attr:"class:form-control"|attr:"required"}}
-           </div>
-           {% endfor %}
-           <input type="submit" value="Submit" />
-           <input type="hidden" name="next" value="/homepage/">
-           </form>
+            {% for field in form %}  
+                <div class="form-group">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field|attr:"class:form-control"|attr:"required"}}
+                </div>
+            {% endfor %}
+            <input type="submit" value="Submit" />
+            <input type="hidden" name="next" value="{% url 'homepage' %}">
+        </form>
         <p><a href="{% url 'homepage' %}">[Go back]</a></p>
     </div>
 

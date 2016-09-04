@@ -639,5 +639,22 @@ def modify_hardware_type(request, hardware_id):
 
 
 @login_required(login_url='/login/')
-def debug_task_grading_status():
-    return HttpResponse("under construction")
+def debug_task_grading_status(request):
+    username = request.user
+    user = User.objects.filter(username=username)[0]
+    user_profile = UserProfile.objects.filter(user=user)[0]
+
+    if request.method == 'POST':
+        form = TaskGradingStatusDebugForm(request.POST)
+        if form.is_valid():
+            task = form.save(commit=False)
+            task.save()
+
+    form = TaskGradingStatusDebugForm()
+
+    template_context = {
+            'myuser': request.user,
+            'user_profile': user_profile,
+            'form': form,
+    }
+    return render(request, 'serapis/debug_task_grading_status.html', template_context)
