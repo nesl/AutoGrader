@@ -61,14 +61,14 @@
                 </tr>
                 {% for assignment in assignment_list %}
                     <tr>
-                        <td><a href="{% url 'assignment' course.id assignment.id %}">{{ assignment.name }}</a></td> 
+                        <td><a href="{% url 'assignment' assignment.id %}">{{ assignment.name }}</a></td> 
                         {% if assignment.testbed_type_id %}
                             <td>{{ assignment.testbed_type_id.name }}</td>   
                         {% else %}
                             <td>To be assigned</td>
                         {% endif %}
                         {% if perms.serapis.add_assignment %}
-                            <td><a class="btn btn-primary" href="{% url 'modify-assignment' course.id assignment.id %}">Edit</a></td>
+                            <td><a class="btn btn-primary" href="{% url 'modify-assignment' assignment.id %}">Edit</a></td>
                         {% endif %}
                     </tr>
                 {% endfor %}
