@@ -330,3 +330,11 @@ class AssignmentSubmissionForm(ModelForm):
     class Meta:
         model = Submission
         fields = ['file']
+
+
+
+
+class TaskGradingStatusDebugForm(ModelForm):
+    class Meta:
+        model = TaskGradingStatus
+        fields = ['grading_status', 'execution_status', 'output_file']

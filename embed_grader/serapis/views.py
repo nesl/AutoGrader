@@ -628,3 +628,9 @@ def modify_hardware_type(request, hardware_id):
     return HttpResponse("under construction")
 
 
+
+
+
+@login_required(login_url='/login/')
+def debug_task_grading_status():
+    return HttpResponse("under construction")
