@@ -210,12 +210,19 @@ def membership(request, course_id):
         raise PermissionDenied
 
     #TODO: redo the following section section
+    '''
     user_enrolled = []
     user_list = User.objects.all()
     for u in user_list:
         if u.groups.filter(name=course.course_code+'_'+str(course.quarter)+'_'+str(course.year)).exists():
           up = UserProfile.objects.get(user=u)
           user_enrolled.append(up)
+    '''
+    user_enrolled = []
+    cu_list = CourseUserList.objects.filter(course_id=course)
+    for cu in cu_list:
+        up = UserProfile.objects.get(user=cu.user_id)
+        user_enrolled.append(up)
     return render(request, 'serapis/roster.html', {'course': course, 'user_enrolled': user_enrolled})
 
 

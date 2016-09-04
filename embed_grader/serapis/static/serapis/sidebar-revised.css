@@ -10,14 +10,15 @@ body {
 
 /* Profile container */
 .profile {
-  margin: 20px 0;
+  margin: 10px 0;
 }
 
 /* Profile sidebar */
 .profile-sidebar {
-  padding: 20px 0 10px 0;
+  padding: 10px 0 10px 0;
   background: #fff;
-  height: 600px;
+  height: 900px;
+  width: 260px;
 }
 
 .profile-userpic img {
@@ -108,7 +109,7 @@ body {
 
 /* Profile Content */
 .profile-content {
-  padding: 20px;
+  padding: 0 20px;
   background: #F1F3FA;
   min-height: 460px;
 }
