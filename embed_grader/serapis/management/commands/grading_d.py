@@ -7,9 +7,9 @@ from django.core.management.base import BaseCommand
 from serapis.models import *
 
 
-K_TESTBED_INVALIDATION_OFFLINE_SEC = 30
-K_TESTBED_INVALIDATION_REMOVE_SEC = 10 * 60
-K_SUBMISSION_INVALIDATION_SEC = 30
+K_TESTBED_INVALIDATION_OFFLINE_SEC = 1 #30
+K_TESTBED_INVALIDATION_REMOVE_SEC = 1 #10 * 60
+K_SUBMISSION_INVALIDATION_SEC = 1 #30
 
 K_CYCLE_DURATION_SEC = 5
 
@@ -23,12 +23,12 @@ class Command(BaseCommand):
         timer_submission_invalidation = 0
 
         while True:
-            """
             timer_testbed_invalidation_offline -= K_CYCLE_DURATION_SEC
             timer_testbed_invalidation_remove -= K_CYCLE_DURATION_SEC
             timer_submission_invalidation -= K_CYCLE_DURATION_SEC
 
             now = datetime.datetime.now()
+            """
 
             #
             # invalidation
@@ -93,6 +93,7 @@ class Command(BaseCommand):
                         ['python3', grading_script_filename, output_file_name], 
                         stdout=subprocess.PIPE)
                 print(proc.communicate()[0])
+                exit()
                 #TODO: update database
             
             # go to sleep
