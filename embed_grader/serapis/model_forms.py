@@ -138,6 +138,8 @@ class CourseCreationForm(ModelForm):
                 code='course_already_created')
         return self.cleaned_data
 
+    #TODO(Meng): can we delete this method since we're no longer using group
+    # permission to check a student who enroll in a course?
     def save(self, commit=True):
         a = self.cleaned_data['course_code']
         b = str(self.cleaned_data['quarter'])
