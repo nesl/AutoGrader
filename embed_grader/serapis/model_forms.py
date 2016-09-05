@@ -125,10 +125,13 @@ class CourseCreationForm(ModelForm):
                 'quarter': forms.Select(choices=QUARTER_CHOICES)
         }
 
+    #TODO(Meng): Do we really need this constructor?
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
         super(CourseCreationForm, self).__init__(*args, **kwargs)
 
+    #TODO(Meng): can we delete this method since we're no longer using group
+    # permission to check a student who enroll in a course?
     def clean(self):
         a = self.cleaned_data.get("course_code")
         b = str(self.cleaned_data.get("quarter"))
