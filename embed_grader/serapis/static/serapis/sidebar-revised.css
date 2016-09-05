@@ -13,7 +13,7 @@ Licensed under MIT
 .profile-sidebar {
   padding: 20px 0 10px 0;
   background: #F1F3FA;
-  height: 900px;
+  height: 100vh;
 }
 
 .profile-userpic img {
