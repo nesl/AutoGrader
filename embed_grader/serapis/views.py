@@ -294,6 +294,7 @@ def assignment(request, assignment_id):
             'myuser': request.user,
             'user_profile': user_profile,
             'assignment': assignment,
+            'course': course,
             'submission_form': submission_form,
             'submission_short_list': submission_short_list,
     }

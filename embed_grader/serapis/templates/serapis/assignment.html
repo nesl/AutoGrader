@@ -1,43 +1,73 @@
-{% extends 'serapis/base.html' %}
+{% extends 'serapis/base_sidebar.html' %}
 {% load staticfiles %}
 
-{% block css %}
+{% block sidebar-content %}
+    <!-- SIDEBAR USER TITLE -->
+    <div class="profile-usertitle">
+        <div class="profile-usertitle-name">
+            {{ course.course_code }}
+        </div>
+        <div class="profile-usertitle-job">
+            {{ course.name }}
+        </div>
+    </div>
+    <!-- END SIDEBAR USER TITLE -->
+    <!-- SIDEBAR MENU -->
+    <div class="profile-usermenu">
+        <ul class="nav nav-bar">
+            <li>
+                <a href="{% url 'homepage' %}">Courses</a>
+            </li>
+            {% if perms.serapis.add_testbed %}
+            <li>
+                <a href="{% url 'testbed-type-list' %}">Testbed Types</a>
+            </li>
+            {% endif %}
+        </ul>
+    </div>
+    <!-- END MENU -->
 {% endblock %}
 
 
-{% block content %}
-    <div class="container">
-        <h1 class="page-header">Assignment - {{ assignment.name }}</h1>
-        
-        <h3>Description</h3>
-        <p>{{ assignment.problem_statement }}</p>
-        <h4>Input description</h4>
-        <p>{{ assignment.input_statement }}</p>
-        <h4>Output description</h4>
-        <p>{{ assignment.output_statement }}</p>
-        <hr/>
-        <h3>Submission section</h3>
-        <p><b>Release time: </b>{{ assignment.release_time }}</p>
-        <p><b>Deadline: </b>{{ assignment.deadline }}(how much time remaining, or it's closed)</p>
 
-        <form action="." method="post" enctype="multipart/form-data">
-            {% csrf_token %}
-            {{ submission_form.as_p }}
-            <input type="submit" value="Submit" />
-        </form>
-
-        <hr/>
-        <h3>Submission history</h3>
-        {% if not submission_short_list %}
-            <p>No submissions to this question yet.</p>
-        {% else %}
-            <table>
-                <tr><th>ID</th><th>Result</th><th>Submission time</th><th>&nbsp;</th></tr>
-                {% for s in submission_short_list %}
-                    <tr><td>{{ s.id }}</td><td>{{ s.get_status_display }}</td><td>{{ s.submission_time }}</td><td><a href="{{ MEDIA_URL }}{{ s.file.url }}">[Download]</a></tr>
-                {% endfor %}
-            </table>
-        {% endif %}
+{% block main-content %}
+    <div class="top-buffer">
+    <ol class="breadcrumb">
+        <li><a href="{% url 'homepage' %}">Courses</a></li>
+        <li><a href="{% url 'course' course.id %}">{{course.course_code}}</a></li>
+        <li class="active">{{ assignment.name }}</a></li>
+    </ol>
     </div>
+        
+    <h1 class="page-header">Assignment - {{ assignment.name }}</h1>
+    
+    <h3>Description</h3>
+    <p>{{ assignment.problem_statement }}</p>
+    <h4>Input description</h4>
+    <p>{{ assignment.input_statement }}</p>
+    <h4>Output description</h4>
+    <p>{{ assignment.output_statement }}</p>
+    <hr/>
+    <h3>Submission section</h3>
+    <p><b>Release time: </b>{{ assignment.release_time }}</p>
+    <p><b>Deadline: </b>{{ assignment.deadline }}(how much time remaining, or it's closed)</p>
 
+    <form action="." method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ submission_form.as_p }}
+        <input type="submit" value="Submit" />
+    </form>
+
+    <hr/>
+    <h3>Submission history</h3>
+    {% if not submission_short_list %}
+        <p>No submissions to this question yet.</p>
+    {% else %}
+        <table>
+            <tr><th>ID</th><th>Result</th><th>Submission time</th><th>&nbsp;</th></tr>
+            {% for s in submission_short_list %}
+                <tr><td>{{ s.id }}</td><td>{{ s.get_status_display }}</td><td>{{ s.submission_time }}</td><td><a href="{{ MEDIA_URL }}{{ s.file.url }}">[Download]</a></tr>
+            {% endfor %}
+        </table>
+    {% endif %}
 {% endblock %}
