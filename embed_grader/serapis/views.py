@@ -261,24 +261,20 @@ def create_assignment(request, course_id):
 
 
 @login_required(login_url='/login/')
-def assignment(request, course_id, assignment_id):
+def assignment(request, assignment_id):
     username = request.user
     user = User.objects.filter(username=username)[0]
     user_profile = UserProfile.objects.filter(user=user)[0]
+   
+    assignment = Assignment.objects.get(id=assignment_id)
+    if not assignment:
+        return HttpResponse("Assignment cannot be found")
     
-    course_list = Course.objects.filter(id=course_id)
-    if not course_list:
-        return HttpResponse("Course cannot be found")
-    course = course_list[0]
+    course = assignment.course_id 
     
     if not CourseUserList.objects.filter(course_id=course, user_id=user):
         raise PermissionDenied
-    
-    assignment_list = course.assignment_set.filter(id=assignment_id)
-    if not assignment_list:
-        return HttpResponse("Assignment cannot be found")
-    assignment = assignment_list[0]
-
+ 
     if request.method == 'POST':
         form = AssignmentSubmissionForm(request.POST, request.FILES)
         if form.is_valid():
