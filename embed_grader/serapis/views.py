@@ -207,21 +207,30 @@ def membership(request, course_id):
     if not CourseUserList.objects.filter(course_id=course, user_id=user):
         raise PermissionDenied
 
-    #TODO: redo the following section section
-    '''
-    user_enrolled = []
-    user_list = User.objects.all()
-    for u in user_list:
-        if u.groups.filter(name=course.course_code+'_'+str(course.quarter)+'_'+str(course.year)).exists():
-          up = UserProfile.objects.get(user=u)
-          user_enrolled.append(up)
-    '''
+    students = []
+    instructors = []
+    assistants = []
     user_enrolled = []
     cu_list = CourseUserList.objects.filter(course_id=course)
     for cu in cu_list:
         up = UserProfile.objects.get(user=cu.user_id)
+        if up.user_role == 10:
+            instructors.append(up)
+        elif up.user_role == 11:
+            assistants.append(up)
+        elif up.user_role == 20:
+            students.append(up)
         user_enrolled.append(up)
-    return render(request, 'serapis/roster.html', {'course': course, 'user_enrolled': user_enrolled})
+    
+    template_context = {
+            'course': course,
+            'user_enrolled': user_enrolled,
+            'students': students,
+            'teaching_assistants': assistants,
+            'instructors': instructors,
+        }
+
+    return render(request, 'serapis/roster.html', template_context)
 
 
 @login_required(login_url='/login/')
