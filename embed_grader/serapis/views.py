@@ -36,11 +36,11 @@ def registration(request):
             datas['email'] = form.cleaned_data['email']
             datas['password1'] = form.cleaned_data['password1']
             # We will generate a random activation key
-            salt = hashlib.sha1(str(random.random())).hexdigest()[:5]
+            random_string = str(random.random())
+            salt = hashlib.sha1(random_string.encode('utf-8')).hexdigest()[:5]
             usernamesalt = datas['uid']
-            if isinstance(usernamesalt, unicode):
-                usernamesalt = usernamesalt.encode('utf8')
-            datas['activation_key'] = hashlib.sha1(salt+usernamesalt).hexdigest()
+            activation_string = (salt+usernamesalt).encode('utf-8')
+            datas['activation_key'] = hashlib.sha1(activation_string).hexdigest()
             datas['email_path'] = "serapis/activation_email.html"
             datas['email_subject'] = "Account Activation"
 
