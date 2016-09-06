@@ -175,7 +175,7 @@ def course(request, course_id):
     alter_course_permission = user_profile.user_role in [UserProfile.ROLE_SUPER_USER, UserProfile.ROLE_INSTRUCTOR, UserProfile.ROLE_TA]
 
     course = Course.objects.get(id=course_id)
-    if not course_list:
+    if not course:
         return HttpResponse("Course cannot be found")
 
     if not CourseUserList.objects.filter(course_id=course, user_id=user):
