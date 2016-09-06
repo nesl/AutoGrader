@@ -63,10 +63,22 @@
     {% if not submission_short_list %}
         <p>No submissions to this question yet.</p>
     {% else %}
-        <table>
-            <tr><th>ID</th><th>Result</th><th>Submission time</th><th>&nbsp;</th></tr>
+        <table class="table table-hover table-striped">
+            <tr>
+                <thead>
+                <th>ID</th>
+                <th>Result</th>
+                <th>Submission time</th>
+                <th>Submission File</th>
+                </thead>
+            </tr>
             {% for s in submission_short_list %}
-                <tr><td>{{ s.id }}</td><td>{{ s.get_status_display }}</td><td>{{ s.submission_time }}</td><td><a href="{{ MEDIA_URL }}{{ s.file.url }}">[Download]</a></tr>
+                <tr>
+                    <td>{{ s.id }}</td>
+                    <td>{{ s.get_status_display }}</td>
+                    <td>{{ s.submission_time }}</td>
+                    <td><a href="{{ MEDIA_URL }}{{ s.file.url }}">[Download]</a></td>
+                </tr>
             {% endfor %}
         </table>
     {% endif %}
