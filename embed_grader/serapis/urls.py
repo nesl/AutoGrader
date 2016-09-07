@@ -48,4 +48,5 @@ urlpatterns = [
 
     url(r'^tb/summary/$', services.testbed_summary_report, name='tb-summary'),
     url(r'^tb/status/$', services.testbed_status_report, name='tb-status'),
+    url(r'^tb/waveform/$', services.testbed_return_output_waveform, name='testbed-return-output-waveform'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
