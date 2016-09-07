@@ -340,6 +340,13 @@ class AssignmentSubmissionForm(ModelForm):
 
 
 class TaskGradingStatusDebugForm(ModelForm):
+    id = forms.IntegerField(widget=forms.NumberInput)
     class Meta:
         model = TaskGradingStatus
-        fields = ['grading_status', 'execution_status', 'output_file']
+        fields = ['id', 'grading_status', 'execution_status', 'output_file']
+
+
+class ReturningWaveformForm(Form):
+    id = forms.CharField()
+    waveform = forms.FileField()
+

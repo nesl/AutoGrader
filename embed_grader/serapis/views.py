@@ -62,7 +62,7 @@ def activation(request, key):
     user_profile = get_object_or_404(UserProfile, activation_key=key)
     if user_profile.user.is_active == False:
         if timezone.now() > user_profile.key_expires:
-            activation_expired = True 
+            activation_expired = True
             # Display : offer to user to have another activation link (a link in template sending to the view new_activation_link)
             id_user = user_profile.user.id
         else:  # Activation successful
@@ -92,7 +92,7 @@ def new_activation(request, user_id):
 
         user_profile = UserProfile.objects.get(user=user)
         user_profile.activation_key = datas['activation_key']
-        user_profile.key_expires = datetime.strftime(datetime.now() + timedelta(days=2), "%Y-%m-%d %H:%M:%S")
+        user_profile.key_expires = datetime.strftime(timezone.now() + timedelta(days=2), "%Y-%m-%d %H:%M:%S")
         user_profile.save()
         form.sendEmail(datas)
         request.session['new_link'] = True  # Display : new link send
@@ -135,7 +135,7 @@ def create_course(request):
             return HttpResponseRedirect(reverse('homepage'))
     else:
         form = CourseCreationForm(initial={'owner_id': user})
-    
+
     form.fields['owner_id'].widget = forms.NumberInput(attrs={'readonly':'readonly'})
 
     template_context = {
@@ -150,7 +150,7 @@ def create_course(request):
 def enroll_course(request):
     if request.method == 'POST':
         form = CourseEnrollmentForm(request.POST, user=request.user)
-        if form.is_valid():    
+        if form.is_valid():
             form.save()
     else:
         form = CourseEnrollmentForm(user=request.user)
@@ -221,7 +221,7 @@ def membership(request, course_id):
         elif up.user_role == 20:
             students.append(up)
         user_enrolled.append(up)
-    
+
     template_context = {
             'course': course,
             'user_enrolled': user_enrolled,
@@ -255,9 +255,9 @@ def create_assignment(request, course_id):
             return HttpResponseRedirect(reverse('course', args=(course_id)))
     else:
         form = AssignmentBasicForm(initial={'course_id': course_id})
-    
+
     form.fields['course_id'].widget = forms.NumberInput(attrs={'readonly':'readonly'})
-    
+
     template_context = {
             'myuser': request.user,
             'user_profile': user_profile,
@@ -271,59 +271,86 @@ def assignment(request, assignment_id):
     username = request.user
     user = User.objects.get(username=username)
     user_profile = UserProfile.objects.get(user=user)
-   
+
     assignment = Assignment.objects.get(id=assignment_id)
     if not assignment:
         return HttpResponse("Assignment cannot be found")
     
-    course = assignment.course_id 
-    
+    course = assignment.course_id
+
     if not CourseUserList.objects.filter(course_id=course, user_id=user):
         raise PermissionDenied
- 
+
     if request.method == 'POST':
         form = AssignmentSubmissionForm(request.POST, request.FILES)
         if form.is_valid():
             submission = form.save(commit=False)
             submission.student_id = user
             submission.assignment_id = assignment
-            submission.submission_time = datetime.now()
+            submission.submission_time = timezone.now()
             submission.grading_result = 0.
-            submission.status = Submission.STAT_RECEIVED
+            submission.status = Submission.STAT_GRADING
             submission.save()
+
+            assignment_tasks = AssignmentTask.objects.filter(assignment_id=assignment)
+            for assignment_task in assignment_tasks:
+                grading_task = TaskGradingStatus()
+                grading_task.submission_id = submission
+                grading_task.assignment_task_id = assignment_task
+                grading_task.grading_status = TaskGradingStatus.STAT_PENDING
+                grading_task.execution_status = TaskGradingStatus.EXEC_UNKNOWN
+                grading_task.status_update_time = timezone.now()
+                grading_task.save()
 
     submission_form = AssignmentSubmissionForm()
 
-    submission_short_list = Submission.objects.filter(student_id=user, assignment_id=assignment).order_by('-id')
+    submission_list = Submission.objects.filter(student_id=user, assignment_id=assignment).order_by('-id')
+    num_display = min(5, len(submission_list))
+    submission_short_list = submission_list[:num_display]
 
+    submission_grading_detail = []
+    for submission in submission_short_list:
+        task_symbols = []
+        tasks = TaskGradingStatus.objects.filter(submission_id=submission).order_by('assignment_task_id')
+        for task in tasks:
+            if task.grading_status == TaskGradingStatus.STAT_PENDING:
+                task_symbols.append('(P)')
+            elif task.grading_status == TaskGradingStatus.STAT_EXECUTING:
+                task_symbols.append('(E)')
+            elif task.grading_status == TaskGradingStatus.STAT_OUTPUT_TO_BE_CHECKED:
+                task_symbols.append('(C)')
+            elif task.grading_status == TaskGradingStatus.STAT_FINISH:
+                task_symbols.append(str(task.points))
+            elif task.grading_status == TaskGradingStatus.STAT_INTERNAL_ERROR:
+                task_symbols.append('Error')
+        submission_grading_detail.append(','.join(task_symbols))
+
+    submission_n_detail_short_list = zip(submission_short_list, submission_grading_detail)
     template_context = {
             'myuser': request.user,
             'user_profile': user_profile,
             'assignment': assignment,
             'course': course,
             'submission_form': submission_form,
-            'submission_short_list': submission_short_list,
+            'submission_n_detail_short_list': submission_n_detail_short_list,
     }
 
     return render(request, 'serapis/assignment.html', template_context)
 
 
 @login_required(login_url='/login/')
-def modify_assignment(request, course_id, assignment_id):
+def modify_assignment(request, assignment_id):
     username = request.user
     user = User.objects.get(username=username)
     user_profile = UserProfile.objects.get(user=user)
-    
-    course = Course.objects.get(id=course_id)
-    if not course:
-        return HttpResponse("Course cannot be found")
-    
+
+    assignment_list = Assignment.objects.filter(id=assignment_id)
+    if not assignment_list:
+        return HttpResponse("Assignment cannot be found")
+
+    course = assignment.course_id
     if not CourseUserList.objects.filter(course_id=course, user_id=user):
         raise PermissionDenied
-    
-    assignment = course.assignment_set.get(id=assignment_id)
-    if not assignment:
-        return HttpResponse("Assignment cannot be found")
 
     if request.method == 'POST':
         form = AssignmentCompleteForm(request.POST, instance=assignment)
@@ -331,7 +358,7 @@ def modify_assignment(request, course_id, assignment_id):
             assignment = form.save()
     else:
         form = AssignmentCompleteForm(instance=assignment)
-    
+
     tasks = None
     if assignment.testbed_type_id:
         form.fields['testbed_type_id'].widget = forms.NumberInput(attrs={'readonly':'readonly'})
@@ -354,16 +381,16 @@ def create_assignment_task(request, assignment_id):
     username = request.user
     user = User.objects.get(username=username)
     user_profile = UserProfile.objects.get(user=user)
-    
+
     if not user_profile.user_role == user_profile.ROLE_SUPER_USER and not user_profile.user_role == user_profile.ROLE_INSTRUCTOR and not user_profile.user_role == user_profile.ROLE_TA:
         return HttpResponse("Not enough privilege")
 
     assignment = Assignment.objects.get(id=assignment_id)
     if not assignment:
         return HttpResponse("Assignment cannot be found")
-    
+
     course = assignment.course_id
-    
+
     if request.method == 'POST':
         form = AssignmentTaskForm(request.POST, request.FILES)
         if form.is_valid():
@@ -373,7 +400,7 @@ def create_assignment_task(request, assignment_id):
             return HttpResponseRedirect(reverse('modify-assignment', args=(assignment_id)))
     else:
         form = AssignmentTaskForm()
-    
+
     template_context = {
             'myuser': request.user,
             'user_profile': user_profile,
@@ -389,7 +416,7 @@ def testbed_type_list(request):
     username = request.user
     user = User.objects.get(username=username)
     user_profile = UserProfile.objects.get(user=user)
-    
+
     if not user_profile.user_role == user_profile.ROLE_SUPER_USER and not user_profile.user_role == user_profile.ROLE_INSTRUCTOR and not user_profile.user_role == user_profile.ROLE_TA:
         return HttpResponse("Not enough privilege")
 
@@ -405,7 +432,7 @@ def testbed_type_list(request):
 @login_required(login_url='/login/')
 def testbed_type(request, testbed_type_id):
     username=request.user
-    
+
     testbed_type = TestbedType.objects.get(id=testbed_type_id)
     if not testbed_type:
         return HttpResponse("Testbed type not found")
@@ -422,7 +449,7 @@ def create_testbed_type(request):
     username = request.user
     user = User.objects.get(username=username)
     user_profile = UserProfile.objects.get(user=user)
-    
+
     if not user_profile.user_role == user_profile.ROLE_SUPER_USER and not user_profile.user_role == user_profile.ROLE_INSTRUCTOR and not user_profile.user_role == user_profile.ROLE_TA:
         return HttpResponse("Not enough privilege")
 
@@ -493,7 +520,7 @@ def create_testbed_type(request):
             except IntegrityError:  # if the transaction failed
                 messages.error(request, 'There was an error saving your profile.')
             return HttpResponseRedirect(reverse('testbed-type-list'))
-        
+
     if render_stage == 1:
         if render_first_time:
             testbed_form = TestbedTypeForm(prefix='testbed')
@@ -553,10 +580,10 @@ def hardware_type_list(request):
     username = request.user
     user = User.objects.get(username=username)
     user_profile = UserProfile.objects.get(user=user)
-    
+
     if not user_profile.user_role == user_profile.ROLE_SUPER_USER and not user_profile.user_role == user_profile.ROLE_INSTRUCTOR and not user_profile.user_role == user_profile.ROLE_TA:
         return HttpResponse("Not enough privilege")
-    
+
     hardware_type_list = HardwareType.objects.all()
     template_context = {
             'myuser': request.user,
@@ -571,10 +598,10 @@ def hardware_type(request, hardware_type_id):
     username = request.user
     user = User.objects.get(username=username)
     user_profile = UserProfile.objects.get(user=user)
-    
+
     if not user_profile.user_role == user_profile.ROLE_SUPER_USER and not user_profile.user_role == user_profile.ROLE_INSTRUCTOR and not user_profile.user_role == user_profile.ROLE_TA:
         return HttpResponse("Not enough privilege")
-    
+
     hardware_type = HardwareType.objects.get(id=hardware_type_id)
     if not hardware_type:
         return HttpResponse("Hardware type cannot be found")
@@ -595,7 +622,7 @@ def create_hardware_type(request):
     username = request.user
     user = User.objects.get(username=username)
     user_profile = UserProfile.objects.get(user=user)
-    
+
     if not user_profile.user_role == user_profile.ROLE_SUPER_USER and not user_profile.user_role == user_profile.ROLE_INSTRUCTOR and not user_profile.user_role == user_profile.ROLE_TA:
         return HttpResponse("Not enough privilege")
 
@@ -604,7 +631,7 @@ def create_hardware_type(request):
         pin_formset = HardwareTypePinFormSet(request.POST)
         if hardware_form.is_valid() and pin_formset.is_valid():
             hardware = hardware_form.save()
-            
+
             hardware_pins = []
             for form in pin_formset:
                 pin_name = form.cleaned_data.get('pin_name')
@@ -642,9 +669,14 @@ def debug_task_grading_status(request):
     user_profile = UserProfile.objects.get(user=user)
 
     if request.method == 'POST':
-        form = TaskGradingStatusDebugForm(request.POST)
+        form = TaskGradingStatusDebugForm(request.POST, request.FILES)
         if form.is_valid():
-            task = form.save(commit=False)
+            #task = form.save(commit=False)
+            task = TaskGradingStatus.objects.filter(id=request.POST['id'])[0]
+            task.grading_status = form.cleaned_data['grading_status']
+            task.execution_status = form.cleaned_data['execution_status']
+            task.output_file = form.cleaned_data['output_file']
+            task.status_update_time = timezone.now()
             task.save()
 
     form = TaskGradingStatusDebugForm()

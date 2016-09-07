@@ -81,48 +81,6 @@ class TestbedTypeWiring(models.Model):
     dev_2_pin = models.ForeignKey(HardwareTypePin, related_name = 'dev_2_pin', on_delete = models.CASCADE)
 
 
-class Testbed(models.Model):
-    #STATUS_RESERVED = 0
-    STATUS_AVAILABLE = 1
-    STATUS_BUSY = 2
-    STATUS_OFFLINE = -1
-    STATUS_UNKNOWN = -2
-
-    TESTBED_STATUS = (
-        #(STATUS_RESERVED, 'Reserved'),
-        (STATUS_AVAILABLE, 'Available'),
-        (STATUS_BUSY, 'Busy'),
-        (STATUS_OFFLINE, 'Offline'),
-    )
-    REPORT_STATUS = (
-        (STATUS_AVAILABLE, 'Available'),
-        (STATUS_BUSY, 'Busy'),
-        (STATUS_UNKNOWN, 'Unknown'),
-    )
-
-    testbed_type = models.ForeignKey(TestbedType, on_delete=models.CASCADE)
-
-    #IP Address. Only allowing IPv4 as the testers are internal
-    ip_address = models.GenericIPAddressField(protocol='IPv4')
-    unique_hardware_id = models.CharField(max_length=30)
-   
-    # internal
-    status = models.IntegerField(choices=TESTBED_STATUS)
-
-    # report message
-    report_time = models.DateTimeField()
-    report_status = models.IntegerField(choices=REPORT_STATUS)
-
-
-class HardwareDevice(models.Model):
-    hardware_type = models.ForeignKey(
-        HardwareType,
-        on_delete = models.CASCADE,
-    )
-
-    testbed = models.ForeignKey(Testbed, on_delete=models.CASCADE)
-
-   
 class Course(models.Model):
     FALL = 0
     WINTER = 1
@@ -179,12 +137,6 @@ class Assignment(models.Model):
         return self.name
 
 
-#TODO: this should be deleted
-class AssignmentTestbed(models.Model):
-    assignment_id = models.ForeignKey(Assignment, on_delete = models.CASCADE)
-    testbed_id = models.ForeignKey(Testbed, on_delete = models.CASCADE)
-
-
 class AssignmentTask(models.Model):
     MODE_PUBLIC = 0
     MODE_FEEDBACK = 1
@@ -230,6 +182,7 @@ class TaskGradingStatus(models.Model):
     STAT_EXECUTING = 10
     STAT_OUTPUT_TO_BE_CHECKED = 100
     STAT_FINISH = 110
+    STAT_INTERNAL_ERROR = -1
 
     EXEC_UNKNOWN = -1
     EXEC_OK = 0
@@ -240,6 +193,7 @@ class TaskGradingStatus(models.Model):
             (STAT_EXECUTING, 'Executing'),
             (STAT_OUTPUT_TO_BE_CHECKED, 'Checking output'),
             (STAT_FINISH, 'Finished'),
+            (STAT_INTERNAL_ERROR, 'Please contact PI'),
     )
     EXECUTION_STATUS = (
             (EXEC_UNKNOWN, 'Haven\'t executed yet'),
@@ -256,6 +210,49 @@ class TaskGradingStatus(models.Model):
     points = models.FloatField(default=0.0)
     
 
+class Testbed(models.Model):
+    #STATUS_RESERVED = 0
+    STATUS_AVAILABLE = 1
+    STATUS_BUSY = 2
+    STATUS_OFFLINE = -1
+    STATUS_UNKNOWN = -2
+
+    TESTBED_STATUS = (
+        #(STATUS_RESERVED, 'Reserved'),
+        (STATUS_AVAILABLE, 'Available'),
+        (STATUS_BUSY, 'Busy'),
+        (STATUS_OFFLINE, 'Offline'),
+    )
+    REPORT_STATUS = (
+        (STATUS_AVAILABLE, 'Available'),
+        (STATUS_BUSY, 'Busy'),
+        (STATUS_UNKNOWN, 'Unknown'),
+    )
+
+    testbed_type = models.ForeignKey(TestbedType, on_delete=models.CASCADE)
+
+    #IP Address. Only allowing IPv4 as the testers are internal
+    ip_address = models.GenericIPAddressField(protocol='IPv4')
+    unique_hardware_id = models.CharField(max_length=30, unique=True)
+    task_being_graded = models.ForeignKey(TaskGradingStatus, null=True, on_delete=models.SET_NULL)
+   
+    # internal
+    status = models.IntegerField(choices=TESTBED_STATUS)
+
+    # report message
+    report_time = models.DateTimeField()
+    report_status = models.IntegerField(choices=REPORT_STATUS)
+
+
+class HardwareDevice(models.Model):
+    hardware_type = models.ForeignKey(
+        HardwareType,
+        on_delete = models.CASCADE,
+    )
+
+    testbed = models.ForeignKey(Testbed, on_delete=models.CASCADE)
+
+   
 #TODO: We're not going to use it for now
 class SubmissionFile(models.Model):
     submission_id = models.ForeignKey(Submission, on_delete = models.CASCADE)

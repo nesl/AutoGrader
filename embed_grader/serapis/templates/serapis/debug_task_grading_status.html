@@ -9,7 +9,7 @@
 {% block content %}
     <div class="container">
         <h2 class="form-signin-heading">Debug gradign task</h2>
-        <form class="form-register" role="form" method="post" action=".">
+        <form class="form-register" role="form" method="post" enctype="multipart/form-data" action=".">
             {% csrf_token %}
             {{ form }}
             <input type="submit" value="Submit" />
