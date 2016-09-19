@@ -49,13 +49,17 @@ def testbed_summary_report(request):
     ip_port_address = '%s:%d' % (ip, port)
     testbed.ip_address = ip_port_address
     if flag_ask_status:
-        r = requests.get('http://' + ip_port_address + '/tester/status/')
-        if r.text == 'IDLE':
-            testbed.report_status = Testbed.STATUS_AVAILABLE
-            testbed.status = Testbed.STATUS_AVAILABLE
-        elif r.text == 'BUSY':
-            testbed.report_status = Testbed.STATUS_BUSY
-            testbed.status = Testbed.STATUS_BUSY
+        try:
+            r = requests.get('http://' + ip_port_address + '/tester/status/')
+            if r.text == 'IDLE':
+                testbed.report_status = Testbed.STATUS_AVAILABLE
+                testbed.status = Testbed.STATUS_AVAILABLE
+            elif r.text == 'TESTING':
+                testbed.report_status = Testbed.STATUS_BUSY
+                testbed.status = Testbed.STATUS_BUSY
+        except requests.exceptions.ConnectionError:
+            testbed.report_status = Testbed.STATUS_UNKNOWN
+            testbed.status = Testbed.STATUS_OFFLINE
     testbed.report_time = timezone.now()
     testbed.save()
     return HttpResponse("Gotcha!")
@@ -79,7 +83,7 @@ def testbed_status_report(request):
         testbed.status = Testbed.STATUS_AVAILABLE
         testbed.report_time = timezone.now()
         testbed.save()
-    elif status == 'BUSY':
+    elif status == 'TESTING':
         testbed.report_status = Testbed.STATUS_BUSY
         testbed.status = Testbed.STATUS_BUSY
         testbed.report_time = timezone.now()
