@@ -9,8 +9,6 @@ from django.db.models import Q
 
 from serapis.models import *
 
-from waveform_helper import WaveFormFileHelper
-
 
 K_TESTBED_INVALIDATION_OFFLINE_SEC = 30
 K_TESTBED_INVALIDATION_REMOVE_SEC = 10 * 60
@@ -64,6 +62,12 @@ class Command(BaseCommand):
                 grading_task_list.update(grading_status=TaskGradingStatus.STAT_PENDING)
                 timer_submission_invalidation = K_SUBMISSION_INVALIDATION_SEC
 
+            #TODO: delete the following thing, currently for debugging
+            #task_list = TaskGradingStatus.objects.all()
+            #n = len(task_list)
+            #t = task_list[n-1]
+            #t.grading_status = TaskGradingStatus.STAT_PENDING
+            #t.save()
             
             #
             # task assignment
@@ -91,25 +95,34 @@ class Command(BaseCommand):
 
                 print('grading grading task id=%d using testbed hardware_id=%s' % (task.id, testbed.unique_hardware_id))
 
-                # upload firmware command
-                filename = task.submission_id.file.path
-                files = {'firmware': ('filename', open(filename, 'rb'), 'text/plain')}
-                url = 'http://' + testbed.ip_address + '/dut/program/'
-                r = requests.post(url, data={'dut': testbed.unique_hardware_id}, files=files)
+                try:
+                    # upload firmware command
+                    filename = task.submission_id.file.path
+                    files = {'firmware': ('filename', open(filename, 'rb'), 'text/plain')}
+                    url = 'http://' + testbed.ip_address + '/dut/program/'
+                    r = requests.post(url, data={'dut': testbed.unique_hardware_id}, files=files)
 
-                # upload input waveform command
-                filename = task.assignment_task_id.test_input.path
-                files = {'waveform': ('filename', open(filename, 'rb'), 'text/plain')}
-                url = 'http://' + testbed.ip_address + '/tester/waveform/'
-                r = requests.post(url, data={'dut': testbed.unique_hardware_id}, files=files)
+                    # upload input waveform command
+                    filename = task.assignment_task_id.test_input.path
+                    files = {'waveform': ('filename', open(filename, 'rb'), 'text/plain')}
+                    url = 'http://' + testbed.ip_address + '/tester/waveform/'
+                    r = requests.post(url, data={'dut': testbed.unique_hardware_id}, files=files)
 
-                # reset command
-                url = 'http://' + testbed.ip_address + '/tester/reset/'
-                r = requests.post(url)
-                
-                # start command
-                url = 'http://' + testbed.ip_address + '/tester/start/'
-                r = requests.post(url)
+                    # reset command
+                    url = 'http://' + testbed.ip_address + '/tester/reset/'
+                    r = requests.post(url)
+                    
+                    # start command
+                    url = 'http://' + testbed.ip_address + '/tester/start/'
+                    r = requests.post(url)
+
+                except requests.exceptions.ConnectionError:
+                    testbed.status = Testbed.STATUS_OFFLINE
+                    testbed.save()
+                    task.grading_status = TaskGradingStatus.STAT_PENDING
+                    task.save()
+
+
 
             #
             # output checking
