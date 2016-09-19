@@ -1,11 +1,36 @@
-{% extends 'serapis/base.html' %}
+{% extends 'serapis/base_sidebar.html' %}
 {% load staticfiles %}
 
-{% block css %}
+{% block sidebar-content %}
+                <!-- SIDEBAR USER TITLE -->
+                <div class="profile-usertitle">
+                    <div class="profile-usertitle-name">
+                        Welcome!
+                    </div>
+                    <div class="profile-usertitle-job">
+                        {{ course.name }}
+                    </div>
+                </div>
+                <!-- END SIDEBAR USER TITLE -->
+                <!-- SIDEBAR MENU -->
+                <div class="profile-usermenu">
+                    <ul class="nav nav-bar">
+                        <li class="active">
+                            <a href="{% url 'homepage' %}">Courses</a>
+                        </li>
+                        {% if perms.serapis.add_testbed %}
+                        <li>
+                            <a href="{% url 'testbed-type-list' %}">Testbed Types</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+                <!-- END MENU -->
 {% endblock %}
 
 
-{% block content %}
+
+{% block main-content %}
     <div class="container">
         <h1 class="page-header">Course List</h1>
         
@@ -13,11 +38,13 @@
             <p>No courses are available.</p>
         {% else %}
             <div class="table-responsive">
-            <table class="table table-hover">
+            <table class="table table-striped table-hover">
                 <tr>
+                <thead class="thead-default">
                     <th>Course</th>
                     <th>Quarter</th>
                     <th>Year</th>
+                </thead>
                 </tr>
                 {% for course in course_list %}
                 <tr>

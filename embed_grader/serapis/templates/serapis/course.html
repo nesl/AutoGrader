@@ -1,97 +1,84 @@
-{% extends 'serapis/base.html' %}
+{% extends 'serapis/base_sidebar.html' %}
 {% load staticfiles %}
 
-{% block css %}
-<link href="{% static "serapis/sidebar-revised.css" %}" rel="stylesheet">
+{% block sidebar-content %}
+    <!-- SIDEBAR USER TITLE -->
+    <div class="profile-usertitle">
+        <div class="profile-usertitle-name">
+            {{ course.course_code }}
+        </div>
+        <div class="profile-usertitle-job">
+            {{ course.name }}
+        </div>
+    </div>
+    <!-- END SIDEBAR USER TITLE -->
+    <!-- SIDEBAR MENU -->
+    <div class="profile-usermenu">
+        <ul class="nav nav-bar">
+            <li>
+                <a href="{% url 'homepage' %}">Courses</a>
+            </li>
+            <li>
+                <a href="{% url 'membership' course.id %}">Students</a>
+            </li>
+            {% if perms.serapis.add_testbed %}
+            <li>
+                <a href="{% url 'testbed-type-list' %}">Testbed Types</a>
+            </li>
+            {% endif %}
+        </ul>
+    </div>
+    <!-- END MENU -->
 {% endblock %}
 
-
-{% block content %}
-    <div class="row">
-        <div class="col-md-2">
-            <div class="profile-sidebar">
-                <!-- SIDEBAR USER TITLE -->
-                <div class="profile-usertitle">
-                    <div class="profile-usertitle-name">
-                        {{ course.course_code }}
-                    </div>
-                    <div class="profile-usertitle-job">
-                        {{ course.name }}
-                    </div>
-                </div>
-                <!-- END SIDEBAR USER TITLE -->
-                <!-- SIDEBAR MENU -->
-                <div class="profile-usermenu">
-                    <ul class="nav nav-bar">
-                        <li class="active">
-                            <a href="{% url 'homepage' %}">Courses</a>
-                        </li>
-                        <li>
-                            <a href="{% url 'membership' course.id %}">Students</a>
-                        </li>
-                        <li>
-                            <a href="{% url 'testbed-type-list' %}">Testbed Types</a>
-                        </li>
-                        <li>
-                            <a href="{% url 'modify-course' course.id %}" target="_blank">Settings</a>
-                        </li>
-                    </ul>
-                </div>
-                <!-- END MENU -->
-            </div>
-            <!--END SIDEBAR-->
-        </div>
-        <!--END COLUMN--> 
-        <!--START COLUMN--> 
-        <div class="col-md-9">
-            <!--MAIN CONTENT-->
-            <div class="profile-content">
-                <h1 class="page-header">Course - {{ course.course_code }}: {{ course.name }}</h1>
-                <p>{{course.description}}</p>
-                <hr/>
-
-                <h3>Assignment List</h3>
-                
-                {% if not assignment_list %}
-                    <p>No assignments are available.</p>
-                {% else %}
-                    <div class="table-responsive">
-                    <table class="table table-hover">
-                        <tr>
-                            <th>Name</th>
-                            <th>Testbed Type</th>
-                            {% if perms.serapis.add_course %}
-                                <th>Change</th>
-                            {% endif %}
-                        </tr>
-                        {% for assignment in assignment_list %}
-                            <tr>
-                                <td><a href="{% url 'assignment' assignment.id %}">{{ assignment.name }}</a></td> 
-                                {% if assignment.testbed_type_id %}
-                                    <td>{{ assignment.testbed_type_id.name }}</td>   
-                                {% else %}
-                                    <td>To be assigned</td>
-                                {% endif %}
-                                {% if perms.serapis.add_assignment %}
-                                    <td><a class="btn btn-primary" href="{% url 'modify-assignment' assignment.id %}">Edit</a></td>
-                                {% endif %}
-                            </tr>
-                        {% endfor %}
-                    </table>
-                    </div>
-                {% endif %}
-                {% if perms.serapis.add_assignment %}
-                    <hr/>
-                    <h3>Instructor-only section</h3>
-                    <p>
-                        <a href='{% url 'modify-course' course.id %}' class="btn btn-primary">Change Course Description</a>
-                        <a href='{% url 'create-assignment' course.id %}' class="btn btn-primary">Create a New Assignment</a>
-                    </p>
-                {% endif %}
-            </div>
-            <!--END MAIN CONTENT-->
-        </div>
-        <!--END COLUMN-->
+{% block main-content %}
+    <div class="top-buffer">
+    <ol class="breadcrumb">
+        <li><a href="{% url 'homepage' %}">Courses</a></li>
+        <li class="active">{{ course.course_code }}</a></li>
+    </ol>
     </div>
-    <!--END ROW-->
+
+    <h1 class="page-header">Course - {{ course.course_code }}: {{ course.name }}</h1>
+    <p>{{course.description}}</p>
+    <hr/>
+
+    <h3>Assignment List</h3>
+    
+    {% if not assignment_list %}
+        <p>No assignments are available.</p>
+    {% else %}
+        <div class="table-responsive">
+        <table class="table table-hover">
+            <tr>
+                <th>Name</th>
+                <th>Testbed Type</th>
+                {% if perms.serapis.add_course %}
+                    <th>Change</th>
+                {% endif %}
+            </tr>
+            {% for assignment in assignment_list %}
+                <tr>
+                    <td><a href="{% url 'assignment' assignment.id %}">{{ assignment.name }}</a></td> 
+                    {% if assignment.testbed_type_id %}
+                        <td>{{ assignment.testbed_type_id.name }}</td>   
+                    {% else %}
+                        <td>To be assigned</td>
+                    {% endif %}
+                    {% if perms.serapis.add_assignment %}
+                        <td><a class="btn btn-primary" href="{% url 'modify-assignment' assignment.id %}">Edit</a></td>
+                    {% endif %}
+                </tr>
+            {% endfor %}
+        </table>
+        </div>
+    {% endif %}
+    {% if perms.serapis.add_assignment %}
+        <hr/>
+        <h3>Instructor-only section</h3>
+        <p>
+            <a href='{% url 'modify-course' course.id %}' class="btn btn-primary">Change Course Description</a>
+            <a href='{% url 'create-assignment' course.id %}' class="btn btn-primary">Create a New Assignment</a>
+        </p>
+    {% endif %}
 {% endblock %}

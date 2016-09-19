@@ -36,11 +36,11 @@ def registration(request):
             datas['email'] = form.cleaned_data['email']
             datas['password1'] = form.cleaned_data['password1']
             # We will generate a random activation key
-            salt = hashlib.sha1(str(random.random())).hexdigest()[:5]
+            random_string = str(random.random())
+            salt = hashlib.sha1(random_string.encode('utf-8')).hexdigest()[:5]
             usernamesalt = datas['uid']
-            if isinstance(usernamesalt, unicode):
-                usernamesalt = usernamesalt.encode('utf8')
-            datas['activation_key'] = hashlib.sha1(salt+usernamesalt).hexdigest()
+            activation_string = (salt+usernamesalt).encode('utf-8')
+            datas['activation_key'] = hashlib.sha1(activation_string).hexdigest()
             datas['email_path'] = "serapis/activation_email.html"
             datas['email_subject'] = "Account Activation"
 
@@ -107,8 +107,8 @@ def logout_view(request):
 @login_required(login_url='/login/')
 def homepage(request):
     username = request.user
-    user = User.objects.filter(username=username)[0]
-    user_profile = UserProfile.objects.filter(user=user)[0]
+    user = User.objects.get(username=username)
+    user_profile = UserProfile.objects.get(user=user)
 
     course_user_list = CourseUserList.objects.filter(user_id=user)
     course_list = [Course.objects.filter(id=cu.course_id.id)[0] for cu in course_user_list]
@@ -125,8 +125,8 @@ def create_course(request):
     if not request.user.has_perm('serapis.add_course'):
         raise PermissionDenied
     username = request.user
-    user = User.objects.filter(username=username)[0]
-    user_profile = UserProfile.objects.filter(user=user)[0]
+    user = User.objects.get(username=username)
+    user_profile = UserProfile.objects.get(user=user)
 
     if request.method == 'POST':
         form = CourseCreationForm(request.POST, user=request.user)
@@ -169,15 +169,14 @@ def course(request, course_id):
     #if not request.user.has_perm('serapis.add_course'):
     #    raise PermissionDenied
     username = request.user
-    user = User.objects.filter(username=username)[0]
-    user_profile = UserProfile.objects.filter(user=user)[0]
+    user = User.objects.get(username=username)
+    user_profile = UserProfile.objects.get(user=user)
     #TODO: redo permission checking
     alter_course_permission = user_profile.user_role in [UserProfile.ROLE_SUPER_USER, UserProfile.ROLE_INSTRUCTOR, UserProfile.ROLE_TA]
 
-    course_list = Course.objects.filter(id=course_id)
-    if not course_list:
+    course = Course.objects.get(id=course_id)
+    if not course:
         return HttpResponse("Course cannot be found")
-    course = course_list[0]
 
     if not CourseUserList.objects.filter(course_id=course, user_id=user):
         raise PermissionDenied
@@ -198,32 +197,40 @@ def membership(request, course_id):
     if not request.user.has_perm('auth.view_membership'):
         raise PermissionDenied
     username = request.user
-    user = User.objects.filter(username=username)[0]
-    user_profile = UserProfile.objects.filter(user=user)[0]
+    user = User.objects.get(username=username)
+    user_profile = UserProfile.objects.get(user=user)
 
-    course_list = Course.objects.filter(id=course_id)
-    if not course_list:
+    course = Course.objects.get(id=course_id)
+    if not course:
         return HttpResponse("Course cannot be found")
-    course = course_list[0]
 
     if not CourseUserList.objects.filter(course_id=course, user_id=user):
         raise PermissionDenied
 
-    #TODO: redo the following section section
-    '''
-    user_enrolled = []
-    user_list = User.objects.all()
-    for u in user_list:
-        if u.groups.filter(name=course.course_code+'_'+str(course.quarter)+'_'+str(course.year)).exists():
-          up = UserProfile.objects.get(user=u)
-          user_enrolled.append(up)
-    '''
+    students = []
+    instructors = []
+    assistants = []
     user_enrolled = []
     cu_list = CourseUserList.objects.filter(course_id=course)
     for cu in cu_list:
         up = UserProfile.objects.get(user=cu.user_id)
+        if up.user_role == 10:
+            instructors.append(up)
+        elif up.user_role == 11:
+            assistants.append(up)
+        elif up.user_role == 20:
+            students.append(up)
         user_enrolled.append(up)
-    return render(request, 'serapis/roster.html', {'course': course, 'user_enrolled': user_enrolled})
+    
+    template_context = {
+            'course': course,
+            'user_enrolled': user_enrolled,
+            'students': students,
+            'teaching_assistants': assistants,
+            'instructors': instructors,
+        }
+
+    return render(request, 'serapis/roster.html', template_context)
 
 
 @login_required(login_url='/login/')
@@ -231,13 +238,12 @@ def create_assignment(request, course_id):
     if not request.user.has_perm('serapis.add_course'):
         raise PermissionDenied
     username = request.user
-    user = User.objects.filter(username=username)[0]
-    user_profile = UserProfile.objects.filter(user=user)[0]
+    user = User.objects.get(username=username)
+    user_profile = UserProfile.objects.get(user=user)
 
-    course_list = Course.objects.filter(id=course_id)
-    if not course_list:
+    course = Course.objects.get(id=course_id)
+    if not course:
         return HttpResponse("Course cannot be found")
-    course = course_list[0]
 
     if not CourseUserList.objects.filter(course_id=course, user_id=user):
         raise PermissionDenied
@@ -263,9 +269,9 @@ def create_assignment(request, course_id):
 @login_required(login_url='/login/')
 def assignment(request, assignment_id):
     username = request.user
-    user = User.objects.filter(username=username)[0]
-    user_profile = UserProfile.objects.filter(user=user)[0]
-    
+    user = User.objects.get(username=username)
+    user_profile = UserProfile.objects.get(user=user)
+   
     assignment_list = Assignment.objects.filter(id=assignment_id)
     if not assignment_list:
         return HttpResponse("Assignment cannot be found")
@@ -324,6 +330,7 @@ def assignment(request, assignment_id):
             'myuser': request.user,
             'user_profile': user_profile,
             'assignment': assignment,
+            'course': course,
             'submission_form': submission_form,
             'submission_n_detail_short_list': submission_n_detail_short_list,
     }
@@ -334,18 +341,18 @@ def assignment(request, assignment_id):
 @login_required(login_url='/login/')
 def modify_assignment(request, assignment_id):
     username = request.user
-    user = User.objects.filter(username=username)[0]
-    user_profile = UserProfile.objects.filter(user=user)[0]
+    user = User.objects.get(username=username)
+    user_profile = UserProfile.objects.get(user=user)
     
     assignment_list = Assignment.objects.filter(id=assignment_id)
     if not assignment_list:
         return HttpResponse("Assignment cannot be found")
     assignment = assignment_list[0]
-
+    
     course = assignment.course_id
     if not CourseUserList.objects.filter(course_id=course, user_id=user):
         raise PermissionDenied
-
+    
     if request.method == 'POST':
         form = AssignmentCompleteForm(request.POST, instance=assignment)
         if form.is_valid():
@@ -373,16 +380,16 @@ def modify_assignment(request, assignment_id):
 @login_required(login_url='/login/')
 def create_assignment_task(request, assignment_id):
     username = request.user
-    user = User.objects.filter(username=username)[0]
-    user_profile = UserProfile.objects.filter(user=user)[0]
+    user = User.objects.get(username=username)
+    user_profile = UserProfile.objects.get(user=user)
     
     if not user_profile.user_role == user_profile.ROLE_SUPER_USER and not user_profile.user_role == user_profile.ROLE_INSTRUCTOR and not user_profile.user_role == user_profile.ROLE_TA:
         return HttpResponse("Not enough privilege")
 
-    assignment_list = Assignment.objects.filter(id=assignment_id)
-    if not assignment_list:
+    assignment = Assignment.objects.get(id=assignment_id)
+    if not assignment:
         return HttpResponse("Assignment cannot be found")
-    assignment = assignment_list[0]
+    
     course = assignment.course_id
     
     if request.method == 'POST':
@@ -408,8 +415,8 @@ def create_assignment_task(request, assignment_id):
 @login_required(login_url='/login/')
 def testbed_type_list(request):
     username = request.user
-    user = User.objects.filter(username=username)[0]
-    user_profile = UserProfile.objects.filter(user=user)[0]
+    user = User.objects.get(username=username)
+    user_profile = UserProfile.objects.get(user=user)
     
     if not user_profile.user_role == user_profile.ROLE_SUPER_USER and not user_profile.user_role == user_profile.ROLE_INSTRUCTOR and not user_profile.user_role == user_profile.ROLE_TA:
         return HttpResponse("Not enough privilege")
@@ -427,7 +434,7 @@ def testbed_type_list(request):
 def testbed_type(request, testbed_type_id):
     username=request.user
     
-    testbed_type = TestbedType.objects.filter(id=testbed_type_id).first()
+    testbed_type = TestbedType.objects.get(id=testbed_type_id)
     if not testbed_type:
         return HttpResponse("Testbed type not found")
 
@@ -441,8 +448,8 @@ def testbed_type(request, testbed_type_id):
 @login_required(login_url='/login/')
 def create_testbed_type(request):
     username = request.user
-    user = User.objects.filter(username=username)[0]
-    user_profile = UserProfile.objects.filter(user=user)[0]
+    user = User.objects.get(username=username)
+    user_profile = UserProfile.objects.get(user=user)
     
     if not user_profile.user_role == user_profile.ROLE_SUPER_USER and not user_profile.user_role == user_profile.ROLE_INSTRUCTOR and not user_profile.user_role == user_profile.ROLE_TA:
         return HttpResponse("Not enough privilege")
@@ -572,8 +579,8 @@ def create_testbed_type(request):
 @login_required(login_url='/login/')
 def hardware_type_list(request):
     username = request.user
-    user = User.objects.filter(username=username)[0]
-    user_profile = UserProfile.objects.filter(user=user)[0]
+    user = User.objects.get(username=username)
+    user_profile = UserProfile.objects.get(user=user)
     
     if not user_profile.user_role == user_profile.ROLE_SUPER_USER and not user_profile.user_role == user_profile.ROLE_INSTRUCTOR and not user_profile.user_role == user_profile.ROLE_TA:
         return HttpResponse("Not enough privilege")
@@ -590,16 +597,15 @@ def hardware_type_list(request):
 @login_required(login_url='/login/')
 def hardware_type(request, hardware_type_id):
     username = request.user
-    user = User.objects.filter(username=username)[0]
-    user_profile = UserProfile.objects.filter(user=user)[0]
+    user = User.objects.get(username=username)
+    user_profile = UserProfile.objects.get(user=user)
     
     if not user_profile.user_role == user_profile.ROLE_SUPER_USER and not user_profile.user_role == user_profile.ROLE_INSTRUCTOR and not user_profile.user_role == user_profile.ROLE_TA:
         return HttpResponse("Not enough privilege")
     
-    hardware_type_list = HardwareType.objects.filter(id=hardware_type_id)
-    if not hardware_type_list:
+    hardware_type = HardwareType.objects.get(id=hardware_type_id)
+    if not hardware_type:
         return HttpResponse("Hardware type cannot be found")
-    hardware_type = hardware_type_list[0]
 
     hardware_type_pins = HardwareTypePin.objects.filter(hardware_type=hardware_type)
 
@@ -615,8 +621,8 @@ def hardware_type(request, hardware_type_id):
 @login_required(login_url='/login/')
 def create_hardware_type(request):
     username = request.user
-    user = User.objects.filter(username=username)[0]
-    user_profile = UserProfile.objects.filter(user=user)[0]
+    user = User.objects.get(username=username)
+    user_profile = UserProfile.objects.get(user=user)
     
     if not user_profile.user_role == user_profile.ROLE_SUPER_USER and not user_profile.user_role == user_profile.ROLE_INSTRUCTOR and not user_profile.user_role == user_profile.ROLE_TA:
         return HttpResponse("Not enough privilege")
@@ -657,14 +663,11 @@ def modify_hardware_type(request, hardware_id):
     return HttpResponse("under construction")
 
 
-
-
-
 @login_required(login_url='/login/')
 def debug_task_grading_status(request):
     username = request.user
-    user = User.objects.filter(username=username)[0]
-    user_profile = UserProfile.objects.filter(user=user)[0]
+    user = User.objects.get(username=username)
+    user_profile = UserProfile.objects.get(user=user)
 
     if request.method == 'POST':
         form = TaskGradingStatusDebugForm(request.POST, request.FILES)

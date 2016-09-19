@@ -1,0 +1,30 @@
+{% extends 'serapis/base.html' %}
+{% load staticfiles %}
+
+{% block css %}
+<link href="{% static "serapis/sidebar.css" %}" rel="stylesheet">
+<link href="{% static "serapis/custom.css" %}" rel="stylesheet">
+{% endblock %}
+
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-2">
+            <div class="profile-sidebar">
+            {% block sidebar-content %}
+            {% endblock %}
+            </div>
+            <!--END SIDEBAR-->
+        </div>
+        <!--END COLUMN--> 
+        <!--START COLUMN--> 
+        <div class="col-md-9">
+            <!--MAIN CONTENT-->
+            {% block main-content %}
+            {% endblock %}
+            <!--END MAIN CONTENT-->
+        </div>
+        <!--END COLUMN-->
+    </div>
+    <!--END ROW-->
+{% endblock %}

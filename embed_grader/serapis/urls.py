@@ -23,7 +23,7 @@ urlpatterns = [
     
     ##Course pages
     url(r'^homepage/$', views.homepage, name='homepage'),
-    url(r'^course/(?P<course_id>[0-9]+)/', views.course, name='course'),
+    url(r'^course/(?P<course_id>[0-9]+)/$', views.course, name='course'),
     url(r'^course/(?P<course_id>[0-9]+)/membership/$', views.membership, name='membership'),
     url(r'^create-course/$', views.create_course, name='create-course'),
     url(r'^modify-course/(?P<course_id>[0-9]+)/$', views.modify_course, name='modify-course'),
