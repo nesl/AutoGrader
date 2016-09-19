@@ -13,7 +13,7 @@
             {% csrf_token %}
             {{ form }}
             <p>Cannot find the testbed you want? Just <a href="{% url 'create-testbed-type' %}">create one!</a></p>
-            <input type="submit" value="Submit" />
+            <input type="submit" value="Submit"/>
             {% if tasks is not None %}
                 <hr/>
                 <h3>Assignment tasks</h3>

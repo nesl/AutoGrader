@@ -275,7 +275,7 @@ def assignment(request, assignment_id):
     assignment = Assignment.objects.get(id=assignment_id)
     if not assignment:
         return HttpResponse("Assignment cannot be found")
-    
+
     course = assignment.course_id
 
     if not CourseUserList.objects.filter(course_id=course, user_id=user):
@@ -344,18 +344,24 @@ def modify_assignment(request, assignment_id):
     user = User.objects.get(username=username)
     user_profile = UserProfile.objects.get(user=user)
 
-    assignment_list = Assignment.objects.filter(id=assignment_id)
-    if not assignment_list:
-        return HttpResponse("Assignment cannot be found")
-
+    assignment = Assignment.objects.get(id=assignment_id)
     course = assignment.course_id
+    if not course:
+        return HttpResponse("Course cannot be found")
+
     if not CourseUserList.objects.filter(course_id=course, user_id=user):
         raise PermissionDenied
+
+    assignment = course.assignment_set.get(id=assignment_id)
+    if not assignment:
+        return HttpResponse("Assignment cannot be found")
+
 
     if request.method == 'POST':
         form = AssignmentCompleteForm(request.POST, instance=assignment)
         if form.is_valid():
             assignment = form.save()
+            return HttpResponseRedirect('/assignment/' + assignment_id)
     else:
         form = AssignmentCompleteForm(instance=assignment)
 

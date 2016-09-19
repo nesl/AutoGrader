@@ -17,13 +17,16 @@ from datetime import datetime, timedelta
 
 
 class UserCreateForm(UserCreationForm):
+    #TODO: remove this part
     ROLE_INSTRUCTOR = 10
     ROLE_TA = 11
     ROLE_STUDENT = 20
+    ROLE_GRADER = 12
     USER_ROLES = (
             (ROLE_INSTRUCTOR, 'Instructor'),
             (ROLE_TA, 'TA'),
             (ROLE_STUDENT, 'Student'),
+            (ROLE_GRADER, 'Grader') #Do I need to add Grader here as another rule?
     )
     MIN_LENGTH = 8
     error_messages = {
@@ -89,11 +92,11 @@ class UserCreateForm(UserCreationForm):
             user.save()
         role = self.cleaned_data['user_role']
         role_string = dict(self.USER_ROLES).get(int(role))
-        user_profile = UserProfile(user=user, 
+        user_profile = UserProfile(user=user,
                                    uid=self.cleaned_data['uid'],
                                    user_role=role,
                                    activation_key=datas['activation_key'],
-                                   key_expires=datetime.strftime(datetime.now() + timedelta(days=2), "%Y-%m-%d %H:%M:%S") 
+                                   key_expires=datetime.strftime(datetime.now() + timedelta(days=2), "%Y-%m-%d %H:%M:%S")
                                   )
         user_profile.save()
         group = Group.objects.get(name=role_string)
@@ -117,7 +120,7 @@ class CourseCreationForm(ModelForm):
         fields = ['owner_id', 'course_code', 'name', 'quarter', 'year', 'description']
         YEAR_CHOICES = []
         for r in range(2015, (datetime.now().year+2)):
-            YEAR_CHOICES.append((r,r))      
+            YEAR_CHOICES.append((r,r))
         QUARTER_CHOICES = ((1, 'Fall'), (2, 'Winter'), (3, 'Fall'), (4, 'Summer'))
         widgets = {
                 'description': forms.Textarea(attrs={'cols': 40, 'rows': 5}),
@@ -168,14 +171,14 @@ class CourseEnrollmentForm(Form):
         super(CourseEnrollmentForm, self).__init__(*args, **kwargs)
 
     def clean(self):
-        course=self.cleaned_data.get("course_select") 
+        course=self.cleaned_data.get("course_select")
         if self.user.groups.filter(name=course.course_code+'_'+str(course.quarter)+'_'+str(course.year)).count():
             raise forms.ValidationError(self.error_messages['course_already_enrolled'],
                 code='course_already_enrolled')
         return self.cleaned_data
 
     def save(self, commit=True):
-        course=self.cleaned_data['course_select'] 
+        course=self.cleaned_data['course_select']
         group = Group.objects.get(name=course.course_code+'_'+str(course.quarter)+'_'+str(course.year))
         group.user_set.add(self.user)
         course_user_list = CourseUserList.objects.create(user_id=self.user, course_id=course)
@@ -185,7 +188,7 @@ class AssignmentBasicForm(ModelForm):
     error_messages = {
         'time_conflict': "Release time must be earlier than deadline.",
     }
-    
+
     class Meta:
         model = Assignment
         fields = ['course_id', 'name', 'release_time', 'deadline', 'problem_statement', 'input_statement', 'output_statement']
@@ -228,7 +231,7 @@ class AssignmentTaskForm(ModelForm):
     class Meta:
         model = AssignmentTask
         fields = ['brief_description', 'mode', 'points', 'test_input', 'grading_script']
-        
+
 
 class TestbedTypeForm(ModelForm):
     class Meta:
@@ -260,7 +263,7 @@ class TestbedHardwareListHEForm(ModelForm):
     class Meta:
         model = TestbedHardwareList
         fields = ['hardware_type']
-    
+
     def __init__(self, *args, **kwargs):
         super(TestbedHardwareListHEForm, self).__init__(*args, **kwargs)
         self.fields['hardware_type'].queryset = HardwareType.objects.filter(hardware_role=HardwareType.HARDWARE_ENGINE)
@@ -271,7 +274,7 @@ class TestbedHardwareListDUTForm(ModelForm):
     class Meta:
         model = TestbedHardwareList
         fields = ['hardware_type']
-    
+
     def __init__(self, *args, **kwargs):
         super(TestbedHardwareListDUTForm, self).__init__(*args, **kwargs)
         self.fields['hardware_type'].queryset = HardwareType.objects.filter(hardware_role=HardwareType.DEVICE_UNDER_TEST)
@@ -294,7 +297,7 @@ class TestbedHardwareListAllForm(ModelForm):
     class Meta:
         model = TestbedHardwareList
         fields = ['hardware_type', 'hardware_index']
-    
+
     def __init__(self, *args, **kwargs):
         super(TestbedHardwareListAllForm, self).__init__(*args, **kwargs)
         self.fields['hardware_type'].widget = HiddenInput()

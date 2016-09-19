@@ -44,7 +44,7 @@
     <hr/>
 
     <h3>Assignment List</h3>
-    
+
     {% if not assignment_list %}
         <p>No assignments are available.</p>
     {% else %}
@@ -59,9 +59,9 @@
             </tr>
             {% for assignment in assignment_list %}
                 <tr>
-                    <td><a href="{% url 'assignment' assignment.id %}">{{ assignment.name }}</a></td> 
+                    <td><a href="{% url 'assignment' assignment.id %}">{{ assignment.name }}</a></td>
                     {% if assignment.testbed_type_id %}
-                        <td>{{ assignment.testbed_type_id.name }}</td>   
+                        <td>{{ assignment.testbed_type_id.name }}</td>
                     {% else %}
                         <td>To be assigned</td>
                     {% endif %}
