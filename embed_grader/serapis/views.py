@@ -92,7 +92,7 @@ def new_activation(request, user_id):
 
         user_profile = UserProfile.objects.get(user=user)
         user_profile.activation_key = datas['activation_key']
-        user_profile.key_expires = datetime.strftime(datetime.now() + timedelta(days=2), "%Y-%m-%d %H:%M:%S")
+        user_profile.key_expires = datetime.strftime(timezone.now() + timedelta(days=2), "%Y-%m-%d %H:%M:%S")
         user_profile.save()
         form.sendEmail(datas)
         request.session['new_link'] = True  # Display : new link send
@@ -287,22 +287,52 @@ def assignment(request, assignment_id):
             submission = form.save(commit=False)
             submission.student_id = user
             submission.assignment_id = assignment
-            submission.submission_time = datetime.now()
+            submission.submission_time = timezone.now()
             submission.grading_result = 0.
-            submission.status = Submission.STAT_RECEIVED
+            submission.status = Submission.STAT_GRADING
             submission.save()
+
+            assignment_tasks = AssignmentTask.objects.filter(assignment_id=assignment)
+            for assignment_task in assignment_tasks:
+                grading_task = TaskGradingStatus()
+                grading_task.submission_id = submission
+                grading_task.assignment_task_id = assignment_task
+                grading_task.grading_status = TaskGradingStatus.STAT_PENDING
+                grading_task.execution_status = TaskGradingStatus.EXEC_UNKNOWN
+                grading_task.status_update_time = timezone.now()
+                grading_task.save()
 
     submission_form = AssignmentSubmissionForm()
 
-    submission_short_list = Submission.objects.filter(student_id=user, assignment_id=assignment).order_by('-id')
+    submission_list = Submission.objects.filter(student_id=user, assignment_id=assignment).order_by('-id')
+    num_display = min(5, len(submission_list))
+    submission_short_list = submission_list[:num_display]
 
+    submission_grading_detail = []
+    for submission in submission_short_list:
+        task_symbols = []
+        tasks = TaskGradingStatus.objects.filter(submission_id=submission).order_by('assignment_task_id')
+        for task in tasks:
+            if task.grading_status == TaskGradingStatus.STAT_PENDING:
+                task_symbols.append('(P)')
+            elif task.grading_status == TaskGradingStatus.STAT_EXECUTING:
+                task_symbols.append('(E)')
+            elif task.grading_status == TaskGradingStatus.STAT_OUTPUT_TO_BE_CHECKED:
+                task_symbols.append('(C)')
+            elif task.grading_status == TaskGradingStatus.STAT_FINISH:
+                task_symbols.append(str(task.points))
+            elif task.grading_status == TaskGradingStatus.STAT_INTERNAL_ERROR:
+                task_symbols.append('Error')
+        submission_grading_detail.append(','.join(task_symbols))
+
+    submission_n_detail_short_list = zip(submission_short_list, submission_grading_detail)
     template_context = {
             'myuser': request.user,
             'user_profile': user_profile,
             'assignment': assignment,
             'course': course,
             'submission_form': submission_form,
-            'submission_short_list': submission_short_list,
+            'submission_n_detail_short_list': submission_n_detail_short_list,
     }
 
     return render(request, 'serapis/assignment.html', template_context)
@@ -644,9 +674,14 @@ def debug_task_grading_status(request):
     user_profile = UserProfile.objects.get(user=user)
 
     if request.method == 'POST':
-        form = TaskGradingStatusDebugForm(request.POST)
+        form = TaskGradingStatusDebugForm(request.POST, request.FILES)
         if form.is_valid():
-            task = form.save(commit=False)
+            #task = form.save(commit=False)
+            task = TaskGradingStatus.objects.filter(id=request.POST['id'])[0]
+            task.grading_status = form.cleaned_data['grading_status']
+            task.execution_status = form.cleaned_data['execution_status']
+            task.output_file = form.cleaned_data['output_file']
+            task.status_update_time = timezone.now()
             task.save()
 
     form = TaskGradingStatusDebugForm()

@@ -29,7 +29,6 @@
 {% endblock %}
 
 
-
 {% block main-content %}
     <div class="top-buffer">
     <ol class="breadcrumb">
@@ -60,24 +59,24 @@
 
     <hr/>
     <h3>Submission history</h3>
-    {% if not submission_short_list %}
+    {% if not submission_n_detail_short_list %}
         <p>No submissions to this question yet.</p>
     {% else %}
-        <table class="table table-hover table-striped">
+        <table class="table table-hover table-sm">
             <tr>
-                <thead>
                 <th>ID</th>
+                <th>Status</th>
                 <th>Result</th>
                 <th>Submission time</th>
-                <th>Submission File</th>
-                </thead>
+                <th>Code</th>
             </tr>
-            {% for s in submission_short_list %}
+            {% for s in submission_n_detail_short_list %}
                 <tr>
-                    <td>{{ s.id }}</td>
-                    <td>{{ s.get_status_display }}</td>
-                    <td>{{ s.submission_time }}</td>
-                    <td><a href="{{ MEDIA_URL }}{{ s.file.url }}">[Download]</a></td>
+                    <td>{{ s.0.id }}</td>
+                    <td>{{ s.0.get_status_display }}</td>
+                    <td>{{ s.1 }}</td>
+                    <td>{{ s.0.submission_time }}</td>
+                    <td><a href="{{ MEDIA_URL }}{{ s.0.file.url }}">[Download]</a>
                 </tr>
             {% endfor %}
         </table>

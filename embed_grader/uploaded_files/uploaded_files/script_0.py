@@ -1,6 +1,10 @@
 import sys
 import numpy
 
+import os
+print(os.getcwd())
+print(os.listdir())
+
 from waveform_helper import WaveFormFileHelper
 
 TASK_ID = 0
