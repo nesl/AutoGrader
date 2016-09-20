@@ -44,7 +44,7 @@ class HardwareType(models.Model):
         (DEVICE_UNDER_TEST, 'Device Under Test'),
     )
     name = models.CharField(max_length=50)
-    pinout = models.FileField(upload_to='uploaded_files')
+    pinout = models.FileField(upload_to='HardwareType_pinout')
     link_to_manual = models.URLField()
     hardware_role = models.IntegerField(choices=HARDWARE_ROLES)
 
@@ -67,7 +67,7 @@ class TestbedHardwareList(models.Model):
     testbed_type = models.ForeignKey(TestbedType, on_delete = models.CASCADE)
     hardware_type = models.ForeignKey(HardwareType, on_delete = models.CASCADE) 
     hardware_index = models.IntegerField()
-    firmware = models.FileField(null=True, blank=True, upload_to='uploaded_files')
+    firmware = models.FileField(null=True, blank=True, upload_to='TestbedHardwareList_firmware')
 
 
 # Wiring for the TestbedType
@@ -151,8 +151,8 @@ class AssignmentTask(models.Model):
     brief_description = models.CharField(max_length=100)
     mode = models.IntegerField(choices=EVAL_MODES)
     points = models.FloatField()
-    test_input = models.FileField(upload_to='uploaded_files')
-    grading_script = models.FileField(upload_to='uploaded_files')
+    test_input = models.FileField(upload_to='AssignmentTask_test_input')
+    grading_script = models.FileField(upload_to='AssignmentTask_grading_script')
 
 
 class Submission(models.Model):
@@ -174,7 +174,7 @@ class Submission(models.Model):
     status = models.IntegerField(choices = SUBMISSION_STATES, default = STAT_RECEIVED)
     #TODO: let's say the student is going to submit the binary only,
     #      we'll worry about the multiple submission files later
-    file = models.FileField(upload_to='uploaded_files')
+    file = models.FileField(upload_to='Submission_file')
 
 
 class TaskGradingStatus(models.Model):
@@ -205,7 +205,7 @@ class TaskGradingStatus(models.Model):
     assignment_task_id = models.ForeignKey(AssignmentTask, on_delete=models.CASCADE)
     grading_status = models.IntegerField(choices=GRADING_STATES, default=STAT_PENDING)
     execution_status = models.IntegerField(choices=EXECUTION_STATUS, default=EXECUTION_STATUS)
-    output_file = models.FileField(upload_to='uploaded_files', null=True, blank=True)
+    output_file = models.FileField(upload_to='TaskGradingStatus_output_file', null=True, blank=True)
     status_update_time = models.DateTimeField()
     points = models.FloatField(default=0.0)
     
@@ -256,6 +256,6 @@ class HardwareDevice(models.Model):
 #TODO: We're not going to use it for now
 class SubmissionFile(models.Model):
     submission_id = models.ForeignKey(Submission, on_delete = models.CASCADE)
-    file = models.FileField(upload_to='uploaded_files')
+    file = models.FileField(upload_to='SubmissionFile_file')
 
 
