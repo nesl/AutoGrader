@@ -486,7 +486,7 @@ header {
     width: 100%;
 }
 .sales .dropdown-menu > a:hover{
-    color: #5584FF;   
+    color: #5584FF;
 }
 .shield-buttons {
     display: none;
@@ -543,10 +543,10 @@ header {
     font-weight: 600;
     padding: 10px 30px;
     position: relative;
-    
+
 }
 .modal{
-    top: 20%; 
+    top: 20%;
 }
 .modal-header .close {
     margin-top: 2px;
@@ -652,7 +652,7 @@ header {
     .user-dashboard .sales button {
         font-size: 11px;
         padding-right: 23px;
-}  
+}
     .user-dashboard .sales h2 {
     font-size: 12px;
 }
@@ -683,7 +683,7 @@ header {
 }
     .user-dashboard .header-rightside .header-top img {
         max-width: 41px !important;
-} 
+}
     .user-dashboard .sales button {
     font-size: 10px;
 }

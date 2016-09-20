@@ -8,7 +8,7 @@
 {% block nav %}
 {% endblock %}
 
-  
+
 {% block content %}
     <div class="container">
         {% if form.errors %}
@@ -31,6 +31,7 @@
             <h2 class="form-signin-heading">Please sign in</h2>
             <label for="id_username" class="sr-only">Email address</label>
             <input type="text" id="id_username" name="username" class="form-control" placeholder="Email address" required autofocus>
+            <br>
             <label for="id_password" class="sr-only">Password</label>
             <input type="password" id="id_password" name="password" class="form-control" placeholder="Password" required>
             <div class="checkbox">
@@ -43,7 +44,7 @@
             <input type="hidden" name="next" value="/homepage/">
             <div>
                 <p><center>Not a User? Please <a href="{% url 'registration' %}">register</a>.</center></p>
-            </div> 
+            </div>
         </form>
 
     </div> <!-- /container -->

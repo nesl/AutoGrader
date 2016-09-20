@@ -20,7 +20,7 @@
     <div class="container">
             <form class="form-register" role="form" action="{% url 'registration' %}" method="post">
             {% csrf_token %}
-              <h2 class="form-signin-heading">Registration Form</h2>
+              <h2 class="form-signin-heading">Sign Up</h2>
                 <div class="form-group">
                     <label for="id_username" class="control-label">Username</label>
                     <input type="text" id="id_username" name="username" placeholder="Username" class="form-control" autofocus required>
@@ -42,15 +42,15 @@
                 </div>
                 <div class="form-group">
                     <label for="id_password1" class="control-label">Password</label>
-                    <input type="password" id="id_password1" name="password1" placeholder="Password" class="form-control" required>
+                    <input type="password" id="id_password1" name="password1" placeholder="Password (must be at least 8 characters long)" class="form-control" required>
                 </div>
                 <div class="form-group">
                     <label for="id_password2" class="control-label">Confirm Password</label>
-                    <input type="password" id="id_password2" name="password2" placeholder="Password" class="form-control" required>
+                    <input type="password" id="id_password2" name="password2" placeholder="Password (must be at least 8 characters long)" class="form-control" required>
                 </div>
                 <div class="form-group">
                     <label for="id_uid" class="control-label">University ID</label>
-                    <input type="text" id="id_uid" name="uid" placeholder="A234234" class="form-control" autofocus required>
+                    <input type="text" id="id_uid" name="uid" placeholder="UID" class="form-control" autofocus required>
             <span class="help-block">The 9-digit UCLA ID, without hyphens.</span>
                 </div>
                 <div class="form-group">
