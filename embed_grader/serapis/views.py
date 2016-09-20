@@ -330,6 +330,7 @@ def modify_assignment(request, assignment_id):
         form = AssignmentCompleteForm(request.POST, instance=assignment)
         if form.is_valid():
             assignment = form.save()
+            return HttpResponseRedirect('/assignment/' + assignment_id)
     else:
         form = AssignmentCompleteForm(instance=assignment)
 

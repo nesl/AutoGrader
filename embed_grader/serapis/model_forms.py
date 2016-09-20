@@ -17,10 +17,11 @@ from datetime import datetime, timedelta
 
 
 class UserCreateForm(UserCreationForm):
+    #TODO: remove this part
     ROLE_INSTRUCTOR = 10
     ROLE_TA = 11
     ROLE_STUDENT = 20
-    ROLE_GRADER = 22 #what's the convention to follow?
+    ROLE_GRADER = 12
     USER_ROLES = (
             (ROLE_INSTRUCTOR, 'Instructor'),
             (ROLE_TA, 'TA'),
