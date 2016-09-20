@@ -82,10 +82,9 @@ WSGI_APPLICATION = 'embed_grader.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'NAME': os.environ.get("AUTOGRADER_DATABASE_PATH"),
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/1.9/ref/settings/#auth-password-validators
@@ -130,5 +129,5 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-MEDIA_ROOT = os.path.join(os.path.dirname(__file__), '..', 'uploaded_files')
+MEDIA_ROOT = os.environ.get("AUTOGRADER_UPLOADED_FILES_PATH")
 MEDIA_URL = '/media/'
