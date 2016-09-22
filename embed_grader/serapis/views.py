@@ -152,6 +152,7 @@ def enroll_course(request):
         form = CourseEnrollmentForm(request.POST, user=request.user)
         if form.is_valid():
             form.save()
+            return HttpResponseRedirect('/homepage/')
     else:
         form = CourseEnrollmentForm(user=request.user)
 

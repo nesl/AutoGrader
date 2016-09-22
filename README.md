@@ -16,6 +16,7 @@ Web frontend of Embedded Systems Auto Grader project
   - ```pip3 install django-widget-tweaks```
   - ```pip3 install django-bootstrap3```
   - ```pip3 install django-ipware```
+  - ```pip3 install requests```
 
 ##Run the Project
  - Under ```~/AutoGrader/embed_grader```, run the command ```python3 manage.py runserver```

@@ -26,7 +26,7 @@ class UserCreateForm(UserCreationForm):
             (ROLE_INSTRUCTOR, 'Instructor'),
             (ROLE_TA, 'TA'),
             (ROLE_STUDENT, 'Student'),
-            (ROLE_GRADER, 'Grader') #Do I need to add Grader here as another rule?
+            (ROLE_GRADER, 'Grader')
     )
     MIN_LENGTH = 8
     error_messages = {
@@ -121,7 +121,7 @@ class CourseCreationForm(ModelForm):
         YEAR_CHOICES = []
         for r in range(2015, (datetime.now().year+2)):
             YEAR_CHOICES.append((r,r))
-        QUARTER_CHOICES = ((1, 'Fall'), (2, 'Winter'), (3, 'Fall'), (4, 'Summer'))
+        QUARTER_CHOICES = ((1, 'Fall'), (2, 'Winter'), (3, 'Spring'), (4, 'Summer'))
         widgets = {
                 'description': forms.Textarea(attrs={'cols': 40, 'rows': 5}),
                 'year': forms.Select(choices=YEAR_CHOICES),
@@ -172,15 +172,18 @@ class CourseEnrollmentForm(Form):
 
     def clean(self):
         course=self.cleaned_data.get("course_select")
-        if self.user.groups.filter(name=course.course_code+'_'+str(course.quarter)+'_'+str(course.year)).count():
+        if CourseUserList.objects.filter(user_id=self.user, course_id=course).count():
             raise forms.ValidationError(self.error_messages['course_already_enrolled'],
                 code='course_already_enrolled')
+        # if self.user.groups.filter(name=course.course_code+'_'+str(course.quarter)+'_'+str(course.year)).count():
+        #     raise forms.ValidationError(self.error_messages['course_already_enrolled'],
+        #         code='course_already_enrolled')
         return self.cleaned_data
 
     def save(self, commit=True):
         course=self.cleaned_data['course_select']
-        group = Group.objects.get(name=course.course_code+'_'+str(course.quarter)+'_'+str(course.year))
-        group.user_set.add(self.user)
+        # group = Group.objects.get(name=course.course_code+'_'+str(course.quarter)+'_'+str(course.year))
+        # group.user_set.add(self.user)
         course_user_list = CourseUserList.objects.create(user_id=self.user, course_id=course)
 
 
@@ -352,4 +355,3 @@ class TaskGradingStatusDebugForm(ModelForm):
 class ReturningWaveformForm(Form):
     id = forms.CharField()
     waveform = forms.FileField()
-
