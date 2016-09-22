@@ -6,25 +6,13 @@ from django.contrib.auth.models import User
 import datetime
 
 class UserProfile(models.Model):
-    ROLE_SUPER_USER = 0
-    ROLE_INSTRUCTOR = 10
-    ROLE_TA = 11
-    ROLE_GRADER = 12
-    ROLE_STUDENT = 20
-    USER_ROLES = (
-            (ROLE_SUPER_USER, 'Super user'),
-            (ROLE_INSTRUCTOR, 'Instructor'),
-            (ROLE_TA, 'TA'),
-            (ROLE_GRADER, 'Grader'),
-            (ROLE_STUDENT, 'Student'),
-    )
     
     #Connect to built-in User model, which already has firstname, lastname, email and password
     user = models.OneToOneField(User, on_delete = models.CASCADE)
 
     #TODO: We may want to use in-built "Groups" feature of Django to make permissions easier
     #TODO: The role of a user can change from TA to Student depending on a course
-    user_role = models.IntegerField(choices = USER_ROLES, default = ROLE_STUDENT)
+    #user_role = models.IntegerField(choices = USER_ROLES, default = ROLE_STUDENT)
     uid = models.CharField(max_length=20, unique=True, verbose_name = "University ID")
 
     #for activation of user. One time use
@@ -110,8 +98,22 @@ class Course(models.Model):
 
 
 class CourseUserList(models.Model):
+    ROLE_SUPER_USER = 0
+    ROLE_INSTRUCTOR = 10
+    ROLE_TA = 11
+    ROLE_GRADER = 12
+    ROLE_STUDENT = 20
+    USER_ROLES = (
+            (ROLE_SUPER_USER, 'Super user'),
+            (ROLE_INSTRUCTOR, 'Instructor'),
+            (ROLE_TA, 'TA'),
+            (ROLE_GRADER, 'Grader'),
+            (ROLE_STUDENT, 'Student'),
+    )
+
     course_id = models.ForeignKey(Course, on_delete=models.CASCADE)
     user_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    role = models.IntegerField(choices=USER_ROLES, default=ROLE_STUDENT)
     
 
 class Assignment(models.Model):
