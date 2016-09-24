@@ -8,7 +8,10 @@ Web frontend of Embedded Systems Auto Grader project
   - If not, go to this link https://www.python.org/downloads/ to get the latest version of Python.
 
 - Install Django
-  - ```sudo pip3 install Django``` 
+  - Go to your Python ```~/site-packages``` path, which is probably ```/Library/Frameworks/Python.framework/Versions/3.5/lib/python3.5/site-packages``` for Mac, and then run the following two commands:
+    - ```git clone git://github.com/django/django.git```
+    - ```pip install -e django/```
+  - Please don't do ```sudo pip3 install Django``` as it installs Django version 1.10.1, which will throw some errors when we migrate our database.
   - You might also need to get ```pip3``` by ```sudo apt-get install python3-pip```.
 
 - Install missing modules
@@ -20,11 +23,6 @@ Web frontend of Embedded Systems Auto Grader project
 
 ##Run the Project
  - Under ```~/AutoGrader/embed_grader```, run the command ```python3 manage.py runserver```
- - Test Account to login:
-```
-username: admin@ucla.edu
-password:admin_nesl
-```
  - Django database: ```localhost:8000/admin```
  
 ##Documentation

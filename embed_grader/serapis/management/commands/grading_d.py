@@ -97,16 +97,24 @@ class Command(BaseCommand):
 
                 try:
                     # upload firmware command
-                    filename = task.submission_id.file.path
-                    files = {'firmware': ('filename', open(filename, 'rb'), 'text/plain')}
+                    dut_binary_filename = task.submission_id.file.path
                     url = 'http://' + testbed.ip_address + '/dut/program/'
-                    r = requests.post(url, data={'dut': testbed.unique_hardware_id}, files=files)
+                    post_data = {
+                            'num_duts': 1,
+                            'dut0': 1,
+                    }
+                    files = {
+                            'firmware0': ('filename', open(dut_binary_filename, 'rb'), 'text/plain')
+                    }
+                    r = requests.post(url, data=post_data, files=files)
 
                     # upload input waveform command
-                    filename = task.assignment_task_id.test_input.path
-                    files = {'waveform': ('filename', open(filename, 'rb'), 'text/plain')}
+                    input_waveform_filename = task.assignment_task_id.test_input.path
                     url = 'http://' + testbed.ip_address + '/tester/waveform/'
-                    r = requests.post(url, data={'dut': testbed.unique_hardware_id}, files=files)
+                    files = {
+                            'waveform': ('filename', open(input_waveform_filename, 'rb'), 'text/plain')
+                    }
+                    r = requests.post(url, files=files)
 
                     # reset command
                     url = 'http://' + testbed.ip_address + '/tester/reset/'
