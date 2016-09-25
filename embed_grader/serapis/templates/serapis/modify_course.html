@@ -1,0 +1,21 @@
+{% extends 'serapis/base.html' %}
+{% load staticfiles %}
+{% load bootstrap3 %}
+{% load widget_tweaks %}
+{% block css %}
+{% endblock %}
+
+
+{% block content %}
+    <div class="container">
+        <h2 class="form-signin-heading">Modify Course</h2>
+        <form class="form-register" role="form" method="post" action=".">
+          {% csrf_token %}
+          {% bootstrap_form form %}
+          <input type="submit" value="Submit" />
+          <input type="hidden" name="next" value="{% url 'homepage' %}">
+        </form>
+        <p><a href="{% url 'homepage' %}">[Go back]</a></p>
+    </div>
+
+{% endblock %}

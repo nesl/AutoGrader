@@ -158,11 +158,6 @@ def enroll_course(request):
 
 
 @login_required(login_url='/login/')
-def modify_course(request, course_id):
-    return HttpResponse("Under construction")
-
-
-@login_required(login_url='/login/')
 def course(request, course_id):
     user = User.objects.get(username=request.user)
     user_profile = UserProfile.objects.get(user=user)
@@ -185,6 +180,34 @@ def course(request, course_id):
     }
     return render(request, 'serapis/course.html', template_context)
 
+@login_required(login_url='/login/')
+def modify_course(request, course_id):
+    user = User.objects.get(username=request.user)
+    user_profile = UserProfile.objects.get(user=user)
+    course = Course.objects.get(id=course_id)
+
+    if not course:
+        return HttpResponse("Course cannot be found")
+
+    courseUserObj = CourseUserList.objects.filter(course_id=course, user_id=user)
+    # if not courseUserObj or (courseUserObj[0].role != ROLE_INSTRUCTOR or courseUserObj[0].role != ROLE_SUPER_USER):
+    #     raise PermissionDenied
+
+    if request.method == 'POST':
+        form = CourseCompleteForm(request.POST, instance=course)
+        if form.is_valid():
+            course = form.save()
+            return HttpResponseRedirect('/course/'+course_id)
+    else:
+        form = CourseCompleteForm(instance=course)
+
+    template_context = {
+        'myuser': request.user,
+        'user_profile': user_profile,
+        'form': form
+    }
+
+    return render(request, 'serapis/modify_course.html', template_context)
 
 @login_required(login_url='/login/')
 def membership(request, course_id):
@@ -370,7 +393,7 @@ def modify_assignment(request, assignment_id):
             'myuser': request.user,
             'user_profile': user_profile,
             'assignment': assignment,
-            'form': form.as_p(),
+            'form': form,
             'tasks': tasks,
     }
     return render(request, 'serapis/modify_assignment.html', template_context)
@@ -416,8 +439,9 @@ def testbed_type_list(request):
     user = User.objects.get(username=request.user)
     user_profile = UserProfile.objects.get(user=user)
 
-    if not user_profile.user_role == user_profile.ROLE_SUPER_USER and not user_profile.user_role == user_profile.ROLE_INSTRUCTOR and not user_profile.user_role == user_profile.ROLE_TA:
-        return HttpResponse("Not enough privilege")
+    # TODO: should do permission check
+    # if not user_profile.user_role == user_profile.ROLE_SUPER_USER and not user_profile.user_role == user_profile.ROLE_INSTRUCTOR and not user_profile.user_role == user_profile.ROLE_TA:
+    #     return HttpResponse("Not enough privilege")
 
     testbed_type_list = TestbedType.objects.all()
     template_context = {
@@ -449,8 +473,9 @@ def create_testbed_type(request):
     user = User.objects.get(username=username)
     user_profile = UserProfile.objects.get(user=user)
 
-    if not user_profile.user_role == user_profile.ROLE_SUPER_USER and not user_profile.user_role == user_profile.ROLE_INSTRUCTOR and not user_profile.user_role == user_profile.ROLE_TA:
-        return HttpResponse("Not enough privilege")
+    # TODO: should do permission check
+    # if not user_profile.user_role == user_profile.ROLE_SUPER_USER and not user_profile.user_role == user_profile.ROLE_INSTRUCTOR and not user_profile.user_role == user_profile.ROLE_TA:
+    #     return HttpResponse("Not enough privilege")
 
     was_in_stage = 1
     if request.method == 'POST' and 'stage2' in request.POST:
@@ -580,8 +605,9 @@ def hardware_type_list(request):
     user = User.objects.get(username=username)
     user_profile = UserProfile.objects.get(user=user)
 
-    if not user_profile.user_role == user_profile.ROLE_SUPER_USER and not user_profile.user_role == user_profile.ROLE_INSTRUCTOR and not user_profile.user_role == user_profile.ROLE_TA:
-        return HttpResponse("Not enough privilege")
+    # TODO: should do permission check
+    # if not user_profile.user_role == user_profile.ROLE_SUPER_USER and not user_profile.user_role == user_profile.ROLE_INSTRUCTOR and not user_profile.user_role == user_profile.ROLE_TA:
+    #     return HttpResponse("Not enough privilege")
 
     hardware_type_list = HardwareType.objects.all()
     template_context = {
@@ -598,8 +624,9 @@ def hardware_type(request, hardware_type_id):
     user = User.objects.get(username=username)
     user_profile = UserProfile.objects.get(user=user)
 
-    if not user_profile.user_role == user_profile.ROLE_SUPER_USER and not user_profile.user_role == user_profile.ROLE_INSTRUCTOR and not user_profile.user_role == user_profile.ROLE_TA:
-        return HttpResponse("Not enough privilege")
+    # TODO: should do permission check
+    # if not user_profile.user_role == user_profile.ROLE_SUPER_USER and not user_profile.user_role == user_profile.ROLE_INSTRUCTOR and not user_profile.user_role == user_profile.ROLE_TA:
+    #     return HttpResponse("Not enough privilege")
 
     hardware_type = HardwareType.objects.get(id=hardware_type_id)
     if not hardware_type:
@@ -622,8 +649,9 @@ def create_hardware_type(request):
     user = User.objects.get(username=username)
     user_profile = UserProfile.objects.get(user=user)
 
-    if not user_profile.user_role == user_profile.ROLE_SUPER_USER and not user_profile.user_role == user_profile.ROLE_INSTRUCTOR and not user_profile.user_role == user_profile.ROLE_TA:
-        return HttpResponse("Not enough privilege")
+    # TODO: should do permission check
+    # if not user_profile.user_role == user_profile.ROLE_SUPER_USER and not user_profile.user_role == user_profile.ROLE_INSTRUCTOR and not user_profile.user_role == user_profile.ROLE_TA:
+    #     return HttpResponse("Not enough privilege")
 
     if request.method == 'POST':
         hardware_form = HardwareTypeForm(request.POST, request.FILES)

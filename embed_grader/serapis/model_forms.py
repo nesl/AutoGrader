@@ -129,6 +129,19 @@ class CourseCreationForm(ModelForm):
         course_user_list = CourseUserList.objects.create(user_id=self.user, course_id=course)
         return course
 
+class CourseCompleteForm(ModelForm):
+    class Meta:
+        model = Course
+        fields = ['owner_id', 'course_code', 'name', 'quarter', 'year', 'description']
+        YEAR_CHOICES = []
+        for r in range(2015, (datetime.now().year+2)):
+            YEAR_CHOICES.append((r,r))
+        QUARTER_CHOICES = ((1, 'Fall'), (2, 'Winter'), (3, 'Spring'), (4, 'Summer'))
+        widgets = {
+                'description': forms.Textarea(attrs={'cols': 40, 'rows': 5}),
+                'year': forms.Select(choices=YEAR_CHOICES),
+                'quarter': forms.Select(choices=QUARTER_CHOICES)
+        }
 
 class CourseEnrollmentForm(Form):
     error_messages = {
