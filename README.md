@@ -19,11 +19,6 @@ Web frontend of Embedded Systems Auto Grader project
 
 ##Run the Project
  - Under ```~/AutoGrader/embed_grader```, run the command ```python3 manage.py runserver```
- - Test Account to login:
-```
-username: admin@ucla.edu
-password:admin_nesl
-```
  - Django database: ```localhost:8000/admin```
  
 ##Documentation
