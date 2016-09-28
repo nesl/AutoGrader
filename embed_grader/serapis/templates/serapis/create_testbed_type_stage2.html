@@ -1,12 +1,38 @@
-{% extends 'serapis/base.html' %}
+{% extends 'serapis/base_sidebar.html' %}
 {% load staticfiles %}
 
-{% block css %}
+{% block sidebar-content %}
+    <!-- SIDEBAR USER TITLE -->
+    <div class="profile-usertitle">
+        <div class="profile-usertitle-name">
+            Testbed
+        </div>
+        <div class="profile-usertitle-job">
+            <br>
+        </div>
+    </div>
+    <!-- END SIDEBAR USER TITLE -->
+    <!-- SIDEBAR MENU -->
+    <div class="profile-usermenu">
+        <ul class="nav nav-bar">
+            <li>
+                <a href="{% url 'homepage' %}">Courses</a>
+            </li>
+            {% if role != 20 %}
+            <li>
+                <a href="{% url 'testbed-type-list' %}">Testbed Types</a>
+            </li>
+            <li>
+                <a href="{% url 'hardware-type-list' %}">Hardware Types</a>
+            </li>
+            {% endif %}
+        </ul>
+    </div>
+    <!-- END MENU -->
 {% endblock %}
 
-
-{% block content %}
-    <div class="container">
+{% block main-content %}
+    <div class="main-content">
         <h1 class="page-header">Create a testbed (step 2/2)</h1>
 
         <form action="." method="post">
@@ -25,24 +51,24 @@
                     </div>
                 {% endfor %}
             </div>
-            
+
             <h3>Wiring</h3>
             {{ wiring_formset.management_form }}
-            <table id='wiring_list'>
+
+            <div class="form-group" id='wiring_list'>
                 {% for form in wiring_formset %}
-                    <tr>
-                        {% for field in form %}
-                            <td>{{ field.label_tag }}{{ field }}</td>
-                        {% endfor %}
-                    </tr>
+                <p>
+                    {% for field in form %}
+                        <p>{{ field.label_tag }}{{ field }}</p>
+                    {% endfor %}
+                <p>
                 {% endfor %}
-            </table>
+            </div>
 
             <input type="hidden" name="stage2" value="1" />
-            <input type="submit" value="Submit" />
+            <input class="btn btn-primary" type="submit" value="Submit" style="float:left"/>
+            <a class="btn btn-primary" href="{% url 'create-testbed-type' %}" style="margin-left:30px">Back</a>
         </form>
-
-        <p><a href="{% url 'homepage' %}">[Go back]</a></p>
     </div>
 
     <script type="text/javascript">
@@ -58,7 +84,7 @@
                 $("<option />", {value: op.val, text: op.text}).appendTo(select);
             }
         }
-        
+
         function row_init_with_value(tr, vals) {
             tds = $('td', tr);
             sels = [];

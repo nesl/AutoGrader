@@ -2,38 +2,41 @@
 {% load staticfiles %}
 
 {% block sidebar-content %}
-                <!-- SIDEBAR USER TITLE -->
-                <div class="profile-usertitle">
-                    <div class="profile-usertitle-name">
-                        Welcome!
-                    </div>
-                    <div class="profile-usertitle-job">
-                        {{ course.name }}
-                    </div>
-                </div>
-                <!-- END SIDEBAR USER TITLE -->
-                <!-- SIDEBAR MENU -->
-                <div class="profile-usermenu">
-                    <ul class="nav nav-bar">
-                        <li class="active">
-                            <a href="{% url 'homepage' %}">Courses</a>
-                        </li>
-                        {% if perms.serapis.add_testbed %}
-                        <li>
-                            <a href="{% url 'testbed-type-list' %}">Testbed Types</a>
-                        </li>
-                        {% endif %}
-                    </ul>
-                </div>
-                <!-- END MENU -->
+  <!-- SIDEBAR USER TITLE -->
+  <div class="profile-usertitle">
+      <div class="profile-usertitle-name">
+          Welcome!
+      </div>
+      <div class="profile-usertitle-job">
+          <br>
+      </div>
+  </div>
+  <!-- END SIDEBAR USER TITLE -->
+  <!-- SIDEBAR MENU -->
+  <div class="profile-usermenu">
+      <ul class="nav nav-bar">
+          <li class="active">
+              <a href="{% url 'homepage' %}">Courses</a>
+          </li>
+          <li>
+              <a href="{% url 'testbed-type-list' %}">Testbed Types</a>
+          </li>
+          <li>
+              <a href="{% url 'hardware-type-list' %}">Hardware Types</a>
+          </li>
+          <!-- {% if perms.serapis.add_testbed %} -->
+          <!-- {% endif %} -->
+      </ul>
+  </div>
+  <!-- END MENU -->
 {% endblock %}
 
 
 
 {% block main-content %}
-    <div class="container">
+    <div class="main-content">
         <h1 class="page-header">Course List</h1>
-        
+
         {% if not course_list %}
             <p>No courses are available.</p>
         {% else %}
@@ -63,10 +66,7 @@
                 {% if perms.serapis.add_course %}
                     <a href="{% url 'create-course' %}" class="btn btn-primary">Create New Course</a>
                 {% endif %}
-                <a href="{% url 'enroll-course' %}" class="btn btn-success">Enroll in a Course</a>
-                {% if perms.serapis.add_testbed %}
-                    <a href="{% url 'testbed-type-list' %}" class="btn btn-default">View Testbed Type List</a>
-                {% endif %}
+                <a href="{% url 'enroll-course' %}" class="btn btn-success" style="margin-left:10px">Enroll in a Course</a>
             </p>
     </div>
 

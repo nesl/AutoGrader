@@ -25,6 +25,9 @@
             <li>
                 <a href="{% url 'testbed-type-list' %}">Testbed Types</a>
             </li>
+            <li>
+                <a href="{% url 'hardware-type-list' %}">Hardware Types</a>
+            </li>
             {% endif %}
         </ul>
     </div>
@@ -32,6 +35,7 @@
 {% endblock %}
 
 {% block main-content %}
+<div class="main-content">
     <div class="top-buffer">
     <ol class="breadcrumb">
         <li><a href="{% url 'homepage' %}">Courses</a></li>
@@ -75,10 +79,10 @@
     {% endif %}
     {% if role != 20 %}
         <hr/>
-        <h3>Instructor-only section</h3>
         <p>
             <a href='{% url 'modify-course' course.id %}' class="btn btn-primary">Change Course Description</a>
             <a href='{% url 'create-assignment' course.id %}' class="btn btn-primary">Create a New Assignment</a>
         </p>
     {% endif %}
+</div>
 {% endblock %}

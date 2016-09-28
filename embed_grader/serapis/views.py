@@ -204,6 +204,7 @@ def modify_course(request, course_id):
     template_context = {
         'myuser': request.user,
         'user_profile': user_profile,
+        'course':course,
         'form': form
     }
 
@@ -220,7 +221,7 @@ def membership(request, course_id):
 
     courseUserObj = CourseUserList.objects.filter(course_id=course, user_id=user)
     #students don't have access to view student list
-    if courseUserObj[0].role == ROLE_STUDENT:
+    if not courseUserObj or courseUserObj[0].role == ROLE_STUDENT:
         raise PermissionDenied
 
     students = []
@@ -244,7 +245,8 @@ def membership(request, course_id):
             'user_enrolled': user_enrolled,
             'students': students,
             'teaching_assistants': assistants,
-            'instructors': instructors
+            'instructors': instructors,
+            'role':courseUserObj[0].role
         }
 
     return render(request, 'serapis/roster.html', template_context)
@@ -277,6 +279,8 @@ def create_assignment(request, course_id):
     template_context = {
             'myuser': request.user,
             'user_profile': user_profile,
+            'course':course,
+            'role': courseUserObj[0].role,
             'form': form,
     }
     return render(request, 'serapis/create_assignment.html', template_context)
@@ -292,10 +296,12 @@ def assignment(request, assignment_id):
         return HttpResponse("Assignment cannot be found")
 
     course = assignment.course_id
-
-    if not CourseUserList.objects.filter(course_id=course, user_id=user):
+    courseUserObj = CourseUserList.objects.filter(course_id=course, user_id=user)
+    if not courseUserObj:
         raise PermissionDenied
 
+    # Assignment Submission
+    assignment_tasks = AssignmentTask.objects.filter(assignment_id=assignment)
     if request.method == 'POST':
         form = AssignmentSubmissionForm(request.POST, request.FILES)
         if form.is_valid():
@@ -307,7 +313,6 @@ def assignment(request, assignment_id):
             submission.status = Submission.STAT_GRADING
             submission.save()
 
-            assignment_tasks = AssignmentTask.objects.filter(assignment_id=assignment)
             for assignment_task in assignment_tasks:
                 grading_task = TaskGradingStatus()
                 grading_task.submission_id = submission
@@ -319,12 +324,21 @@ def assignment(request, assignment_id):
 
     submission_form = AssignmentSubmissionForm()
 
-    submission_list = Submission.objects.filter(student_id=user, assignment_id=assignment).order_by('-id')
+    if courseUserObj[0].role == ROLE_STUDENT:
+        submission_list = Submission.objects.filter(student_id=user, assignment_id=assignment).order_by('-submission_time')
+    else:
+        submission_list = Submission.objects.all().order_by('-submission_time')
+
     num_display = min(5, len(submission_list))
     submission_short_list = submission_list[:num_display]
 
     submission_grading_detail = []
+    student_list = []
     for submission in submission_short_list:
+        student = User.objects.get(username = submission.student_id)
+        student_name = student.first_name + ", " + student.last_name
+        student_list.append(student_name)
+
         task_symbols = []
         tasks = TaskGradingStatus.objects.filter(submission_id=submission).order_by('assignment_task_id')
         for task in tasks:
@@ -340,7 +354,19 @@ def assignment(request, assignment_id):
                 task_symbols.append('Error')
         submission_grading_detail.append(','.join(task_symbols))
 
-    submission_n_detail_short_list = zip(submission_short_list, submission_grading_detail)
+    gradings = []
+    for grading in submission_grading_detail:
+        total = 0
+        scoreList = grading.split(',')
+
+        for score in scoreList:
+            if score[0].isnumeric():
+                total += float(score)
+        gradings.append(round(total,2))
+
+    # print(submission_short_list[0].student_id)
+    submission_n_detail_short_list = zip(submission_short_list, submission_grading_detail, gradings, student_list)
+
     template_context = {
             'myuser': request.user,
             'user_profile': user_profile,
@@ -348,6 +374,9 @@ def assignment(request, assignment_id):
             'course': course,
             'submission_form': submission_form,
             'submission_n_detail_short_list': submission_n_detail_short_list,
+            'gradings':gradings,
+            'tasks': assignment_tasks,
+            'role':courseUserObj[0].role
     }
 
     return render(request, 'serapis/assignment.html', template_context)
@@ -395,6 +424,7 @@ def modify_assignment(request, assignment_id):
             'assignment': assignment,
             'form': form,
             'tasks': tasks,
+            'course': course
     }
     return render(request, 'serapis/modify_assignment.html', template_context)
 
@@ -429,6 +459,7 @@ def create_assignment_task(request, assignment_id):
             'user_profile': user_profile,
             'form': form,
             'course': course,
+            'role':courseUserObj[0].role,
             'assignment': assignment,
     }
     return render(request, 'serapis/create_assignment_task.html', template_context)

@@ -1,22 +1,51 @@
-{% extends 'serapis/base.html' %}
+{% extends 'serapis/base_sidebar.html' %}
 {% load staticfiles %}
 {% load bootstrap3 %}
 
-{% block css %}
+{% block sidebar-content %}
+    <!-- SIDEBAR USER TITLE -->
+    <div class="profile-usertitle">
+        <div class="profile-usertitle-name">
+            {{ course.course_code }}
+        </div>
+        <div class="profile-usertitle-job">
+            {{ assignment.name }}
+        </div>
+    </div>
+    <!-- END SIDEBAR USER TITLE -->
+    <!-- SIDEBAR MENU -->
+    <div class="profile-usermenu">
+        <ul class="nav">
+            <li>
+                <a href="{% url 'homepage' %}">Courses</a>
+            </li>
+            {% if role != 20 %}
+            <li class="active">
+                <a href="{% url 'membership' course.id %}">Students</a>
+            </li>
+            <li>
+                <a href="{% url 'testbed-type-list' %}">Testbed Types</a>
+            </li>
+            <li>
+                <a href="{% url 'hardware-type-list' %}">Hardware Types</a>
+            </li>
+            {% endif %}
+        </ul>
+    </div>
+    <!-- END MENU -->
 {% endblock %}
 
-
-{% block content %}
-    <div class="container">
+{% block main-content %}
+    <div class="main-content">
         <h1 class="page-header">Create a task</h1>
-        
+
         <form action="." method="post" enctype="multipart/form-data" class="form">
             {% csrf_token %}
             {% bootstrap_form form %}
-            <input type="submit" value="Submit" />
+            <br>
+            <input class="btn btn-primary" type="submit" value="Submit" />
+            <a class="btn btn-primary" href="{% url 'modify-assignment' assignment.id %}" style="float:right">Cancel</a>
         </form>
-
-        <p><a href="{% url 'modify-assignment' assignment.id %}">[Go back to assignment]</a></p>
     </div>
 
 {% endblock %}
