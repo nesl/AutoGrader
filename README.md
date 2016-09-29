@@ -12,6 +12,7 @@ Web frontend of Embedded Systems Auto Grader project
   - You might also need to get ```pip3``` by ```sudo apt-get install python3-pip```.
 
 - Install missing modules
+  - ```pip3 install requests```
   - ```pip3 install django-datetime-widget```
   - ```pip3 install django-widget-tweaks```
   - ```pip3 install django-bootstrap3```
