@@ -1,24 +1,52 @@
-{% extends 'serapis/base.html' %}
+{% extends 'serapis/base_sidebar.html' %}
 {% load staticfiles %}
 {% load bootstrap3 %}
 
-{% block css %}
+
+{% block sidebar-content %}
+    <!-- SIDEBAR USER TITLE -->
+    <div class="profile-usertitle">
+        <div class="profile-usertitle-name">
+            {{ course.course_code }}
+        </div>
+        <div class="profile-usertitle-job">
+            {{ course.name }}
+        </div>
+    </div>
+    <!-- END SIDEBAR USER TITLE -->
+    <!-- SIDEBAR MENU -->
+    <div class="profile-usermenu">
+        <ul class="nav nav-bar">
+            <li>
+                <a href="{% url 'homepage' %}">Courses</a>
+            </li>
+            {% if role != 20 %}
+            <li>
+                <a href="{% url 'membership' course.id %}">Students</a>
+            </li>
+            <li>
+                <a href="{% url 'testbed-type-list' %}">Testbed Types</a>
+            </li>
+            {% endif %}
+        </ul>
+    </div>
+    <!-- END MENU -->
 {% endblock %}
 
-
-{% block content %}
-    <div class="container">
+{% block main-content %}
+    <div class="main-content">
         <h1 class="page-header">Create an assignment</h1>
         <hr/>
 
         <form action="." method="post" class="form">
             {% csrf_token %}
             {% bootstrap_form form %}
-            <input type="submit" value="Submit" />
             <p style='color:red'>Please note that assignment is incomplete at this stage.</p>
+            <br>
+            <input class="btn btn-primary" type="submit" value="Submit" style="float:left"/>
+            <a class="btn btn-primary" href="{% url 'course' course.id %}" style="float:right">Go back</a>
+            <br>
         </form>
-
-        <p><a href="{% url 'homepage' %}">[Go back]</a></p>
     </div>
 
 {% endblock %}

@@ -1,14 +1,39 @@
-{% extends 'serapis/base.html' %}
+{% extends 'serapis/base_sidebar.html' %}
 {% load staticfiles %}
 
-{% block css %}
+
+{% block sidebar-content %}
+    <!-- SIDEBAR USER TITLE -->
+    <div class="profile-usertitle">
+        <div class="profile-usertitle-name">
+            Welcome!
+        </div>
+        <div class="profile-usertitle-job">
+            <br>
+        </div>
+    </div>
+    <!-- END SIDEBAR USER TITLE -->
+    <!-- SIDEBAR MENU -->
+    <div class="profile-usermenu">
+        <ul class="nav">
+            <li>
+                <a href="{% url 'homepage' %}">Courses</a>
+            </li>
+            <li>
+                <a href="{% url 'testbed-type-list' %}">Testbed Types</a>
+            </li>
+            <li>
+                <a href="{% url 'hardware-type-list' %}">Hardware Types</a>
+            </li>
+        </ul>
+    </div>
+    <!-- END MENU -->
 {% endblock %}
 
-
-{% block content %}
-    <div class="container">
+{% block main-content %}
+    <div class="main-content">
         <h1 class="page-header">Testbed Type Gallery (instructor only)</h1>
-        
+
         {% if not testbed_type_list %}
             <p>No testbed type has been added.</p>
         {% else %}
@@ -30,7 +55,7 @@
 
         <p>
             <a href="{% url 'create-testbed-type' %}" class="btn btn-primary">Create a New Testbed Type</a>
-            <a href="{% url 'hardware-type-list' %}" class="btn btn-default">View Hardware Type List</a>
+            <!-- <a href="{% url 'hardware-type-list' %}" class="btn btn-default">View Hardware Type List</a> -->
         </p>
 
     </div>

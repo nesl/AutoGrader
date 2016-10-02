@@ -11,9 +11,12 @@ Licensed under MIT
 
 /* Profile sidebar */
 .profile-sidebar {
-  padding: 20px 0 10px 0;
+  position:fixed;
+  height:85%;
+  width:15%;
+  /*padding: 20px 0 10px 0;*/
   background: #F1F3FA;
-  height: 100vh;
+  /*height: 100vh;*/
 }
 
 .profile-userpic img {
@@ -62,7 +65,7 @@ Licensed under MIT
 .profile-userbuttons .btn:last-child {
   margin-right: 0px;
 }
-    
+
 .profile-usermenu {
   margin-top: 30px;
 }

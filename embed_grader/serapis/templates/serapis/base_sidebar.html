@@ -10,7 +10,8 @@
 {% block content %}
     <div class="row">
         <div class="col-md-2">
-            <div class="profile-sidebar">
+            <div class="profile-sidebar" style="position:fixed; height:100%;
+            width:15%; min-width:150px; text-align:center; padding-top:20px;">
             {% block sidebar-content %}
             {% endblock %}
             </div>
@@ -18,7 +19,7 @@
         </div>
         <!--END COLUMN-->
         <!--START COLUMN-->
-        <div class="col-md-9">
+        <div class="col-md-10" style="margin-left:15%; width:85%">
             <!--MAIN CONTENT-->
             {% block main-content %}
             {% endblock %}

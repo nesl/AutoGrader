@@ -17,17 +17,6 @@ from datetime import datetime, timedelta
 
 
 class UserCreateForm(UserCreationForm):
-    #TODO: remove this part
-    ROLE_INSTRUCTOR = 10
-    ROLE_TA = 11
-    ROLE_STUDENT = 20
-    ROLE_GRADER = 12
-    USER_ROLES = (
-            (ROLE_INSTRUCTOR, 'Instructor'),
-            (ROLE_TA, 'TA'),
-            (ROLE_STUDENT, 'Student'),
-            (ROLE_GRADER, 'Grader')
-    )
     MIN_LENGTH = 8
     error_messages = {
         'password_mismatch': "The two password fields didn't match.",
@@ -40,7 +29,7 @@ class UserCreateForm(UserCreationForm):
     password2 = forms.CharField(label="Password confirmation",
         widget=forms.PasswordInput,
         help_text="Enter the same password as above, for verification.")
-    user_role = forms.ChoiceField(widget=forms.RadioSelect(), choices=USER_ROLES)
+    # user_role = forms.ChoiceField(widget=forms.RadioSelect(), choices=USER_ROLES)
 
     class Meta:
         model = User
@@ -90,17 +79,19 @@ class UserCreateForm(UserCreationForm):
         user.is_active = False
         if commit:
             user.save()
-        role = self.cleaned_data['user_role']
-        role_string = dict(self.USER_ROLES).get(int(role))
+
+        # role = self.cleaned_data['user_role']
+        # role_string = dict(self.USER_ROLES).get(int(role))
+
         user_profile = UserProfile(user=user,
                                    uid=self.cleaned_data['uid'],
-                                   user_role=role,
+                                #    user_role=role,
                                    activation_key=datas['activation_key'],
                                    key_expires=datetime.strftime(datetime.now() + timedelta(days=2), "%Y-%m-%d %H:%M:%S")
                                   )
         user_profile.save()
-        group = Group.objects.get(name=role_string)
-        group.user_set.add(user)
+        # group = Group.objects.get(name=role_string)
+        # group.user_set.add(user)
         return user, user_profile
 
 
@@ -133,31 +124,26 @@ class CourseCreationForm(ModelForm):
         self.user = kwargs.pop('user', None)
         super(CourseCreationForm, self).__init__(*args, **kwargs)
 
-    #TODO(Meng): can we delete this method since we're no longer using group
-    # permission to check a student who enroll in a course?
-    def clean(self):
-        a = self.cleaned_data.get("course_code")
-        b = str(self.cleaned_data.get("quarter"))
-        c = str(self.cleaned_data.get("year"))
-        if Group.objects.filter(name=a+'_'+b+'_'+c).count():
-            raise forms.ValidationError(self.error_messages['course_already_created'],
-                code='course_already_created')
-        return self.cleaned_data
-
-    #TODO(Meng): can we delete this method since we're no longer using group
-    # permission to check a student who enroll in a course?
     def save(self, commit=True):
-        a = self.cleaned_data['course_code']
-        b = str(self.cleaned_data['quarter'])
-        c = str(self.cleaned_data['year'])
         course = super(CourseCreationForm, self).save(commit=False)
-        group = Group.objects.create(name=a+'_'+b+'_'+c)
-        group.user_set.add(self.user)
         if commit:
           course.save()
         course_user_list = CourseUserList.objects.create(user_id=self.user, course_id=course)
         return course
 
+class CourseCompleteForm(ModelForm):
+    class Meta:
+        model = Course
+        fields = ['owner_id', 'course_code', 'name', 'quarter', 'year', 'description']
+        YEAR_CHOICES = []
+        for r in range(2015, (datetime.now().year+2)):
+            YEAR_CHOICES.append((r,r))
+        QUARTER_CHOICES = ((1, 'Fall'), (2, 'Winter'), (3, 'Spring'), (4, 'Summer'))
+        widgets = {
+                'description': forms.Textarea(attrs={'cols': 40, 'rows': 5}),
+                'year': forms.Select(choices=YEAR_CHOICES),
+                'quarter': forms.Select(choices=QUARTER_CHOICES)
+        }
 
 class CourseEnrollmentForm(Form):
     error_messages = {
@@ -175,15 +161,10 @@ class CourseEnrollmentForm(Form):
         if CourseUserList.objects.filter(user_id=self.user, course_id=course).count():
             raise forms.ValidationError(self.error_messages['course_already_enrolled'],
                 code='course_already_enrolled')
-        # if self.user.groups.filter(name=course.course_code+'_'+str(course.quarter)+'_'+str(course.year)).count():
-        #     raise forms.ValidationError(self.error_messages['course_already_enrolled'],
-        #         code='course_already_enrolled')
         return self.cleaned_data
 
     def save(self, commit=True):
         course=self.cleaned_data['course_select']
-        # group = Group.objects.get(name=course.course_code+'_'+str(course.quarter)+'_'+str(course.year))
-        # group.user_set.add(self.user)
         course_user_list = CourseUserList.objects.create(user_id=self.user, course_id=course)
 
 

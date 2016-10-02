@@ -6,13 +6,9 @@ from django.contrib.auth.models import User
 import datetime
 
 class UserProfile(models.Model):
-    
     #Connect to built-in User model, which already has firstname, lastname, email and password
     user = models.OneToOneField(User, on_delete = models.CASCADE)
 
-    #TODO: We may want to use in-built "Groups" feature of Django to make permissions easier
-    #TODO: The role of a user can change from TA to Student depending on a course
-    #user_role = models.IntegerField(choices = USER_ROLES, default = ROLE_STUDENT)
     uid = models.CharField(max_length=20, unique=True, verbose_name = "University ID")
 
     #for activation of user. One time use
@@ -36,16 +32,22 @@ class HardwareType(models.Model):
     link_to_manual = models.URLField()
     hardware_role = models.IntegerField(choices=HARDWARE_ROLES)
 
+    def __str__(self):
+        return self.name
+
 
 class HardwareTypePin(models.Model):
     hardware_type = models.ForeignKey(HardwareType, on_delete = models.CASCADE)
     pin_name = models.CharField(max_length=10)
 
+    def __str__(self):
+        return self.hardware_type.name + ": "+self.pin_name
+
 
 # Model that encapsulates the entire Testbed, including the Hardware Engines and DUTs
 class TestbedType(models.Model):
     name = models.CharField(max_length=50, null=True, blank=True)
-    
+
     def __str__(self):
         return self.name
 
@@ -53,9 +55,12 @@ class TestbedType(models.Model):
 # Model that links the TestbedType to it's list of hardware types
 class TestbedHardwareList(models.Model):
     testbed_type = models.ForeignKey(TestbedType, on_delete = models.CASCADE)
-    hardware_type = models.ForeignKey(HardwareType, on_delete = models.CASCADE) 
+    hardware_type = models.ForeignKey(HardwareType, on_delete = models.CASCADE)
     hardware_index = models.IntegerField()
     firmware = models.FileField(null=True, blank=True, upload_to='TestbedHardwareList_firmware')
+
+    def __str__(self):
+        return self.testbed_type.name + ", " + self.hardware_type.name + ", " + str(self.hardware_index)
 
 
 # Wiring for the TestbedType
@@ -97,12 +102,13 @@ class Course(models.Model):
         return '%s: %s %s %d' % (self.course_code, self.name, self.get_quarter_display(), self.year)
 
 
+ROLE_SUPER_USER = 0
+ROLE_INSTRUCTOR = 10
+ROLE_TA = 11
+ROLE_GRADER = 12
+ROLE_STUDENT = 20
+
 class CourseUserList(models.Model):
-    ROLE_SUPER_USER = 0
-    ROLE_INSTRUCTOR = 10
-    ROLE_TA = 11
-    ROLE_GRADER = 12
-    ROLE_STUDENT = 20
     USER_ROLES = (
             (ROLE_SUPER_USER, 'Super user'),
             (ROLE_INSTRUCTOR, 'Instructor'),
@@ -114,7 +120,10 @@ class CourseUserList(models.Model):
     course_id = models.ForeignKey(Course, on_delete=models.CASCADE)
     user_id = models.ForeignKey(User, on_delete=models.CASCADE)
     role = models.IntegerField(choices=USER_ROLES, default=ROLE_STUDENT)
-    
+
+    def __str__(self):
+        return '%s, %s' % (self.course_id.name, self.user_id)
+
 
 class Assignment(models.Model):
     # basic information
@@ -131,7 +140,7 @@ class Assignment(models.Model):
     testbed_type_id = models.ForeignKey(TestbedType, on_delete = models.CASCADE, default = None, null = True)
     # Testbenches are reserved using AssignmentTestBenches table
     num_testbeds = models.IntegerField(default = None, null = True)
-    
+
     # internal
     # TODO: status (completition of problem statement, is it ready to submit)
 
@@ -155,6 +164,9 @@ class AssignmentTask(models.Model):
     points = models.FloatField()
     test_input = models.FileField(upload_to='AssignmentTask_test_input')
     grading_script = models.FileField(upload_to='AssignmentTask_grading_script')
+
+    def __str__(self):
+        return self.brief_description
 
 
 class Submission(models.Model):
@@ -202,7 +214,7 @@ class TaskGradingStatus(models.Model):
             (EXEC_OK, 'Successful execution'),
             (EXEC_SEG_FAULT, 'Segmentation fault'),
     )
-    
+
     submission_id = models.ForeignKey(Submission, on_delete=models.CASCADE)
     assignment_task_id = models.ForeignKey(AssignmentTask, on_delete=models.CASCADE)
     grading_status = models.IntegerField(choices=GRADING_STATES, default=STAT_PENDING)
@@ -210,7 +222,7 @@ class TaskGradingStatus(models.Model):
     output_file = models.FileField(upload_to='TaskGradingStatus_output_file', null=True, blank=True)
     status_update_time = models.DateTimeField()
     points = models.FloatField(default=0.0)
-    
+
 
 class Testbed(models.Model):
     #STATUS_RESERVED = 0
@@ -237,7 +249,7 @@ class Testbed(models.Model):
     ip_address = models.GenericIPAddressField(protocol='IPv4')
     unique_hardware_id = models.CharField(max_length=30, unique=True)
     task_being_graded = models.ForeignKey(TaskGradingStatus, null=True, on_delete=models.SET_NULL)
-   
+
     # internal
     status = models.IntegerField(choices=TESTBED_STATUS)
 
@@ -254,10 +266,51 @@ class HardwareDevice(models.Model):
 
     testbed = models.ForeignKey(Testbed, on_delete=models.CASCADE)
 
-   
+
+class Testbed(models.Model):
+    #STATUS_RESERVED = 0
+    STATUS_AVAILABLE = 1
+    STATUS_BUSY = 2
+    STATUS_OFFLINE = -1
+    STATUS_UNKNOWN = -2
+
+    TESTBED_STATUS = (
+        #(STATUS_RESERVED, 'Reserved'),
+        (STATUS_AVAILABLE, 'Available'),
+        (STATUS_BUSY, 'Busy'),
+        (STATUS_OFFLINE, 'Offline'),
+    )
+    REPORT_STATUS = (
+        (STATUS_AVAILABLE, 'Available'),
+        (STATUS_BUSY, 'Busy'),
+        (STATUS_UNKNOWN, 'Unknown'),
+    )
+
+    testbed_type = models.ForeignKey(TestbedType, on_delete=models.CASCADE)
+
+    #IP Address. Only allowing IPv4 as the testers are internal
+    ip_address = models.GenericIPAddressField(protocol='IPv4')
+    unique_hardware_id = models.CharField(max_length=30, unique=True)
+    task_being_graded = models.ForeignKey(TaskGradingStatus, null=True, on_delete=models.SET_NULL)
+
+    # internal
+    status = models.IntegerField(choices=TESTBED_STATUS)
+
+    # report message
+    report_time = models.DateTimeField()
+    report_status = models.IntegerField(choices=REPORT_STATUS)
+
+
+class HardwareDevice(models.Model):
+    hardware_type = models.ForeignKey(
+        HardwareType,
+        on_delete = models.CASCADE,
+    )
+
+    testbed = models.ForeignKey(Testbed, on_delete=models.CASCADE)
+
+
 #TODO: We're not going to use it for now
 class SubmissionFile(models.Model):
     submission_id = models.ForeignKey(Submission, on_delete = models.CASCADE)
     file = models.FileField(upload_to='SubmissionFile_file')
-
-
