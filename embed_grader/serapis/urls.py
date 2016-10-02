@@ -12,6 +12,8 @@ urlpatterns = [
     url(r'^login/$', auth_views.login, {'template_name': 'serapis/login.html'}, name= 'login'),
     url(r'^logout/$', auth_views.logout, {'next_page': '/login/'}, name='logout'),
 
+    url(r'^about/$', views.about, name='about'),
+
     ##Registration and Password related pages
     url(r'^registration/$', views.registration, name='registration'),
     url(r'^password_reset/$', auth_views.password_reset, {'template_name': 'serapis/password_reset_form.html', 'email_template_name': 'serapis/password_reset_email.html'}, name='password_reset'),
@@ -22,7 +24,6 @@ urlpatterns = [
     url(r'^new_activation/(?P<user_id>\d+)/$', views.new_activation, name='new_activation'),
 
     ##Course pages
-    url(r'^homepage/$', views.homepage, name='homepage'),
     url(r'^course/(?P<course_id>[0-9]+)/$', views.course, name='course'),
     url(r'^course/(?P<course_id>[0-9]+)/membership/$', views.membership, name='membership'),
     url(r'^create-course/$', views.create_course, name='create-course'),

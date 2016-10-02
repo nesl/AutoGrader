@@ -1,0 +1,41 @@
+{% extends 'serapis/base_sidebar.html' %}
+{% load staticfiles %}
+
+{% block sidebar-content %}
+  <!-- SIDEBAR USER TITLE -->
+  <div class="profile-usertitle">
+      <div class="profile-usertitle-name">
+          Welcome!
+      </div>
+      <div class="profile-usertitle-job">
+          <br>
+      </div>
+  </div>
+  <!-- END SIDEBAR USER TITLE -->
+  <!-- SIDEBAR MENU -->
+  <div class="profile-usermenu">
+      <ul class="nav nav-bar">
+          <li class="active">
+              <a href="{% url 'homepage' %}">Courses</a>
+          </li>
+          {% if perms.serapis.add_testbed %}
+          <li>
+              <a href="{% url 'testbed-type-list' %}">Testbed Types</a>
+          </li>
+          <li>
+              <a href="{% url 'hardware-type-list' %}">Hardware Types</a>
+          </li>
+          {% endif %}
+      </ul>
+  </div>
+  <!-- END MENU -->
+{% endblock %}
+
+
+
+{% block main-content %}
+    <div class="main-content">
+			AutoGrader is a system developed by Networked and Embedded System Laboratory (NESL, also check out our <a href="http://nesl.ee.ucla.edu" target="_blank">lab website</a> :). We've witnessed a lot of software automatic grading systems in programming competition domain (e.g., several online judges), in education domain (e.g., MOOCS), and most companies in software industry have developed mature testing pipeline to enhance code quality. So far we didn't see any system dedicated for automation of grading cyber physical systems. We're happy to announce our first version of AutoGrader system, and so excited that our system can assist you in EE202A/CS213A Embedded System course, instructed by our PI <a href="http://www.ee.ucla.edu/mani-srivastava/" target="_blank">Prof. Mani Srivastava</a>. We hope you find our AutoGrader system useful and enjoy the process of homework submissions. If you have any question or feedback you want to share with us, please email us to <span style="font-style: italic; color: #337ab7">autograder@nesl.info</span>.
+    </div>
+
+{% endblock %}

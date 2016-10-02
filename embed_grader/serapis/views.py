@@ -121,6 +121,13 @@ def homepage(request):
 
 
 @login_required(login_url='/login/')
+def about(request):
+    user = User.objects.get(username=request.user)
+    template_context = {'myuser': request.user}
+    return render(request, 'serapis/about.html', template_context)
+
+
+@login_required(login_url='/login/')
 def create_course(request):
     #TODO:how to check user role here?
     user = User.objects.get(username=request.user)
