@@ -18,14 +18,14 @@
           <li class="active">
               <a href="{% url 'homepage' %}">Courses</a>
           </li>
+          {% if perms.serapis.add_testbed %}
           <li>
               <a href="{% url 'testbed-type-list' %}">Testbed Types</a>
           </li>
           <li>
               <a href="{% url 'hardware-type-list' %}">Hardware Types</a>
           </li>
-          <!-- {% if perms.serapis.add_testbed %} -->
-          <!-- {% endif %} -->
+          {% endif %}
       </ul>
   </div>
   <!-- END MENU -->

@@ -369,28 +369,6 @@ def assignment(request, assignment_id):
     # print(submission_short_list[0].student_id)
     submission_n_detail_short_list = zip(submission_short_list, submission_grading_detail, gradings, student_list)
 
-    submission_list = Submission.objects.filter(student_id=user, assignment_id=assignment).order_by('-id')
-    num_display = min(5, len(submission_list))
-    submission_short_list = submission_list[:num_display]
-
-    submission_grading_detail = []
-    for submission in submission_short_list:
-        task_symbols = []
-        tasks = TaskGradingStatus.objects.filter(submission_id=submission).order_by('assignment_task_id')
-        for task in tasks:
-            if task.grading_status == TaskGradingStatus.STAT_PENDING:
-                task_symbols.append('(P)')
-            elif task.grading_status == TaskGradingStatus.STAT_EXECUTING:
-                task_symbols.append('(E)')
-            elif task.grading_status == TaskGradingStatus.STAT_OUTPUT_TO_BE_CHECKED:
-                task_symbols.append('(C)')
-            elif task.grading_status == TaskGradingStatus.STAT_FINISH:
-                task_symbols.append(str(task.points))
-            elif task.grading_status == TaskGradingStatus.STAT_INTERNAL_ERROR:
-                task_symbols.append('Error')
-        submission_grading_detail.append(','.join(task_symbols))
-
-    submission_n_detail_short_list = zip(submission_short_list, submission_grading_detail)
     template_context = {
             'myuser': request.user,
             'user_profile': user_profile,
@@ -398,7 +376,6 @@ def assignment(request, assignment_id):
             'course': course,
             'submission_form': submission_form,
             'submission_n_detail_short_list': submission_n_detail_short_list,
-            'gradings':gradings,
             'tasks': assignment_tasks,
             'role':courseUserObj[0].role
     }
