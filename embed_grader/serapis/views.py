@@ -368,7 +368,6 @@ def assignment(request, assignment_id):
 
     # print(submission_short_list[0].student_id)
     submission_n_detail_short_list = zip(submission_short_list, submission_grading_detail, gradings, student_list)
->>>>>>> dev-Ariel
 
     submission_list = Submission.objects.filter(student_id=user, assignment_id=assignment).order_by('-id')
     num_display = min(5, len(submission_list))

@@ -15,11 +15,22 @@ Web frontend of Embedded Systems Auto Grader project
   - You might also need to get ```pip3``` by ```sudo apt-get install python3-pip```.
 
 - Install missing modules
+  - ```pip3 install requests```
   - ```pip3 install django-datetime-widget```
   - ```pip3 install django-widget-tweaks```
   - ```pip3 install django-bootstrap3```
   - ```pip3 install django-ipware```
   - ```pip3 install requests```
+
+- Install web server components for deployment
+  - ```sudo pip3 install uwsgi```
+  - ```sudo apt-get install nginx```
+
+##Configuration
+- TODO: add these files as samples
+  - nginx config file
+  - uwsgi config file
+  - django settings file
 
 ##Run the Project
  - Under ```~/AutoGrader/embed_grader```, run the command ```python3 manage.py runserver```
