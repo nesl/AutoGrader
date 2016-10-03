@@ -76,19 +76,19 @@ def activation(request, key):
 
 def new_activation(request, user_id):
     form = UserCreationForm()
-    datas={}
+    datas = {}
     user = User.objects.get(id=user_id)
     if user is not None and not user.is_active:
-        datas['uid']=user.uid
-        datas['email']=user.email
-        datas['email_path']="serapis/activation_email_resend.html"
-        datas['email_subject']="Account Activation Resend"
+        datas['uid'] = user.uid
+        datas['email'] = user.email
+        datas['email_path'] = "serapis/activation_email_resend.html"
+        datas['email_subject'] = "Account Activation Resend"
 
         salt = hashlib.sha1(str(random.random())).hexdigest()[:5]
         usernamesalt = datas['uid']
         if isinstance(usernamesalt, unicode):
             usernamesalt = usernamesalt.encode('utf8')
-        datas['activation_key']= hashlib.sha1(salt+usernamesalt).hexdigest()
+        datas['activation_key'] = hashlib.sha1(salt+usernamesalt).hexdigest()
 
         user_profile = UserProfile.objects.get(user=user)
         user_profile.activation_key = datas['activation_key']
@@ -111,7 +111,7 @@ def homepage(request):
     user_profile = UserProfile.objects.get(user=user)
 
     course_user_list = CourseUserList.objects.filter(user_id=user)
-    course_list = [Course.objects.filter(id=cu.course_id.id)[0] for cu in course_user_list]
+    course_list = [cu.course_id for cu in course_user_list]
     template_context = {
             'user_profile': user_profile,
             'myuser': request.user,
@@ -129,9 +129,10 @@ def about(request):
 
 @login_required(login_url='/login/')
 def create_course(request):
-    #TODO:how to check user role here?
     user = User.objects.get(username=request.user)
     user_profile = UserProfile.objects.get(user=user)
+    
+    #TODO: permission checking
 
     if request.method == 'POST':
         form = CourseCreationForm(request.POST, user=request.user)
@@ -173,6 +174,7 @@ def course(request, course_id):
     if not course:
         return HttpResponse("Course cannot be found")
 
+    #TODO: use get()
     current_cu = CourseUserList.objects.filter(course_id=course, user_id=user)
     if not current_cu:
         raise PermissionDenied
@@ -197,6 +199,7 @@ def modify_course(request, course_id):
         return HttpResponse("Course cannot be found")
 
     courseUserObj = CourseUserList.objects.filter(course_id=course, user_id=user)
+    #TODO: permission checking
     # if not courseUserObj or (courseUserObj[0].role != ROLE_INSTRUCTOR or courseUserObj[0].role != ROLE_SUPER_USER):
     #     raise PermissionDenied
 
@@ -226,6 +229,7 @@ def membership(request, course_id):
     if not course:
         return HttpResponse("Course cannot be found")
 
+    #TODO: use get()
     courseUserObj = CourseUserList.objects.filter(course_id=course, user_id=user)
     #students don't have access to view student list
     if not courseUserObj or courseUserObj[0].role == ROLE_STUDENT:
@@ -253,8 +257,8 @@ def membership(request, course_id):
             'students': students,
             'teaching_assistants': assistants,
             'instructors': instructors,
-            'role':courseUserObj[0].role
-        }
+            'role': courseUserObj[0].role
+    }
 
     return render(request, 'serapis/roster.html', template_context)
 
