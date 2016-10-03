@@ -98,7 +98,7 @@ class UserCreateForm(UserCreationForm):
 class CourseForm(ModelForm):
     class Meta:
         model = Course
-        fields = ['owner_id', 'course_code', 'name', 'description']
+        fields = ['course_code', 'name', 'description']
 
 
 class CourseCreationForm(ModelForm):
@@ -108,7 +108,7 @@ class CourseCreationForm(ModelForm):
 
     class Meta:
         model = Course
-        fields = ['owner_id', 'course_code', 'name', 'quarter', 'year', 'description']
+        fields = ['course_code', 'name', 'quarter', 'year', 'description']
         YEAR_CHOICES = []
         for r in range(2015, (datetime.now().year+2)):
             YEAR_CHOICES.append((r,r))
@@ -134,7 +134,7 @@ class CourseCreationForm(ModelForm):
 class CourseCompleteForm(ModelForm):
     class Meta:
         model = Course
-        fields = ['owner_id', 'course_code', 'name', 'quarter', 'year', 'description']
+        fields = ['course_code', 'name', 'quarter', 'year', 'description']
         YEAR_CHOICES = []
         for r in range(2015, (datetime.now().year+2)):
             YEAR_CHOICES.append((r,r))

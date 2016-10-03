@@ -57,8 +57,10 @@
             <tr>
                 <th>Name</th>
                 <th>Testbed Type</th>
+                <th>Release Date</th>
+                <th>Due Date</th>
                 {% if role != 20 %}
-                    <th>Change</th>
+                    <th>Edit</th>
                 {% endif %}
             </tr>
             {% for assignment in assignment_list %}
@@ -69,6 +71,8 @@
                     {% else %}
                         <td>To be assigned</td>
                     {% endif %}
+                    <td>{{ assignment.release_time}} </td>
+                    <td>{{ assignment.deadline }}</td>
                     {% if role != 20 %}
                         <td><a class="btn btn-primary" href="{% url 'modify-assignment' assignment.id %}">Edit</a></td>
                     {% endif %}

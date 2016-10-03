@@ -91,7 +91,6 @@ class Course(models.Model):
     for r in range(2015, (datetime.datetime.now().year+2)):
         YEAR_CHOICES.append((r,r))
 
-    owner_id = models.ForeignKey(User, on_delete = models.CASCADE)
     course_code = models.CharField(max_length = 10, default = '')
     name = models.CharField(max_length = 100, default = '')
     description = models.TextField()

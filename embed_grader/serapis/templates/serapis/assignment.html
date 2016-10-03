@@ -56,13 +56,16 @@
     <hr/>
 
     <br>
-    <h3>Tasks</h3>
-    <table class="table table-hover table-sm" style="text-align:center">
+    <h3>Tasks ({{public_points}}/{{total_points}})</h3>
+    <table class="table table-hover table-sm">
         <tr>
-            <th style="text-align:center">Task</th>
-            <th style="text-align:center">Points</th>
-            <th style="text-align:center">Test Input</th>
-            <th style="text-align:center">Description</th>
+            <th>Task</th>
+            {% if role != 20 %}
+              <th>Status</th>
+            {% endif %}
+            <th>Points</th>
+            <th>Description</th>
+            <th>Test Input</th>
         </tr>
         {% for task in tasks %}
           {% if role == 20 %}
@@ -70,23 +73,29 @@
             <tr>
                 <td style="width:20%;">{{ task.brief_description }}</td>
                 <td style="width:10%;">{{ task.points }}</td>
-                <td style="width:25%;">
-                  <a href="{{ MEDIA_URL }}{{ task.test_input.url }}" class="btn btn-primary"
-                  style="font-size: 12px; background:white; color:darkred; border-color:darkred">
-                  <span class="glyphicon glyphicon-download-alt"></span>&nbsp;Download</td>
                 <td style="width:45%"></td>
-                <td style="width:45%"></td>
+                {% if task.get_mode_display == "Public"%}
+                  <td style="width:25%;">
+                    <a href="{{ MEDIA_URL }}{{ task.test_input.url }}" class="btn btn-primary"
+                    style="font-size: 12px; background:white; color:darkred; border-color:darkred">
+                    <span class="glyphicon glyphicon-download-alt"></span>&nbsp;Download
+                  </td>
+                {% else%}
+                  <td>N/A (Hidden)</td>
+                {% endif %}
             </tr>
             {% endif %}
           {% else %}
           <tr>
               <td style="width:20%;">{{ task.brief_description }}</td>
+              <td style="width:10%">{{ task.get_mode_display }}</td>
               <td style="width:10%;">{{ task.points }}</td>
-              <td style="width:25%;">
+              <td style="width:40%"></td>
+              <td style="width:20%;">
                 <a href="{{ MEDIA_URL }}{{ task.test_input.url }}" class="btn btn-primary"
                 style="font-size: 12px; background:white; color:darkred; border-color:darkred">
-                <span class="glyphicon glyphicon-download-alt"></span>&nbsp;Download</td>
-              <td style="width:45%"></td>
+                <span class="glyphicon glyphicon-download-alt"></span>&nbsp;Download
+              </td>
           </tr>
           {% endif %}
         {% endfor %}
@@ -96,14 +105,17 @@
     <h3>Submission section</h3>
     <hr>
     <p><b>Release time: </b>{{ assignment.release_time }}</p>
-    <p><b>Deadline: </b>{{ assignment.deadline }}(how much time remaining, or it's closed)</p>
+    <p><b>Deadline: </b>{{ assignment.deadline }}</p>
+    {% if now < assignment.deadline %}
+    <p><b>Time Remaining: </b>{{ time_remaining }}</p>
 
     <form action="." method="post" enctype="multipart/form-data">
         {% csrf_token %}
         {{ submission_form.as_p }}
         <input class="btn btn-primary" type="submit" value="Submit" />
     </form>
-
+    {% endif %}
+    
     <hr/>
     <br>
     <h3>Submission history</h3>
@@ -123,7 +135,10 @@
                     <td>{{ s.0.get_status_display }}</td>
                     <td>{{ s.2 }}</td>
                     <td>{{ s.0.submission_time }}</td>
-                    <td></td>
+                    <td>
+                      <a class="btn btn-primary" style="font-size:12px; background:white; width:90px; color:darkred; border-color:darkred">
+                      <span class="glyphicon glyphicon-file"></span>Detail
+                    </td>
                     <td><a href="{{ MEDIA_URL }}{{ s.0.file.url }}" class="btn btn-primary"
                       style="font-size: 12px; background:white; color:darkred; border-color:darkred">
                       <span class="glyphicon glyphicon-download-alt"></span>&nbsp;Download
@@ -133,13 +148,13 @@
         </table>
         <a class="btn btn-danger" href="{% url 'course' course.id %}" style="width:100px;">Back</a>
     {% else %}
-        <table class="table table-hover table-sm" style="text-align:center;">
+        <table class="table table-hover table-sm">
             <tr>
-                <th style="text-align:center">Name</th>
-                <th style="text-align:center">Score</th>
-                <th style="text-align:center">Submission Time</th>
-                <th style="text-align:center">Detail</th>
-                <th style="text-align:center">Code</th>
+                <th>Name</th>
+                <th>Score</th>
+                <th>Submission Time</th>
+                <th>Detail</th>
+                <th>Code</th>
             </tr>
             {% for s in submission_n_detail_short_list %}
                 <tr>

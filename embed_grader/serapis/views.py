@@ -21,7 +21,7 @@ from datetime import datetime, timedelta
 from serapis.models import *
 from serapis.model_forms import *
 
-import hashlib, random
+import hashlib, random, pytz
 
 
 #TODO(timestring): recheck whether I should use disabled instead of readonly to enforce data integrity
@@ -132,9 +132,7 @@ def create_course(request):
             form.save()
             return HttpResponseRedirect(reverse('homepage'))
     else:
-        form = CourseCreationForm(initial={'owner_id': user})
-
-    form.fields['owner_id'].widget = forms.NumberInput(attrs={'readonly':'readonly'})
+        form = CourseCreationForm()
 
     template_context = {
             'myuser': request.user,
@@ -146,15 +144,17 @@ def create_course(request):
 
 @login_required(login_url='/login/')
 def enroll_course(request):
+    error_message = ''
     if request.method == 'POST':
         form = CourseEnrollmentForm(request.POST, user=request.user)
         if form.is_valid():
             form.save()
             return HttpResponseRedirect('/homepage/')
+        error_message = "You have already enrolled in this course."
     else:
         form = CourseEnrollmentForm(user=request.user)
 
-    return render(request, 'serapis/enroll_course.html', {'form': form})
+    return render(request, 'serapis/enroll_course.html', {'form': form, 'error_message': error_message})
 
 
 @login_required(login_url='/login/')
@@ -171,6 +171,14 @@ def course(request, course_id):
         raise PermissionDenied
 
     assignment_list = Assignment.objects.filter(course_id=course_id)
+
+    if current_cu[0].role == ROLE_STUDENT:
+        for assignment in assignment_list:
+            now = datetime.now(tz=pytz.timezone('UTC'))
+            if now < assignment.release_time:
+                assignment_list = Assignment.objects.filter(course_id=course_id, release_time__lte = now)
+
+
     template_context = {
             'myuser': request.user,
             'user_profile': user_profile,
@@ -263,7 +271,8 @@ def create_assignment(request, course_id):
     user_profile = UserProfile.objects.get(user=user)
     courseUserObj=CourseUserList.objects.filter(course_id=course, user_id=user)
 
-    if not courseUserObj or courseUserObj[0].role != ROLE_SUPER_USER:
+    print(ROLE_INSTRUCTOR != courseUserObj[0].role)
+    if not courseUserObj or (courseUserObj[0].role != ROLE_INSTRUCTOR and courseUserObj[0].role != ROLE_SUPER_USER):
         raise PermissionDenied
 
     if request.method == 'POST':
@@ -295,6 +304,9 @@ def assignment(request, assignment_id):
     if not assignment:
         return HttpResponse("Assignment cannot be found")
 
+    now = datetime.now(tz=pytz.timezone('UTC'))
+    time_remaining = assignment.deadline - now
+
     course = assignment.course_id
 
     courseUserObj = CourseUserList.objects.filter(course_id=course, user_id=user)
@@ -303,7 +315,8 @@ def assignment(request, assignment_id):
 
     # Assignment Submission
     assignment_tasks = AssignmentTask.objects.filter(assignment_id=assignment)
-
+    total_points = 0
+    public_points = 0
     if request.method == 'POST':
         form = AssignmentSubmissionForm(request.POST, request.FILES)
         if form.is_valid():
@@ -323,6 +336,11 @@ def assignment(request, assignment_id):
                 grading_task.execution_status = TaskGradingStatus.EXEC_UNKNOWN
                 grading_task.status_update_time = timezone.now()
                 grading_task.save()
+
+    for assignment_task in assignment_tasks:
+        total_points += assignment_task.points
+        if assignment_task.mode != 2:
+            public_points += assignment_task.points
 
     submission_form = AssignmentSubmissionForm()
 
@@ -366,6 +384,7 @@ def assignment(request, assignment_id):
                 total += float(score)
         gradings.append(round(total,2))
 
+
     # print(submission_short_list[0].student_id)
     submission_n_detail_short_list = zip(submission_short_list, submission_grading_detail, gradings, student_list)
 
@@ -377,7 +396,11 @@ def assignment(request, assignment_id):
             'submission_form': submission_form,
             'submission_n_detail_short_list': submission_n_detail_short_list,
             'tasks': assignment_tasks,
-            'role':courseUserObj[0].role
+            'role':courseUserObj[0].role,
+            'total_points':total_points,
+            'public_points':public_points,
+            'time_remaining':time_remaining,
+            'now':now
     }
 
     return render(request, 'serapis/assignment.html', template_context)
