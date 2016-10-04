@@ -91,7 +91,7 @@ class Course(models.Model):
 
     course_code = models.CharField(max_length = 10, default = '')
     name = models.CharField(max_length = 100, default = '')
-    description = models.TextField()
+    description = models.TextField(default='', null=True, blank=True)
     quarter = models.IntegerField(choices=QUARTER_TYPES, default=FALL)
     year = models.IntegerField(choices=YEAR_CHOICES, default=datetime.datetime.now().year)
 
@@ -156,7 +156,7 @@ class AssignmentTask(models.Model):
     )
 
     assignment_id = models.ForeignKey(Assignment, on_delete = models.CASCADE)
-    brief_description = models.CharField(max_length=100)
+    brief_description = models.CharField(max_length=100, null=True, blank=True)
     mode = models.IntegerField(choices=EVAL_MODES)
     points = models.FloatField()
     description = models.TextField()

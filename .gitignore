@@ -10,3 +10,6 @@ __pycache__
 
 #Swapfiles
 *.swp
+
+#Django migrations folder
+embed_grader/serapis/migrations

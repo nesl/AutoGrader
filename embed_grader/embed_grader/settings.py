@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/1.9/ref/settings/
 """
 
 import os
+from . import config
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -20,7 +21,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/1.9/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '=4zj(arugi)_xwp*0-u43@shhqu^ghh7n)up#1ztf_0cn30fdr'
+SECRET_KEY = config.secret_key 
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -79,12 +80,20 @@ WSGI_APPLICATION = 'embed_grader.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.9/ref/settings/#databases
 
+# default settings
+#DATABASES = {
+#    'default': {
+#        'ENGINE': 'django.db.backends.sqlite3',
+#        'NAME': os.environ.get("AUTOGRADER_DATABASE_PATH"),
+#    }
+#}
+
+# Accesses local PostgreSQL instance
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.environ.get("AUTOGRADER_DATABASE_PATH"),
-    }
+    'default': config.postgres_settings
 }
+
+
 
 # Password validation
 # https://docs.djangoproject.com/en/1.9/ref/settings/#auth-password-validators
@@ -105,11 +114,11 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # Email settings
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_HOST_USER = 'rena63350@gmail.com'
-EMAIL_HOST_PASSWORD = 't76124eszQ'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
+EMAIL_HOST = config.email_host 
+EMAIL_HOST_USER = config.email_host_user
+EMAIL_HOST_PASSWORD = config.email_host_password
+EMAIL_PORT = config.email_port
+EMAIL_USE_TLS = config.email_use_tls
 # Internationalization
 # https://docs.djangoproject.com/en/1.9/topics/i18n/
 
@@ -129,5 +138,5 @@ USE_TZ = True
 STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 STATIC_URL = '/static/'
 
-MEDIA_ROOT = os.environ.get("AUTOGRADER_UPLOADED_FILES_PATH")
+MEDIA_ROOT = os.path.join(BASE_DIR, 'uploaded_files/')
 MEDIA_URL = '/media/'
