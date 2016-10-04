@@ -340,7 +340,7 @@ def assignment(request, assignment_id):
     if courseUserObj[0].role == ROLE_STUDENT:
         submission_list = Submission.objects.filter(student_id=user, assignment_id=assignment).order_by('-submission_time')
     else:
-        submission_list = Submission.objects.all().order_by('-submission_time')
+        submission_list = Submission.objects.filter(assignment_id=assignment).order_by('-submission_time')
 
     num_display = min(5, len(submission_list))
     submission_short_list = submission_list[:num_display]
