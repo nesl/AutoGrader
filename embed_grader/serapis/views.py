@@ -261,9 +261,9 @@ def create_assignment(request, course_id):
 
     user = User.objects.get(username=request.user)
     user_profile = UserProfile.objects.get(user=user)
-    courseUserObj=CourseUserList.objects.filter(course_id=course, user_id=user)
+    courseUserObj = CourseUserList.objects.filter(course_id=course, user_id=user)
 
-    if not courseUserObj or courseUserObj[0].role != ROLE_SUPER_USER:
+    if not courseUserObj or courseUserObj[0].role == ROLE_STUDENT:
         raise PermissionDenied
 
     if request.method == 'POST':
@@ -435,6 +435,7 @@ def create_assignment_task(request, assignment_id):
     user = User.objects.get(username=request.user)
     user_profile = UserProfile.objects.get(user=user)
 
+    print('1')
     assignment = Assignment.objects.get(id=assignment_id)
     if not assignment:
         return HttpResponse("Assignment cannot be found")
@@ -442,6 +443,8 @@ def create_assignment_task(request, assignment_id):
     course = assignment.course_id
     courseUserObj = CourseUserList.objects.filter(course_id=course, user_id=user)
 
+    print(courseUserObj)
+    print(courseUserObj[0])
     if not courseUserObj or courseUserObj[0].role == ROLE_STUDENT:
         raise PermissionDenied
 
