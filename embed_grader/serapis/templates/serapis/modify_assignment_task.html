@@ -6,27 +6,30 @@
     <!-- SIDEBAR USER TITLE -->
     <div class="profile-usertitle">
         <div class="profile-usertitle-name">
-            Testbed
+            {{ course.course_code }}
         </div>
         <div class="profile-usertitle-job">
-            <br>
+            {{ assignment.name }}
         </div>
     </div>
     <!-- END SIDEBAR USER TITLE -->
     <!-- SIDEBAR MENU -->
     <div class="profile-usermenu">
-        <ul class="nav nav-bar">
+        <ul class="nav">
             <li>
                 <a href="{% url 'homepage' %}">Courses</a>
             </li>
-            {% if role != 20 %}
+            <!-- {% if role != 20 %} -->
+            <li class="active">
+                <a href="{% url 'membership' course.id %}">Students</a>
+            </li>
             <li>
                 <a href="{% url 'testbed-type-list' %}">Testbed Types</a>
             </li>
             <li>
                 <a href="{% url 'hardware-type-list' %}">Hardware Types</a>
             </li>
-            {% endif %}
+            <!-- {% endif %} -->
         </ul>
     </div>
     <!-- END MENU -->
@@ -34,35 +37,15 @@
 
 {% block main-content %}
     <div class="main-content">
-        <h1 class="page-header">Create a Hardware Type</h1>
+        <h1 class="page-header">Modify task detail</h1>
 
         <form action="." method="post" enctype="multipart/form-data" class="form">
             {% csrf_token %}
-            {% bootstrap_form hardware_form %}
-            <hr/>
-            {{ pin_formset.management_form }}
-            <div id='div_pins'>
-                {% for form in pin_formset %}
-                    {{ form.as_p }}
-                {% endfor %}
-            </div>
-            {% if pin_formset.non_form_errors %}
-                <ul style='color:red'>
-                    {% for error in pin_formset.non_form_errors %}
-                        <li>{{ error|escape }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
+            {% bootstrap_form form %}
+            <br>
             <input class="btn btn-primary" type="submit" value="Submit" />
+            <a class="btn btn-primary" href="{% url 'modify-assignment' assignment.id %}" style="float:right">Cancel</a>
         </form>
-
     </div>
-    <script type="text/javascript">
-        $(function() {
-            $('#div_pins p').formset({
-                addText: 'add pin',
-                deleteText: 'remove'
-            });
-        })
-    </script>
+
 {% endblock %}

@@ -12,6 +12,8 @@ urlpatterns = [
     url(r'^login/$', auth_views.login, {'template_name': 'serapis/login.html'}, name= 'login'),
     url(r'^logout/$', auth_views.logout, {'next_page': '/login/'}, name='logout'),
 
+    url(r'^about/$', views.about, name='about'),
+
     ##Registration and Password related pages
     url(r'^registration/$', views.registration, name='registration'),
     url(r'^password_reset/$', auth_views.password_reset, {'template_name': 'serapis/password_reset_form.html', 'email_template_name': 'serapis/password_reset_email.html'}, name='password_reset'),
@@ -34,6 +36,9 @@ urlpatterns = [
     url(r'^create-assignment/(?P<course_id>[0-9]+)/$', views.create_assignment, name='create-assignment'),
     url(r'^modify-assignment/(?P<assignment_id>[0-9]+)/$', views.modify_assignment, name='modify-assignment'),
     url(r'^create-assignment-task/(?P<assignment_id>[0-9]+)/$', views.create_assignment_task, name='create-assignment-task'),
+    url(r'^modify-assignment-task/(?P<task_id>[0-9]+)/$', views.modify_assignment_task, name='modify-assignment-task'),
+
+    url(r'^submission/(?P<submission_id>[0-9]+)/$', views.submission, name='submission'),
 
     ##Testbed and Hardware pages
     url(r'^testbed-type-list/$', views.testbed_type_list, name='testbed-type-list'),

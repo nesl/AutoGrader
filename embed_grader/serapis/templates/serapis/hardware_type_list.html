@@ -1,14 +1,39 @@
-{% extends 'serapis/base.html' %}
+{% extends 'serapis/base_sidebar.html' %}
 {% load staticfiles %}
 
-{% block css %}
+
+{% block sidebar-content %}
+    <!-- SIDEBAR USER TITLE -->
+    <div class="profile-usertitle">
+        <div class="profile-usertitle-name">
+            Welcome!
+        </div>
+        <div class="profile-usertitle-job">
+            <br>
+        </div>
+    </div>
+    <!-- END SIDEBAR USER TITLE -->
+    <!-- SIDEBAR MENU -->
+    <div class="profile-usermenu">
+        <ul class="nav">
+            <li>
+                <a href="{% url 'homepage' %}">Courses</a>
+            </li>
+            <li>
+                <a href="{% url 'testbed-type-list' %}">Testbed Types</a>
+            </li>
+            <li>
+                <a href="{% url 'hardware-type-list' %}">Hardware Types</a>
+            </li>
+        </ul>
+    </div>
+    <!-- END MENU -->
 {% endblock %}
 
+{% block main-content %}
+    <div class="main-content">
+        <h1 class="page-header">Hardware Type Gallery</h1>
 
-{% block content %}
-    <div class="container">
-        <h1 class="page-header">Hardware Type Gallery (instructor only)</h1>
-        
         {% if not hardware_type_list %}
             <p>No hardware type has been specified.</p>
         {% else %}
@@ -22,7 +47,7 @@
                 <tr>
                     <td><a href="{% url 'hardware-type' hardware_type.id %}">{{hardware_type.name}}</a></td>
                     <td>{{ hardware_type.get_hardware_role_display }}</td>
-                </tr>     
+                </tr>
                 {% endfor %}
             </table>
             </div>
@@ -30,7 +55,7 @@
 
         <p>
             <a href="{% url 'create-hardware-type' %}" class="btn btn-primary">Create a New Hardware Type</a>
-            <a href="{% url 'testbed-type-list' %}" class="btn btn-default">View Testbed Type List</a>
+            <!-- <a href="{% url 'testbed-type-list' %}" class="btn btn-default">View Testbed Type List</a> -->
         </p>
     </div>
 

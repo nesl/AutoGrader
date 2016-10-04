@@ -18,12 +18,15 @@
             <li>
                 <a href="{% url 'homepage' %}">Courses</a>
             </li>
+            {% if role != 20 %}
             <li>
                 <a href="{% url 'membership' course.id %}">Students</a>
             </li>
-            {% if perms.serapis.add_testbed %}
             <li>
                 <a href="{% url 'testbed-type-list' %}">Testbed Types</a>
+            </li>
+            <li>
+                <a href="{% url 'hardware-type-list' %}">Hardware Types</a>
             </li>
             {% endif %}
         </ul>
@@ -32,6 +35,7 @@
 {% endblock %}
 
 {% block main-content %}
+<div class="main-content">
     <div class="top-buffer">
     <ol class="breadcrumb">
         <li><a href="{% url 'homepage' %}">Courses</a></li>
@@ -53,8 +57,10 @@
             <tr>
                 <th>Name</th>
                 <th>Testbed Type</th>
-                {% if perms.serapis.add_course %}
-                    <th>Change</th>
+                <th>Release Date</th>
+                <th>Due Date</th>
+                {% if role != 20 %}
+                    <th>Edit</th>
                 {% endif %}
             </tr>
             {% for assignment in assignment_list %}
@@ -65,20 +71,31 @@
                     {% else %}
                         <td>To be assigned</td>
                     {% endif %}
-                    {% if perms.serapis.add_assignment %}
-                        <td><a class="btn btn-primary" href="{% url 'modify-assignment' assignment.id %}">Edit</a></td>
+                    <td>{{ assignment.release_time}} </td>
+                    <td>{{ assignment.deadline }}</td>
+                    {% if role != 20 %}
+                        <td>
+                          <a class="btn btn-primary" href="{% url 'modify-assignment' assignment.id %}" style="width:100px">
+                          <span class="glyphicon glyphicon-edit"></span>&nbsp;Edit</a>
+                        </td>
                     {% endif %}
                 </tr>
             {% endfor %}
         </table>
         </div>
     {% endif %}
-    {% if perms.serapis.add_assignment %}
+
         <hr/>
-        <h3>Instructor-only section</h3>
         <p>
-            <a href='{% url 'modify-course' course.id %}' class="btn btn-primary">Change Course Description</a>
-            <a href='{% url 'create-assignment' course.id %}' class="btn btn-primary">Create a New Assignment</a>
+          {% if role != 20 %}
+            <a href='{% url 'modify-course' course.id %}' class="btn btn-primary">
+              <span class="glyphicon glyphicon-edit"></span>&nbsp;Edit Course Detail</a>
+            <a href='{% url 'create-assignment' course.id %}' class="btn btn-primary">
+              <span class="glyphicon glyphicon-tasks"></span>&nbsp;Create Assignment</a>
+          {% endif %}
+          <a href='{% url 'homepage' %}' class="btn btn-danger" style="width:100px">Back</a>
         </p>
-    {% endif %}
+
+
+</div>
 {% endblock %}

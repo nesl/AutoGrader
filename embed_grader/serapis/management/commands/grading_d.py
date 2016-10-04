@@ -68,7 +68,7 @@ class Command(BaseCommand):
             #t = task_list[n-1]
             #t.grading_status = TaskGradingStatus.STAT_PENDING
             #t.save()
-            
+
             #
             # task assignment
             #
@@ -77,11 +77,11 @@ class Command(BaseCommand):
                 testbed_list = Testbed.objects.filter(status=Testbed.STATUS_AVAILABLE)
                 if not testbed_list:
                     break
-                
+
                 task_list = TaskGradingStatus.objects.filter(grading_status=TaskGradingStatus.STAT_PENDING)
                 if not task_list:
                     break
-                
+
                 testbed = testbed_list[0]
                 task = task_list[0]
 
@@ -111,7 +111,7 @@ class Command(BaseCommand):
                     # reset command
                     url = 'http://' + testbed.ip_address + '/tester/reset/'
                     r = requests.post(url)
-                    
+
                     # start command
                     url = 'http://' + testbed.ip_address + '/tester/start/'
                     r = requests.post(url)
@@ -137,7 +137,7 @@ class Command(BaseCommand):
                     grading_script_filename = assignment_task.grading_script.path
                     output_filename = grading_task.output_file.path
                     proc = subprocess.Popen(
-                            ['python3', grading_script_filename, output_filename], 
+                            ['python3', grading_script_filename, output_filename],
                             stdout=subprocess.PIPE)
                     try:
                         normalized_score = float(proc.communicate()[0].decode('ascii'))
@@ -163,7 +163,7 @@ class Command(BaseCommand):
                     s = grading_task.submission_id
                     s.status = Submission.STAT_GRADED
                     s.save()
-            
+
             # go to sleep
             print('go to sleep')
             time.sleep(K_CYCLE_DURATION_SEC)
