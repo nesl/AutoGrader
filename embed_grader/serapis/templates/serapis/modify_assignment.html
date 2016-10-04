@@ -66,8 +66,9 @@
                       <td>{{ task.brief_description }}</a></td>
                       <td>{{ task.get_mode_display }}</td>
                       <td>{{ task.points }} pts</td>
-                      <td><button class="btn btn-primary">Edit</button></td>
-                      <td><button class="btn btn-danger">Delete</button></td>
+                      <td><a class="btn btn-primary" href="{% url 'modify-assignment-task' task.id %}" style="width:80px;">
+                        <span class="glyphicon glyphicon-edit"></span>&nbsp;Edit</a></td>
+                      <td><button class="btn btn-danger"><span class="glyphicon glyphicon-remove"></span>&nbsp;Delete</button></td>
                   </tr>
                   {% endfor %}
               </table>

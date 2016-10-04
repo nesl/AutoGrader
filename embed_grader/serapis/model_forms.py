@@ -214,7 +214,12 @@ class AssignmentCompleteForm(ModelForm):
 class AssignmentTaskForm(ModelForm):
     class Meta:
         model = AssignmentTask
-        fields = ['brief_description', 'mode', 'points', 'test_input', 'grading_script']
+        fields = ['brief_description', 'mode', 'points', 'description', 'test_input', 'grading_script']
+
+class AssignmentTaskCompleteForm(ModelForm):
+    class Meta:
+        model = AssignmentTask
+        fields = ['brief_description', 'mode', 'points', 'description', 'test_input', 'grading_script']
 
 
 class TestbedTypeForm(ModelForm):
@@ -324,6 +329,10 @@ class AssignmentSubmissionForm(ModelForm):
         fields = ['file']
 
 
+class SubmissionForm(ModelForm):
+    class Meta:
+        model = Submission
+        fields = ['student_id', 'assignment_id', 'submission_time', 'grading_result', 'status', 'file']
 
 
 class TaskGradingStatusDebugForm(ModelForm):

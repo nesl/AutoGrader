@@ -161,6 +161,7 @@ class AssignmentTask(models.Model):
     brief_description = models.CharField(max_length=100)
     mode = models.IntegerField(choices=EVAL_MODES)
     points = models.FloatField()
+    description = models.TextField()
     test_input = models.FileField(upload_to='AssignmentTask_test_input')
     grading_script = models.FileField(upload_to='AssignmentTask_grading_script')
 
@@ -188,6 +189,9 @@ class Submission(models.Model):
     #TODO: let's say the student is going to submit the binary only,
     #      we'll worry about the multiple submission files later
     file = models.FileField(upload_to='Submission_file')
+
+    def __str__(self):
+        return self.student_id.first_name + " " + self.student_id.last_name + ", " + str(self.id)
 
 
 class TaskGradingStatus(models.Model):

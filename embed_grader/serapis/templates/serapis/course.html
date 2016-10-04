@@ -74,19 +74,28 @@
                     <td>{{ assignment.release_time}} </td>
                     <td>{{ assignment.deadline }}</td>
                     {% if role != 20 %}
-                        <td><a class="btn btn-primary" href="{% url 'modify-assignment' assignment.id %}">Edit</a></td>
+                        <td>
+                          <a class="btn btn-primary" href="{% url 'modify-assignment' assignment.id %}" style="width:100px">
+                          <span class="glyphicon glyphicon-edit"></span>&nbsp;Edit</a>
+                        </td>
                     {% endif %}
                 </tr>
             {% endfor %}
         </table>
         </div>
     {% endif %}
-    {% if role != 20 %}
+
         <hr/>
         <p>
-            <a href='{% url 'modify-course' course.id %}' class="btn btn-primary">Change Course Description</a>
-            <a href='{% url 'create-assignment' course.id %}' class="btn btn-primary">Create a New Assignment</a>
+          {% if role != 20 %}
+            <a href='{% url 'modify-course' course.id %}' class="btn btn-primary">
+              <span class="glyphicon glyphicon-edit"></span>&nbsp;Edit Course Detail</a>
+            <a href='{% url 'create-assignment' course.id %}' class="btn btn-primary">
+              <span class="glyphicon glyphicon-tasks"></span>&nbsp;Create Assignment</a>
+          {% endif %}
+          <a href='{% url 'homepage' %}' class="btn btn-danger" style="width:100px">Back</a>
         </p>
-    {% endif %}
+
+
 </div>
 {% endblock %}

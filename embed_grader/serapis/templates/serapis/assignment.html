@@ -66,14 +66,19 @@
             <th>Points</th>
             <th>Description</th>
             <th>Test Input</th>
+            {% if role != 20 %}
+              <th>Grading Script</th>
+              <th>Edit</th>
+            {% endif %}
         </tr>
         {% for task in tasks %}
           {% if role == 20 %}
+          <!-- for students -->
             {% if task.get_mode_display != "Hidden" %}
             <tr>
                 <td style="width:20%;">{{ task.brief_description }}</td>
                 <td style="width:10%;">{{ task.points }}</td>
-                <td style="width:45%"></td>
+                <td style="width:45%;text-align:left">{{ task.description }}</td>
                 {% if task.get_mode_display == "Public"%}
                   <td style="width:25%;">
                     <a href="{{ MEDIA_URL }}{{ task.test_input.url }}" class="btn btn-primary"
@@ -86,21 +91,36 @@
             </tr>
             {% endif %}
           {% else %}
+          <!-- for instructors -->
           <tr>
               <td style="width:20%;">{{ task.brief_description }}</td>
               <td style="width:10%">{{ task.get_mode_display }}</td>
               <td style="width:10%;">{{ task.points }}</td>
-              <td style="width:40%"></td>
-              <td style="width:20%;">
+              <td style="width:30%; text-align:left">{{ task.description }}</td>
+              <td style="width:10%;">
                 <a href="{{ MEDIA_URL }}{{ task.test_input.url }}" class="btn btn-primary"
                 style="font-size: 12px; background:white; color:darkred; border-color:darkred">
                 <span class="glyphicon glyphicon-download-alt"></span>&nbsp;Download
+              </td>
+              <td style="width:10%;">
+                <a href="{{ MEDIA_URL }}{{ task.grading_script.url }}" class="btn btn-primary"
+                style="font-size: 12px; background:white; color:darkred; border-color:darkred">
+                <span class="glyphicon glyphicon-download-alt"></span>&nbsp;Download
+              </td>
+              <td style="width:10%">
+                <a href="{% url 'modify-assignment-task' task.id %}" class="btn btn-primary"
+                style="font-size: 12px; background:white; color:darkred; border-color:darkred;width:80px">
+                <span class="glyphicon glyphicon-edit"></span>&nbsp;Edit
               </td>
           </tr>
           {% endif %}
         {% endfor %}
     </table>
+    {% if role != 20%}
+      <a class="btn btn-primary" href="{% url 'create-assignment-task' assignment.id %}">Create New Task</a>
+    {% endif %}
 
+    <hr>
     <br>
     <h3>Submission section</h3>
     <hr>
@@ -115,7 +135,7 @@
         <input class="btn btn-primary" type="submit" value="Submit" />
     </form>
     {% endif %}
-    
+
     <hr/>
     <br>
     <h3>Submission history</h3>
@@ -136,8 +156,9 @@
                     <td>{{ s.2 }}</td>
                     <td>{{ s.0.submission_time }}</td>
                     <td>
-                      <a class="btn btn-primary" style="font-size:12px; background:white; width:90px; color:darkred; border-color:darkred">
-                      <span class="glyphicon glyphicon-file"></span>Detail
+                      <a class="btn btn-primary" href="{% url 'submission' s.0.id %}"
+                      style="font-size:12px; background:white; width:90px; color:darkred; border-color:darkred">
+                      <span class="glyphicon glyphicon-file"></span>&nbsp;Detail
                     </td>
                     <td><a href="{{ MEDIA_URL }}{{ s.0.file.url }}" class="btn btn-primary"
                       style="font-size: 12px; background:white; color:darkred; border-color:darkred">
@@ -162,8 +183,9 @@
                     <td style="width:15%">{{ s.2 }}</td>
                     <td style="width:25%">{{ s.0.submission_time }}</td>
                     <td style="width:20%">
-                      <a class="btn btn-primary" style="font-size:12px; background:white; width:90px; color:darkred; border-color:darkred">
-                      <span class="glyphicon glyphicon-file"></span>Detail
+                      <a class="btn btn-primary" href="{% url 'submission' s.0.id %}"
+                      style="font-size:12px; background:white; width:90px; color:darkred; border-color:darkred">
+                      <span class="glyphicon glyphicon-file"></span>&nbsp;Detail
                     </td>
                     <td style="width:20%">
                       <a href="{{ MEDIA_URL }}{{ s.0.file.url }}" class="btn btn-primary" style="font-size:12px; background:white; color:darkred; border-color:darkred">
@@ -173,7 +195,8 @@
             {% endfor %}
         </table>
 
-        <a class="btn btn-primary" href="{% url 'modify-assignment' assignment.id %}" style="width:100px;"> Edit </a>
+        <a class="btn btn-primary" href="{% url 'modify-assignment' assignment.id %}" style="width:100px;">
+          <span class="glyphicon glyphicon-edit"></span>&nbsp; Edit </a>
         <a class="btn btn-danger" href="{% url 'course' course.id %}" style="width:100px; float:right;">Back</a>
     {% endif %}
     <br>

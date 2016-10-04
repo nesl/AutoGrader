@@ -19,7 +19,7 @@
             <li>
                 <a href="{% url 'homepage' %}">Courses</a>
             </li>
-            {% if role != 20 %}
+            <!-- {% if role != 20 %} -->
             <li class="active">
                 <a href="{% url 'membership' course.id %}">Students</a>
             </li>
@@ -29,7 +29,7 @@
             <li>
                 <a href="{% url 'hardware-type-list' %}">Hardware Types</a>
             </li>
-            {% endif %}
+            <!-- {% endif %} -->
         </ul>
     </div>
     <!-- END MENU -->
@@ -37,14 +37,14 @@
 
 {% block main-content %}
     <div class="main-content">
-        <h1 class="page-header">Create a task</h1>
+        <h1 class="page-header">Modify task detail</h1>
 
         <form action="." method="post" enctype="multipart/form-data" class="form">
             {% csrf_token %}
             {% bootstrap_form form %}
             <br>
             <input class="btn btn-primary" type="submit" value="Submit" />
-            <a class="btn btn-primary" href="javascript:history.back()" style="float:right">Cancel</a>
+            <a class="btn btn-primary" href="{% url 'modify-assignment' assignment.id %}" style="float:right">Cancel</a>
         </form>
     </div>
 
