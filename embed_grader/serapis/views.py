@@ -174,8 +174,7 @@ def course(request, course_id):
     if not course:
         return HttpResponse("Course cannot be found")
 
-    #TODO: use get()
-    current_cu = CourseUserList.objects.filter(course_id=course, user_id=user)
+    current_cu = CourseUserList.objects.get(course_id=course, user_id=user)
     if not current_cu:
         raise PermissionDenied
 
@@ -198,7 +197,7 @@ def modify_course(request, course_id):
     if not course:
         return HttpResponse("Course cannot be found")
 
-    courseUserObj = CourseUserList.objects.filter(course_id=course, user_id=user)
+    courseUserObj = CourseUserList.objects.get(course_id=course, user_id=user)
     #TODO: permission checking
     # if not courseUserObj or (courseUserObj[0].role != ROLE_INSTRUCTOR or courseUserObj[0].role != ROLE_SUPER_USER):
     #     raise PermissionDenied
@@ -229,10 +228,9 @@ def membership(request, course_id):
     if not course:
         return HttpResponse("Course cannot be found")
 
-    #TODO: use get()
-    courseUserObj = CourseUserList.objects.filter(course_id=course, user_id=user)
+    courseUserObj = CourseUserList.objects.get(course_id=course, user_id=user)
     #students don't have access to view student list
-    if not courseUserObj or courseUserObj[0].role == ROLE_STUDENT:
+    if not courseUserObj or courseUserObj.role == ROLE_STUDENT:
         raise PermissionDenied
 
     students = []
@@ -257,7 +255,7 @@ def membership(request, course_id):
             'students': students,
             'teaching_assistants': assistants,
             'instructors': instructors,
-            'role': courseUserObj[0].role
+            'role': courseUserObj.role
     }
 
     return render(request, 'serapis/roster.html', template_context)
@@ -272,9 +270,9 @@ def create_assignment(request, course_id):
 
     user = User.objects.get(username=request.user)
     user_profile = UserProfile.objects.get(user=user)
-    courseUserObj=CourseUserList.objects.filter(course_id=course, user_id=user)
+    courseUserObj= CourseUserList.objects.get(course_id=course, user_id=user)
 
-    if not courseUserObj or courseUserObj[0].role != ROLE_SUPER_USER:
+    if not courseUserObj or courseUserObj.role != ROLE_SUPER_USER:
         raise PermissionDenied
 
     if request.method == 'POST':
@@ -291,7 +289,7 @@ def create_assignment(request, course_id):
             'myuser': request.user,
             'user_profile': user_profile,
             'course':course,
-            'role': courseUserObj[0].role,
+            'role': courseUserObj.role,
             'form': form,
     }
     return render(request, 'serapis/create_assignment.html', template_context)
@@ -308,7 +306,7 @@ def assignment(request, assignment_id):
 
     course = assignment.course_id
 
-    courseUserObj = CourseUserList.objects.filter(course_id=course, user_id=user)
+    courseUserObj = CourseUserList.objects.get(course_id=course, user_id=user)
     if not courseUserObj:
         raise PermissionDenied
 
@@ -337,7 +335,7 @@ def assignment(request, assignment_id):
 
     submission_form = AssignmentSubmissionForm()
 
-    if courseUserObj[0].role == ROLE_STUDENT:
+    if courseUserObj.role == ROLE_STUDENT:
         submission_list = Submission.objects.filter(student_id=user, assignment_id=assignment).order_by('-submission_time')
     else:
         submission_list = Submission.objects.filter(assignment_id=assignment).order_by('-submission_time')
@@ -388,7 +386,7 @@ def assignment(request, assignment_id):
             'submission_form': submission_form,
             'submission_n_detail_short_list': submission_n_detail_short_list,
             'tasks': assignment_tasks,
-            'role':courseUserObj[0].role
+            'role': courseUserObj.role
     }
 
     return render(request, 'serapis/assignment.html', template_context)
@@ -407,7 +405,7 @@ def modify_assignment(request, assignment_id):
 
     user = User.objects.get(username=request.user)
     user_profile = UserProfile.objects.get(user=user)
-    courseUserObj = CourseUserList.objects.filter(course_id=course, user_id=user)
+    courseUserObj = CourseUserList.objects.get(course_id=course, user_id=user)
     if not courseUserObj or courseUserObj == ROLE_STUDENT:
         raise PermissionDenied
 
@@ -451,9 +449,9 @@ def create_assignment_task(request, assignment_id):
         return HttpResponse("Assignment cannot be found")
 
     course = assignment.course_id
-    courseUserObj = CourseUserList.objects.filter(course_id=course, user_id=user)
+    courseUserObj = CourseUserList.objects.get(course_id=course, user_id=user)
 
-    if not courseUserObj or courseUserObj[0].role == ROLE_STUDENT:
+    if not courseUserObj or courseUserObj.role == ROLE_STUDENT:
         raise PermissionDenied
 
     if request.method == 'POST':
@@ -471,7 +469,7 @@ def create_assignment_task(request, assignment_id):
             'user_profile': user_profile,
             'form': form,
             'course': course,
-            'role':courseUserObj[0].role,
+            'role':courseUserObj.role,
             'assignment': assignment,
     }
     return render(request, 'serapis/create_assignment_task.html', template_context)
@@ -743,7 +741,7 @@ def debug_task_grading_status(request):
         form = TaskGradingStatusDebugForm(request.POST, request.FILES)
         if form.is_valid():
             #task = form.save(commit=False)
-            task = TaskGradingStatus.objects.filter(id=request.POST['id'])[0]
+            task = TaskGradingStatus.objects.get(id=request.POST['id'])
             task.grading_status = form.cleaned_data['grading_status']
             task.execution_status = form.cleaned_data['execution_status']
             task.output_file = form.cleaned_data['output_file']
