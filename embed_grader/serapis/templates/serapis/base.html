@@ -51,6 +51,14 @@
           margin-left: 5%;
           width: 85%;
         }
+
+        table {
+          text-align: center;
+        }
+
+        table tr th{
+          text-align: center;
+        }
         </style>
 
         <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
@@ -78,10 +86,12 @@
                     <a class="navbar-brand" href="{% url 'homepage' %}">Embed Autograder</a>
                 </div>
 
-                {% if myuser.is_authenticated %}
-                    <a href="{% url 'logout' %}" class="navbar-brand pull-right">Logout</a>
-                    <span class="navbar-brand pull-right" style="font-size:14px; color:white">Hi, {{ myuser.username }}</span>
-                {% endif %}
+
+                <a href="{% url 'logout' %}" class="navbar-brand pull-right">
+                  <span class="glyphicon glyphicon-log-out"></span> Logout
+                </a>
+                <span class="navbar-brand pull-right" style="font-size:14px; color:white">Hi, {{ myuser.username }}</span>
+
 
                 <!-- Collect the nav links, forms, and other content for toggling -->
                 <div class="collapse navbar-collapse">

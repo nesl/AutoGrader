@@ -56,53 +56,85 @@
     <hr/>
 
     <br>
-    <h3>Tasks</h3>
-    <table class="table table-hover table-sm" style="text-align:center">
+    <h3>Tasks ({{public_points}}/{{total_points}})</h3>
+    <table class="table table-hover table-sm">
         <tr>
-            <th style="text-align:center">Task</th>
-            <th style="text-align:center">Points</th>
-            <th style="text-align:center">Test Input</th>
-            <th style="text-align:center">Description</th>
+            <th>Task</th>
+            {% if role != 20 %}
+              <th>Status</th>
+            {% endif %}
+            <th>Points</th>
+            <th>Description</th>
+            <th>Test Input</th>
+            {% if role != 20 %}
+              <th>Grading Script</th>
+              <th>Edit</th>
+            {% endif %}
         </tr>
         {% for task in tasks %}
           {% if role == 20 %}
+          <!-- for students -->
             {% if task.get_mode_display != "Hidden" %}
             <tr>
                 <td style="width:20%;">{{ task.brief_description }}</td>
                 <td style="width:10%;">{{ task.points }}</td>
-                <td style="width:25%;">
-                  <a href="{{ MEDIA_URL }}{{ task.test_input.url }}" class="btn btn-primary"
-                  style="font-size: 12px; background:white; color:darkred; border-color:darkred">
-                  <span class="glyphicon glyphicon-download-alt"></span>&nbsp;Download</td>
-                <td style="width:45%"></td>
-                <td style="width:45%"></td>
+                <td style="width:45%;text-align:left">{{ task.description }}</td>
+                {% if task.get_mode_display == "Public"%}
+                  <td style="width:25%;">
+                    <a href="{{ MEDIA_URL }}{{ task.test_input.url }}" class="btn btn-primary"
+                    style="font-size: 12px; background:white; color:darkred; border-color:darkred">
+                    <span class="glyphicon glyphicon-download-alt"></span>&nbsp;Download
+                  </td>
+                {% else%}
+                  <td>N/A (Hidden)</td>
+                {% endif %}
             </tr>
             {% endif %}
           {% else %}
+          <!-- for instructors -->
           <tr>
               <td style="width:20%;">{{ task.brief_description }}</td>
+              <td style="width:10%">{{ task.get_mode_display }}</td>
               <td style="width:10%;">{{ task.points }}</td>
-              <td style="width:25%;">
+              <td style="width:30%; text-align:left">{{ task.description }}</td>
+              <td style="width:10%;">
                 <a href="{{ MEDIA_URL }}{{ task.test_input.url }}" class="btn btn-primary"
                 style="font-size: 12px; background:white; color:darkred; border-color:darkred">
-                <span class="glyphicon glyphicon-download-alt"></span>&nbsp;Download</td>
-              <td style="width:45%"></td>
+                <span class="glyphicon glyphicon-download-alt"></span>&nbsp;Download
+              </td>
+              <td style="width:10%;">
+                <a href="{{ MEDIA_URL }}{{ task.grading_script.url }}" class="btn btn-primary"
+                style="font-size: 12px; background:white; color:darkred; border-color:darkred">
+                <span class="glyphicon glyphicon-download-alt"></span>&nbsp;Download
+              </td>
+              <td style="width:10%">
+                <a href="{% url 'modify-assignment-task' task.id %}" class="btn btn-primary"
+                style="font-size: 12px; background:white; color:darkred; border-color:darkred;width:80px">
+                <span class="glyphicon glyphicon-edit"></span>&nbsp;Edit
+              </td>
           </tr>
           {% endif %}
         {% endfor %}
     </table>
+    {% if role != 20%}
+      <a class="btn btn-primary" href="{% url 'create-assignment-task' assignment.id %}">Create New Task</a>
+    {% endif %}
 
+    <hr>
     <br>
     <h3>Submission section</h3>
     <hr>
     <p><b>Release time: </b>{{ assignment.release_time }}</p>
-    <p><b>Deadline: </b>{{ assignment.deadline }}(how much time remaining, or it's closed)</p>
+    <p><b>Deadline: </b>{{ assignment.deadline }}</p>
+    {% if now < assignment.deadline %}
+    <p><b>Time Remaining: </b>{{ time_remaining }}</p>
 
     <form action="." method="post" enctype="multipart/form-data">
         {% csrf_token %}
         {{ submission_form.as_p }}
         <input class="btn btn-primary" type="submit" value="Submit" />
     </form>
+    {% endif %}
 
     <hr/>
     <br>
@@ -123,7 +155,11 @@
                     <td>{{ s.0.get_status_display }}</td>
                     <td>{{ s.2 }}</td>
                     <td>{{ s.0.submission_time }}</td>
-                    <td></td>
+                    <td>
+                      <a class="btn btn-primary" href="{% url 'submission' s.0.id %}"
+                      style="font-size:12px; background:white; width:90px; color:darkred; border-color:darkred">
+                      <span class="glyphicon glyphicon-file"></span>&nbsp;Detail
+                    </td>
                     <td><a href="{{ MEDIA_URL }}{{ s.0.file.url }}" class="btn btn-primary"
                       style="font-size: 12px; background:white; color:darkred; border-color:darkred">
                       <span class="glyphicon glyphicon-download-alt"></span>&nbsp;Download
@@ -133,13 +169,13 @@
         </table>
         <a class="btn btn-danger" href="{% url 'course' course.id %}" style="width:100px;">Back</a>
     {% else %}
-        <table class="table table-hover table-sm" style="text-align:center;">
+        <table class="table table-hover table-sm">
             <tr>
-                <th style="text-align:center">Name</th>
-                <th style="text-align:center">Score</th>
-                <th style="text-align:center">Submission Time</th>
-                <th style="text-align:center">Detail</th>
-                <th style="text-align:center">Code</th>
+                <th>Name</th>
+                <th>Score</th>
+                <th>Submission Time</th>
+                <th>Detail</th>
+                <th>Code</th>
             </tr>
             {% for s in submission_n_detail_short_list %}
                 <tr>
@@ -147,8 +183,9 @@
                     <td style="width:15%">{{ s.2 }}</td>
                     <td style="width:25%">{{ s.0.submission_time }}</td>
                     <td style="width:20%">
-                      <a class="btn btn-primary" style="font-size:12px; background:white; width:90px; color:darkred; border-color:darkred">
-                      <span class="glyphicon glyphicon-file"></span>Detail
+                      <a class="btn btn-primary" href="{% url 'submission' s.0.id %}"
+                      style="font-size:12px; background:white; width:90px; color:darkred; border-color:darkred">
+                      <span class="glyphicon glyphicon-file"></span>&nbsp;Detail
                     </td>
                     <td style="width:20%">
                       <a href="{{ MEDIA_URL }}{{ s.0.file.url }}" class="btn btn-primary" style="font-size:12px; background:white; color:darkred; border-color:darkred">
@@ -158,7 +195,8 @@
             {% endfor %}
         </table>
 
-        <a class="btn btn-primary" href="{% url 'modify-assignment' assignment.id %}" style="width:100px;"> Edit </a>
+        <a class="btn btn-primary" href="{% url 'modify-assignment' assignment.id %}" style="width:100px;">
+          <span class="glyphicon glyphicon-edit"></span>&nbsp; Edit </a>
         <a class="btn btn-danger" href="{% url 'course' course.id %}" style="width:100px; float:right;">Back</a>
     {% endif %}
     <br>

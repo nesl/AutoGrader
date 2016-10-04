@@ -24,6 +24,7 @@ urlpatterns = [
     url(r'^new_activation/(?P<user_id>\d+)/$', views.new_activation, name='new_activation'),
 
     ##Course pages
+    url(r'^homepage/$', views.homepage, name='homepage'),
     url(r'^course/(?P<course_id>[0-9]+)/$', views.course, name='course'),
     url(r'^course/(?P<course_id>[0-9]+)/membership/$', views.membership, name='membership'),
     url(r'^create-course/$', views.create_course, name='create-course'),
@@ -35,6 +36,9 @@ urlpatterns = [
     url(r'^create-assignment/(?P<course_id>[0-9]+)/$', views.create_assignment, name='create-assignment'),
     url(r'^modify-assignment/(?P<assignment_id>[0-9]+)/$', views.modify_assignment, name='modify-assignment'),
     url(r'^create-assignment-task/(?P<assignment_id>[0-9]+)/$', views.create_assignment_task, name='create-assignment-task'),
+    url(r'^modify-assignment-task/(?P<task_id>[0-9]+)/$', views.modify_assignment_task, name='modify-assignment-task'),
+
+    url(r'^submission/(?P<submission_id>[0-9]+)/$', views.submission, name='submission'),
 
     ##Testbed and Hardware pages
     url(r'^testbed-type-list/$', views.testbed_type_list, name='testbed-type-list'),

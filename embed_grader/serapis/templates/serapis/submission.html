@@ -1,0 +1,77 @@
+{% extends 'serapis/base_sidebar.html' %}
+{% load staticfiles %}
+
+{% block sidebar-content %}
+    <!-- SIDEBAR USER TITLE -->
+    <div class="profile-usertitle">
+        <div class="profile-usertitle-name">
+            Submission
+        </div>
+        <div class="profile-usertitle-job">
+            {{ assignment.name }}
+        </div>
+    </div>
+    <!-- END SIDEBAR USER TITLE -->
+    <!-- SIDEBAR MENU -->
+    <div class="profile-usermenu">
+        <ul class="nav nav-bar">
+            <li>
+                <a href="{% url 'homepage' %}">Courses</a>
+            </li>
+            {% if role != 20 %}
+
+            <li>
+                <a href="{% url 'testbed-type-list' %}">Testbed Types</a>
+            </li>
+            <li>
+                <a href="{% url 'hardware-type-list' %}">Hardware Types</a>
+            </li>
+            {% endif %}
+        </ul>
+    </div>
+    <!-- END MENU -->
+{% endblock %}
+
+{% block main-content %}
+    <div class="main-content">
+        <h2 class="page-header"><a href="{% url 'course' course.id %}">{{ course.course_code }}</a>:
+        <a href="{% url 'assignment' assignment.id %}">{{ assignment.name }}</a> Submission Detail</h2>
+        <h5>Student: {{ author.first_name }} {{ author.last_name}}</h5>
+        <h5>Submitted: {{ submission.submission_time }}</h5>
+        {% if score == total_points %}
+          <h5>Score: <span class="badge" style="background:green; width:80px;">{{ score }} / {{ total_points }}</span></h5>
+        {% else %}
+          <h5>Score: <span class="badge" style="background:darkred; width:80px;">{{ score }} / {{ total_points }}</span></h5>
+        {% endif %}
+        <h5>Files:
+          <a href="{{ MEDIA_URL }}{{ submission.file.url }}" class="btn btn-primary">
+            <span class="glyphicon glyphicon-download-alt"></span> Download</a>
+        <h5>
+
+        <hr>
+        <br>
+        <h5>Grading Results</h5>
+        <table class="table table-hover table-sm" style="width:60%">
+            <tr>
+                <th>Task</th>
+                <th>Status</th>
+                <th>Score</th>
+            </tr>
+            {% for s in submission_n_detail_short_list %}
+                <tr>
+                    <td>{{ s.2.brief_description }}</td>
+                    <td>{{ s.1 }}</td>
+                    {% if s.0.points < s.2.points %}
+                      <td><span class="badge" style="background:darkred; width:80px">{{ s.0.points }} / {{ s.2.points }}</span></td>
+                    {% else %}
+                      <td><span class="badge" style="background:green; width:80px">{{ s.0.points }} / {{ s.2.points }}</span></td>
+                    {% endif %}
+                </tr>
+            {% endfor %}
+        </table>
+
+        <br>
+        <br>
+        <a class="btn btn-primary" href="{% url 'assignment' assignment.id %}" style="width:80px">Back</a>
+    </div>
+{% endblock %}

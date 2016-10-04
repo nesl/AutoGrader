@@ -98,7 +98,7 @@ class UserCreateForm(UserCreationForm):
 class CourseForm(ModelForm):
     class Meta:
         model = Course
-        fields = ['owner_id', 'course_code', 'name', 'description']
+        fields = ['course_code', 'name', 'description']
 
 
 class CourseCreationForm(ModelForm):
@@ -108,7 +108,7 @@ class CourseCreationForm(ModelForm):
 
     class Meta:
         model = Course
-        fields = ['owner_id', 'course_code', 'name', 'quarter', 'year', 'description']
+        fields = ['course_code', 'name', 'quarter', 'year', 'description']
         YEAR_CHOICES = []
         for r in range(2015, (datetime.now().year+2)):
             YEAR_CHOICES.append((r,r))
@@ -134,7 +134,7 @@ class CourseCreationForm(ModelForm):
 class CourseCompleteForm(ModelForm):
     class Meta:
         model = Course
-        fields = ['owner_id', 'course_code', 'name', 'quarter', 'year', 'description']
+        fields = ['course_code', 'name', 'quarter', 'year', 'description']
         YEAR_CHOICES = []
         for r in range(2015, (datetime.now().year+2)):
             YEAR_CHOICES.append((r,r))
@@ -214,7 +214,12 @@ class AssignmentCompleteForm(ModelForm):
 class AssignmentTaskForm(ModelForm):
     class Meta:
         model = AssignmentTask
-        fields = ['brief_description', 'mode', 'points', 'test_input', 'grading_script']
+        fields = ['brief_description', 'mode', 'points', 'description', 'test_input', 'grading_script']
+
+class AssignmentTaskCompleteForm(ModelForm):
+    class Meta:
+        model = AssignmentTask
+        fields = ['brief_description', 'mode', 'points', 'description', 'test_input', 'grading_script']
 
 
 class TestbedTypeForm(ModelForm):
@@ -324,6 +329,10 @@ class AssignmentSubmissionForm(ModelForm):
         fields = ['file']
 
 
+class SubmissionForm(ModelForm):
+    class Meta:
+        model = Submission
+        fields = ['student_id', 'assignment_id', 'submission_time', 'grading_result', 'status', 'file']
 
 
 class TaskGradingStatusDebugForm(ModelForm):

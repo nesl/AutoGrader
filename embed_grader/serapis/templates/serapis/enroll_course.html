@@ -38,6 +38,12 @@
 
         <form action="." method="post">
             {% csrf_token %}
+            {% if error_message %}
+              <div class="alert alert-danger">
+                <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+                {{error_message}}
+              </div>
+            {% endif %}
             {% for field in form %}
             <div class="form-group" style="width:60%">
                 <label for="{{ field.id_for_label }}" style="font-size:17px;">{{ field.label }}</label>

@@ -89,7 +89,6 @@ class Course(models.Model):
     for r in range(2015, (datetime.datetime.now().year+2)):
         YEAR_CHOICES.append((r,r))
 
-    owner_id = models.ForeignKey(User, on_delete = models.CASCADE)
     course_code = models.CharField(max_length = 10, default = '')
     name = models.CharField(max_length = 100, default = '')
     description = models.TextField()
@@ -160,6 +159,7 @@ class AssignmentTask(models.Model):
     brief_description = models.CharField(max_length=100)
     mode = models.IntegerField(choices=EVAL_MODES)
     points = models.FloatField()
+    description = models.TextField()
     test_input = models.FileField(upload_to='AssignmentTask_test_input')
     grading_script = models.FileField(upload_to='AssignmentTask_grading_script')
 
@@ -187,6 +187,9 @@ class Submission(models.Model):
     #TODO: let's say the student is going to submit the binary only,
     #      we'll worry about the multiple submission files later
     file = models.FileField(upload_to='Submission_file')
+
+    def __str__(self):
+        return self.student_id.first_name + " " + self.student_id.last_name + ", " + str(self.id)
 
 
 class TaskGradingStatus(models.Model):

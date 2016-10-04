@@ -44,14 +44,14 @@
             <table class="table table-striped table-hover">
                 <tr>
                 <thead class="thead-default">
-                    <th>Course</th>
+                    <th style="text-align:left;">Course</th>
                     <th>Quarter</th>
                     <th>Year</th>
                 </thead>
                 </tr>
                 {% for course in course_list %}
                 <tr>
-                    <td><a href="{% url 'course' course.id %}">{{ course.course_code }}: {{ course.name }}</a></td>
+                    <td style="text-align:left; width:35%"><a href="{% url 'course' course.id %}">{{ course.course_code }}: {{ course.name }}</a></td>
                     <td>{{ course.get_quarter_display }}</td>
                     <td>{{ course.year }}</td>
                 </tr>
