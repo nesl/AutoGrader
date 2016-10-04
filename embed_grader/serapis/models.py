@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -222,49 +220,6 @@ class TaskGradingStatus(models.Model):
     output_file = models.FileField(upload_to='TaskGradingStatus_output_file', null=True, blank=True)
     status_update_time = models.DateTimeField()
     points = models.FloatField(default=0.0)
-
-
-class Testbed(models.Model):
-    #STATUS_RESERVED = 0
-    STATUS_AVAILABLE = 1
-    STATUS_BUSY = 2
-    STATUS_OFFLINE = -1
-    STATUS_UNKNOWN = -2
-
-    TESTBED_STATUS = (
-        #(STATUS_RESERVED, 'Reserved'),
-        (STATUS_AVAILABLE, 'Available'),
-        (STATUS_BUSY, 'Busy'),
-        (STATUS_OFFLINE, 'Offline'),
-    )
-    REPORT_STATUS = (
-        (STATUS_AVAILABLE, 'Available'),
-        (STATUS_BUSY, 'Busy'),
-        (STATUS_UNKNOWN, 'Unknown'),
-    )
-
-    testbed_type = models.ForeignKey(TestbedType, on_delete=models.CASCADE)
-
-    #IP Address. Only allowing IPv4 as the testers are internal
-    ip_address = models.GenericIPAddressField(protocol='IPv4')
-    unique_hardware_id = models.CharField(max_length=30, unique=True)
-    task_being_graded = models.ForeignKey(TaskGradingStatus, null=True, on_delete=models.SET_NULL)
-
-    # internal
-    status = models.IntegerField(choices=TESTBED_STATUS)
-
-    # report message
-    report_time = models.DateTimeField()
-    report_status = models.IntegerField(choices=REPORT_STATUS)
-
-
-class HardwareDevice(models.Model):
-    hardware_type = models.ForeignKey(
-        HardwareType,
-        on_delete = models.CASCADE,
-    )
-
-    testbed = models.ForeignKey(Testbed, on_delete=models.CASCADE)
 
 
 class Testbed(models.Model):
