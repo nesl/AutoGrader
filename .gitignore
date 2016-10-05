@@ -13,3 +13,6 @@ __pycache__
 
 #Django migrations folder
 embed_grader/serapis/migrations
+
+#App secret
+embed_grader/embed_grader/config.py
