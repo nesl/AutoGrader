@@ -71,7 +71,7 @@
     </head>
 
     <body>
-
+        {% block navbar %}
         <!-- Navigation -->
         <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
             <div class="container">
@@ -108,7 +108,7 @@
             {% block nav %}
             {% endblock %}
         </nav>
-
+        {% endblock %}
         <!-- Page Content -->
         {% block content %}
         {% endblock %}

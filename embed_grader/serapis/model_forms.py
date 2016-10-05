@@ -329,12 +329,6 @@ class AssignmentSubmissionForm(ModelForm):
         fields = ['file']
 
 
-class SubmissionForm(ModelForm):
-    class Meta:
-        model = Submission
-        fields = ['student_id', 'assignment_id', 'submission_time', 'grading_result', 'status', 'file']
-
-
 class TaskGradingStatusDebugForm(ModelForm):
     id = forms.IntegerField(widget=forms.NumberInput)
     class Meta:

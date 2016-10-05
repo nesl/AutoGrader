@@ -358,8 +358,10 @@ def assignment(request, assignment_id):
     else:
         submission_list = Submission.objects.filter(assignment_id=assignment).order_by('-submission_time')
 
-    num_display = min(5, len(submission_list))
-    submission_short_list = submission_list[:num_display]
+    # num_display = min(5, len(submission_list))
+    # submission_short_list = submission_list[:num_display]
+    #TODO: show full history for now
+    submission_short_list = submission_list
 
     submission_grading_detail = []
     student_list = []
