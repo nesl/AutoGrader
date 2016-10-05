@@ -1,3 +1,4 @@
+import sys
 import requests
 import datetime
 import time
@@ -12,13 +13,27 @@ from serapis.models import *
 
 K_TESTBED_INVALIDATION_OFFLINE_SEC = 30
 K_TESTBED_INVALIDATION_REMOVE_SEC = 10 * 60
-K_SUBMISSION_INVALIDATION_SEC = 30
+
+K_GRADING_GRACE_PERIOD_SEC = 15
 
 K_CYCLE_DURATION_SEC = 5
 
 
 class Command(BaseCommand):
     help = 'Daemon of sending grading tasks to backend'
+
+    just_printed_idle_msg = False
+
+    def _printAlive(self):
+        sys.stdout.write('.')
+        sys.stdout.flush()
+        self.just_printed_idle_msg = True
+
+    def _printMessage(self, msg):
+        if self.just_printed_idle_msg:
+            print()
+            self.just_printed_idle_msg
+        print(msg)
 
     def handle(self, *args, **options):
         timer_testbed_invalidation_offline = 0
@@ -35,32 +50,40 @@ class Command(BaseCommand):
             #
             # invalidation
             #
+            
+            # remove testbed records in database when timeout
             if timer_testbed_invalidation_remove <= 0:
                 threshold_time = now - datetime.timedelta(0, K_TESTBED_INVALIDATION_REMOVE_SEC)
                 testbed_list = Testbed.objects.filter(report_time__lt=threshold_time)
                 for testbed in testbed_list:
-                    print('Testbed id=%d removed from testbed' % (testbed.id))
+                    self._printMessage('Testbed id=%d removed from testbed' % (testbed.id))
                 testbed_list.delete()
                 timer_testbed_invalidation_remove = K_TESTBED_INVALIDATION_REMOVE_SEC
 
+            # set testbed to offline in database when timeout
             if timer_testbed_invalidation_offline <= 0:
                 threshold_time = now - datetime.timedelta(0, K_TESTBED_INVALIDATION_OFFLINE_SEC)
                 testbed_list = Testbed.objects.filter(report_time__lt=threshold_time)
                 for testbed in testbed_list:
-                    print('Set testbed id=%d offline' % (testbed.id))
+                    self._printMessage('Set testbed id=%d offline' % (testbed.id))
                 testbed_list.update(status=Testbed.STATUS_OFFLINE)
                 timer_testbed_invalidation_offline = K_TESTBED_INVALIDATION_OFFLINE_SEC
 
-            if timer_submission_invalidation <= 0:
-                threshold_time = now - datetime.timedelta(0, K_SUBMISSION_INVALIDATION_SEC)
-                grading_task_list = TaskGradingStatus.objects.filter(
-                        grading_status=TaskGradingStatus.STAT_EXECUTING,
-                        status_update_time__lt=threshold_time
-                        )
-                for grading_task in grading_task_list:
-                    print('Reset stale grading task id=%d' % (grading_task.id))
-                grading_task_list.update(grading_status=TaskGradingStatus.STAT_PENDING)
-                timer_submission_invalidation = K_SUBMISSION_INVALIDATION_SEC
+            # Since hardware front end does not keep track of the status of grading, one thing can
+            # happen is that somehow hardware (either hardware engine or DUT) goes wrong but
+            # hardware is not aware. If the testbed passed the grading deadline without reporting
+            # grading results, we abort the grading task and reset the status
+            testbed_list = Testbed.objects.filter(
+                    status=Testbed.STATUS_BUSY,
+                    report_time__lt=now)
+            for testbed in testbed_list:
+                graded_task = testbed.task_being_graded
+                testbed.status = Testbed.STATUS_AVAILABLE
+                testbed.save()
+                graded_task.grading_status = TaskGradingStatus.STAT_PENDING
+                graded_task.save()
+                self._printMessage('Testbed id=%d passed the grading deadline' % testbed.id)
+                self._printMessage('Abort the grading task id=%d and reset to pending' % (graded_task.id))
 
             #TODO: delete the following thing, currently for debugging
             #task_list = TaskGradingStatus.objects.all()
@@ -87,13 +110,15 @@ class Command(BaseCommand):
 
                 testbed.status = Testbed.STATUS_BUSY
                 testbed.task_being_graded = task
+                duration = task.assignment_task_id.execution_duration + K_GRADING_GRACE_PERIOD_SEC
+                testbed.grading_deadline = timezone.now() + datetime.timedelta(0, duration)
                 testbed.save()
 
                 task.grading_status = TaskGradingStatus.STAT_EXECUTING
                 task.status_update_time = timezone.now()
                 task.save()
 
-                print('grading grading task id=%d using testbed hardware_id=%s' % (task.id, testbed.unique_hardware_id))
+                self._printMessage('grading grading task id=%d using testbed hardware_id=%s' % (task.id, testbed.unique_hardware_id))
 
                 try:
                     # upload firmware command
@@ -150,7 +175,7 @@ class Command(BaseCommand):
 
                 grading_task.status_update_time = timezone.now()
                 grading_task.save()
-                print('Graded task %d, status=%s, pts=%f' % (
+                self._printMessage('Graded task %d, status=%s, pts=%f' % (
                     grading_task.id, grading_task.get_grading_status_display(), grading_task.points))
 
                 num_graded_tasks = len(TaskGradingStatus.objects.filter(
@@ -158,12 +183,12 @@ class Command(BaseCommand):
                         | Q(grading_status=TaskGradingStatus.STAT_INTERNAL_ERROR),
                         submission_id=grading_task.submission_id))
                 num_assignment_tasks = len(AssignmentTask.objects.filter(assignment_id=grading_task.submission_id.assignment_id))
-                print('num_graded_tasks=%d, num_assignment_tasks=%d' % (num_graded_tasks, num_assignment_tasks))
+                self._printMessage('num_graded_tasks=%d, num_assignment_tasks=%d' % (num_graded_tasks, num_assignment_tasks))
                 if num_graded_tasks == num_assignment_tasks:
                     s = grading_task.submission_id
                     s.status = Submission.STAT_GRADED
                     s.save()
 
             # go to sleep
-            print('go to sleep')
+            self._printAlive()
             time.sleep(K_CYCLE_DURATION_SEC)

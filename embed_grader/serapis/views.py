@@ -451,8 +451,10 @@ def create_assignment_task(request, assignment_id):
         if form.is_valid():
             assignment_task = form.save(commit=False)
             assignment_task.assignment_id = assignment
-            res, msg = grading.check_format(assignment_task.test_input._file.file.read())
+            binary = assignment_task.test_input._file.file.read()
+            res, msg = grading.check_format(binary)
             if res:
+                assignment_task.execution_duration = float(grading.get_length(binary)) / 5000.0
                 assignment_task.save()
                 return HttpResponseRedirect(reverse('modify-assignment', args=(assignment_id)))
             else:

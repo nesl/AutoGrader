@@ -25,7 +25,6 @@ def check_format(binary):
         if sflag != 'S' or eflag != 'E':
             return (False, "Incorrect packet format")
 
-        print(cmd, timestamp)
         if cnt < 2:
             if cmd == 'P':
                 has_p_packet = True
@@ -60,8 +59,8 @@ def check_format_by_filename(filename):
 
 def get_length(binary):
     for i in range(2):
-        ts = cnt * 9
-        te = (cnt + 1) * 9
+        ts = i * 9
+        te = (i + 1) * 9
         (_, cmd, timestamp, _, _) = struct.unpack('=ccIHc', binary[ts:te])
         cmd = cmd.decode('ascii')
         if cmd == 'L':

@@ -164,6 +164,7 @@ class AssignmentTask(models.Model):
     points = models.FloatField()
     test_input = models.FileField(upload_to='AssignmentTask_test_input')
     grading_script = models.FileField(upload_to='AssignmentTask_grading_script')
+    execution_duration = models.FloatField()
 
     def __str__(self):
         return self.brief_description
@@ -249,6 +250,7 @@ class Testbed(models.Model):
     ip_address = models.GenericIPAddressField(protocol='IPv4')
     unique_hardware_id = models.CharField(max_length=30, unique=True)
     task_being_graded = models.ForeignKey(TaskGradingStatus, null=True, on_delete=models.SET_NULL)
+    grading_deadline = models.DateTimeField()
 
     # internal
     status = models.IntegerField(choices=TESTBED_STATUS)
