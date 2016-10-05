@@ -5,27 +5,11 @@
   <link href="{% static "serapis/signin.css" %}" rel="stylesheet">
 {% endblock %}
 
-{% block nav %}
+{% block navbar %}
 {% endblock %}
-
 
 {% block content %}
     <div class="container">
-        {% if form.errors %}
-     <div class="alert alert-danger">
-       {{ form.non_field_errors }}
-     </div>
-       {% elif next %}
-         <div class="alert alert-danger">
-         {% if user.is_authenticated %}
-         <p>Your account doesn't have access to this page. To proceed,
-         please login with an account that has access.</p>
-         {% else %}
-         <p>Please login to see this page.</p>
-         </div>
-         {% endif %}
-       {% endif %}
-
         <form class="form-signin" method="post" action="{% url 'login' %}">
             {% csrf_token %}
             <h2 class="form-signin-heading">Please sign in</h2>
