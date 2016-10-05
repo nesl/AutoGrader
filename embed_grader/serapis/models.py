@@ -159,7 +159,7 @@ class AssignmentTask(models.Model):
     brief_description = models.CharField(max_length=100, null=True, blank=True)
     mode = models.IntegerField(choices=EVAL_MODES)
     points = models.FloatField()
-    description = models.TextField()
+    description = models.TextField(null=True)
     test_input = models.FileField(upload_to='AssignmentTask_test_input')
     grading_script = models.FileField(upload_to='AssignmentTask_grading_script')
     execution_duration = models.FloatField()
