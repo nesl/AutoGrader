@@ -90,7 +90,7 @@ WSGI_APPLICATION = 'embed_grader.wsgi.application'
 
 # Accesses local PostgreSQL instance
 DATABASES = {
-    'default': config.postgres_settings
+    'default': config.db_settings
 }
 
 
