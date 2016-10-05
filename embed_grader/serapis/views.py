@@ -20,6 +20,7 @@ from datetime import datetime, timedelta
 
 from serapis.models import *
 from serapis.model_forms import *
+from serapis.utils import grading
 
 import hashlib, random, pytz
 
@@ -280,7 +281,6 @@ def create_assignment(request, course_id):
     user_profile = UserProfile.objects.get(user=user)
     courseUserObj= CourseUserList.objects.get(course_id=course, user_id=user)
 
-
     if not courseUserObj or (courseUserObj.role != ROLE_INSTRUCTOR and courseUserObj.role != ROLE_SUPER_USER):
         raise PermissionDenied
 
@@ -477,8 +477,15 @@ def create_assignment_task(request, assignment_id):
         if form.is_valid():
             assignment_task = form.save(commit=False)
             assignment_task.assignment_id = assignment
-            assignment_task.save()
-            return HttpResponseRedirect(reverse('modify-assignment', args=(assignment_id)))
+            binary = assignment_task.test_input._file.file.read()
+            res, msg = grading.check_format(binary)
+            if res:
+                assignment_task.execution_duration = float(grading.get_length(binary)) / 5000.0
+                assignment_task.save()
+                return HttpResponseRedirect(reverse('modify-assignment', args=(assignment_id)))
+            else:
+                #TODO(timestring): display why failed
+                pass
     else:
         form = AssignmentTaskForm()
 
