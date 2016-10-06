@@ -66,7 +66,7 @@ class UserCreateForm(UserCreationForm):
         return password2
 
     def sendEmail(self, datas):
-        link="http://128.97.93.16:8000/activate/"+datas['activation_key']
+        link="https://autograder.nesl.ucla.edu/activate/"+datas['activation_key']
         template = get_template(datas['email_path'])
         context = Context({'activation_link':link,'uid':datas['uid']})
         message = template.render(context)
