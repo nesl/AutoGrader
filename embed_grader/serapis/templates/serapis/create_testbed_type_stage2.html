@@ -55,15 +55,16 @@
             <h3>Wiring</h3>
             {{ wiring_formset.management_form }}
 
-            <div class="form-group" id='wiring_list'>
+            <table id='wiring_list' class="table table-striped">
+                <tr><th>Device 1</th><th>Pin 1</th><th>Device 2</th><th>Pin 2</th></tr>
                 {% for form in wiring_formset %}
-                <p>
-                    {% for field in form %}
-                        <p>{{ field.label_tag }}{{ field }}</p>
-                    {% endfor %}
-                <p>
+                    <tr>
+                        {% for field in form %}
+                            <td>{{ field }}</td>
+                        {% endfor %}
+                    </tr>
                 {% endfor %}
-            </div>
+            </table>
 
             <input type="hidden" name="stage2" value="1" />
             <input class="btn btn-primary" type="submit" value="Submit" style="float:left"/>
@@ -108,9 +109,9 @@
             refill_select(dst_sel, pin_options[choice]);
         }
         trs = $('#wiring_list tr');
-        for (var i = 0; i < trs.length; i++) {
-            if (i < pin_init_vals.length)
-                row_init_with_value(trs[i], pin_init_vals[i]);
+        for (var i = 1; i < trs.length; i++) {
+            if (i-1 < pin_init_vals.length)
+                row_init_with_value(trs[i], pin_init_vals[i-1]);
             else
                 row_init(trs[i]);
         }
