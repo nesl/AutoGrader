@@ -9,9 +9,6 @@ def check_format(binary):
     prev_timestamp = -1
     length = 0
 
-    if len(binary) % 9 != 0:
-        return (False, "Corrupted file")
-
     num_packets = len(binary) // 9
     for cnt in range(num_packets):
         ts = cnt * 9
