@@ -167,7 +167,7 @@
                 </tr>
             {% endfor %}
         </table>
-        <a class="btn btn-danger" href="{% url 'course' course.id %}" style="width:100px;">Back</a>
+        <a class="btn btn-primary" href="{% url 'course' course.id %}" style="width:100px;">Back</a>
     {% else %}
         <table class="table table-hover table-sm">
             <tr>
@@ -197,7 +197,7 @@
 
         <a class="btn btn-primary" href="{% url 'modify-assignment' assignment.id %}" style="width:100px;">
           <span class="glyphicon glyphicon-edit"></span>&nbsp; Edit </a>
-        <a class="btn btn-danger" href="{% url 'course' course.id %}" style="width:100px; float:right;">Back</a>
+        <a class="btn btn-primary" href="{% url 'course' course.id %}" style="width:100px; float:right;">Back</a>
     {% endif %}
     <br>
 <div>

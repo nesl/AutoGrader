@@ -5,17 +5,39 @@
   <link href="{% static "serapis/signin.css" %}" rel="stylesheet">
 {% endblock %}
 
-{% block content %}
+{% block navbar %}
+<nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <div class="container">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Embed Autograder</a>
+        </div>
+    </div>
+    <!-- /.container -->
 
+    <!-- Sidebar Block -->
+    {% block nav %}
+    {% endblock %}
+</nav>
+{% endblock %}
+
+
+{% block content %}
   <div class="container">
- {% if form.errors %}
-     <!--div class="login-form-main-message"-->
-     <div class="alert alert-danger">
-       <!--p>Your username and password didn't match. Please try again.</p-->
-       {{ form.errors }}
-     </div>
-     <!--/div-->
-{% endif %}
+   {% if form.errors %}
+       <!--div class="login-form-main-message"-->
+       <div class="alert alert-danger">
+         <!--p>Your username and password didn't match. Please try again.</p-->
+         {{ form.errors }}
+       </div>
+       <!--/div-->
+    {% endif %}
 
     <div class="container">
             <form class="form-register" role="form" action="{% url 'registration' %}" method="post">
@@ -42,37 +64,18 @@
                 </div>
                 <div class="form-group">
                     <label for="id_password1" class="control-label">Password</label>
-                    <input type="password" id="id_password1" name="password1" placeholder="Password (must be at least 8 characters long)" class="form-control" required>
+                    <input type="password" id="id_password1" name="password1" placeholder="Password" class="form-control" required>
+                    <span class="help-block">Must be at least 8 characters long and constain at least one letter and one digit</span>
                 </div>
                 <div class="form-group">
                     <label for="id_password2" class="control-label">Confirm Password</label>
-                    <input type="password" id="id_password2" name="password2" placeholder="Password (must be at least 8 characters long)" class="form-control" required>
+                    <input type="password" id="id_password2" name="password2" placeholder="Re-enter password" class="form-control" required>
                 </div>
                 <div class="form-group">
                     <label for="id_uid" class="control-label">University ID</label>
                     <input type="text" id="id_uid" name="uid" placeholder="UID" class="form-control" autofocus required>
-            <span class="help-block">The 9-digit UCLA ID, without hyphens.</span>
+                    <span class="help-block">The 9-digit UCLA ID, without hyphens.</span>
                 </div>
-                <div class="form-group">
-                    <label class="control-label">User Type</label>
-                        <div class="row">
-                            <!--div class="col-sm-6">
-                                <label class="radio-inline" for="id_is_teacher_0">
-                                    <input type="radio" name="is_teacher" id="id_is_teacher_0" value="teacher" checked="">Teacher
-                                </label>
-                            </div>
-                            <div class="col-sm-6">
-                                <label class="radio-inline" for="id_is_teacher_1">
-                                    <input type="radio" name="is_teacher" id="id_is_teacher_1" value="student">Student
-                                </label>
-                            </div-->
-                        {% for radio in form.user_role %}
-                        <div class="col-sm-6">
-                        {{ radio }}
-                        </div>
-                        {% endfor %}
-                        </div>
-                </div> <!-- /.form-group -->
                 <div class="form-group">
                         <div class="checkbox">
                             <label>
