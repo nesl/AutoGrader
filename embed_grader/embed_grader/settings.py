@@ -24,9 +24,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = config.secret_key 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['.autograder.nesl.ucla.edu']
 
 
 # Application definition
@@ -114,6 +114,8 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # Email settings
+DEFAULT_FROM_EMAIL = config.email_host_user
+SERVER_EMAIL = config.email_host_user
 EMAIL_HOST = config.email_host 
 EMAIL_HOST_USER = config.email_host_user
 EMAIL_HOST_PASSWORD = config.email_host_password
@@ -140,3 +142,14 @@ STATIC_URL = '/static/'
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'uploaded_files/')
 MEDIA_URL = '/media/'
+
+## Security related settings
+
+# Keep CSRF key secure
+CSRF_COOKIE_SECURE = True
+
+# Keep Session key secure
+SESSION_COOKIE_SECURE = True
+
+# Redirect HTTP requests to HTTPS
+SECURE_SSL_REDIRECT = True
