@@ -158,7 +158,7 @@ def enroll_course(request):
         form = CourseEnrollmentForm(request.POST, user=request.user)
         if form.is_valid():
             form.save()
-            return HttpResponseRedirect('/homepage/')
+            return HttpResponseRedirect(reverse('homepage'))
         error_message = "You have already enrolled in this course."
     else:
         form = CourseEnrollmentForm(user=request.user)
