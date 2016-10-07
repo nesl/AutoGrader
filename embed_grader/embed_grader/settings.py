@@ -153,22 +153,3 @@ SESSION_COOKIE_SECURE = True
 
 # Redirect HTTP requests to HTTPS
 SECURE_SSL_REDIRECT = True
-
-# HTTP Strict Transport Security
-SECURE_HSTS_SECONDS = 31536000
-
-# Include HSTS for subdomains also
-# WARNING: Assuming all subdomains are also served with HTTPS
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-
-# Force browsers to use given Content-Type
-SECURE_CONTENT_TYPE_NOSNIFF = True
-
-# Allow browsers to use XSS filters and prevent XSS Attacks
-SECURE_BROWSER_XSS_FILTER = True
-
-# Don't allow X-Frames in the website to avoid Clickjacking attacks
-X_FRAME_OPTIONS = 'DENY'
-
-# Don't allow browser javascript to access CSRF cookie
-CSRF_COOKIE_HTTPONLY = True

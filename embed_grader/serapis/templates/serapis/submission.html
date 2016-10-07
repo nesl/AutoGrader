@@ -18,8 +18,10 @@
             <li>
                 <a href="{% url 'homepage' %}">Courses</a>
             </li>
+            <li>
+                <a href="{% url 'submissions_full_log' %}">Submissions</a>
+            </li>
             {% if role != 20 %}
-
             <li>
                 <a href="{% url 'testbed-type-list' %}">Testbed Types</a>
             </li>
@@ -72,6 +74,6 @@
 
         <br>
         <br>
-        <a class="btn btn-primary" href="{% url 'assignment' assignment.id %}" style="width:80px">Back</a>
+        <a class="btn btn-primary" href="javascript:history.back()" style="width:80px">Back</a>
     </div>
 {% endblock %}

@@ -355,13 +355,11 @@ def assignment(request, assignment_id):
 
     if courseUserObj.role == ROLE_STUDENT:
         submission_list = Submission.objects.filter(student_id=user, assignment_id=assignment).order_by('-submission_time')
+        num_display = min(5, len(submission_list))
+        submission_short_list = submission_list[:num_display]
     else:
         submission_list = Submission.objects.filter(assignment_id=assignment).order_by('-submission_time')
-
-    # num_display = min(5, len(submission_list))
-    # submission_short_list = submission_list[:num_display]
-    #TODO: show full history for now
-    submission_short_list = submission_list
+        submission_short_list = submission_list
 
     submission_grading_detail = []
     student_list = []
@@ -396,7 +394,6 @@ def assignment(request, assignment_id):
         gradings.append(round(total,2))
 
 
-    # print(submission_short_list[0].student_id)
     submission_n_detail_short_list = zip(submission_short_list, submission_grading_detail, gradings, student_list)
 
     template_context = {
@@ -535,6 +532,7 @@ def modify_assignment_task(request, task_id):
     }
     return render(request, 'serapis/modify_assignment_task.html', template_context)
 
+@login_required(login_url='/login/')
 def submission(request, submission_id):
     submission = Submission.objects.get(id=submission_id)
     if not submission:
@@ -595,6 +593,46 @@ def submission(request, submission_id):
         'total_points':total_points
     }
     return render(request, 'serapis/submission.html', template_context)
+
+@login_required(login_url='/login/')
+def submissions_full_log(request):
+    user = User.objects.get(username=request.user)
+    submission_list = Submission.objects.filter(student_id = user).order_by('-submission_time')
+    submissions_count = len(submission_list)
+
+    course_list = [];
+    score_list = [];
+    total_points_list = [];
+    for s in submission_list:
+        course = s.assignment_id.course_id
+        course_list.append(course)
+
+        gradings = TaskGradingStatus.objects.filter(submission_id=s.id).order_by('assignment_task_id')
+        score = 0;
+        for task in gradings:
+            if task.grading_status == TaskGradingStatus.STAT_FINISH:
+                score += task.points
+        score = round(score, 2)
+        score_list.append(score)
+
+        courseUserObj = CourseUserList.objects.get(course_id=course, user_id=user)
+        if courseUserObj.role == ROLE_STUDENT:
+            assignment_tasks = AssignmentTask.objects.filter(assignment_id=s.assignment_id).exclude(mode=2).order_by('id')
+        else:
+            assignment_tasks = AssignmentTask.objects.filter(assignment_id=s.assignment_id).order_by('id')
+
+        total_points = 0
+        for a in assignment_tasks:
+            total_points += a.points
+        total_points_list.append(round(total_points,2))
+
+    submission_full_log = zip(submission_list, course_list, score_list, total_points_list)
+    template_context = {
+        'user': user,
+        'submission_full_log':submission_full_log
+    }
+
+    return render(request, 'serapis/submissions_full_log.html', template_context)
 
 @login_required(login_url='/login/')
 def testbed_type_list(request):

@@ -18,6 +18,9 @@
           <li class="active">
               <a href="{% url 'homepage' %}">Courses</a>
           </li>
+          <li>
+              <a href="{% url 'submissions_full_log' %}">Submissions</a>
+          </li>
           {% if perms.serapis.add_testbed %}
           <li>
               <a href="{% url 'testbed-type-list' %}">Testbed Types</a>
