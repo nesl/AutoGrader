@@ -25,13 +25,16 @@ def testbed_summary_report(request):
     except MultiValueDictKeyError:
         return HttpResponseBadRequest('Bad request')
 
-    info = json.loads(info_json_string)
-    #for k in info:
-    #    print('  field', k, info[k])
-    port = info['localport']
-    testbed_id = info['id']
-    #print('A', 'localport', port)
-    #print('----------')
+    try:
+        info = json.loads(info_json_string)
+    except JSONDecodeError:
+        return HttpResponseBadRequest('Bad request')
+
+    try:
+        port = info['localport']
+        testbed_id = info['id']
+    except KeyError:
+        return HttpResponseBadRequest('Bad request')
     
     tmp_testbed_list = Testbed.objects.filter(unique_hardware_id=testbed_id)
     flag_ask_status = False
@@ -42,9 +45,9 @@ def testbed_summary_report(request):
     else:
         testbed = Testbed()
         testbed.unique_hardware_id = testbed_id
+        testbed.grading_deadline = timezone.now()
         #TODO: choose the correct testbed type, as right now just assign a dummy type
         testbed.testbed_type = TestbedType.objects.first()
-        #TODO: send a message to query the status instead of just assuming available
         flag_ask_status = True
     ip_port_address = '%s:%d' % (ip, port)
     testbed.ip_address = ip_port_address

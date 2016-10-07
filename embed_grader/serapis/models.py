@@ -248,7 +248,9 @@ class Testbed(models.Model):
     testbed_type = models.ForeignKey(TestbedType, on_delete=models.CASCADE)
 
     #IP Address. Only allowing IPv4 as the testers are internal
-    ip_address = models.GenericIPAddressField(protocol='IPv4')
+    #TODO: see whether we should switch back to IPAddressField
+    #ip_address = models.GenericIPAddressField(protocol='IPv4')
+    ip_address = models.CharField(max_length=25)
     unique_hardware_id = models.CharField(max_length=30, unique=True)
     task_being_graded = models.ForeignKey(TaskGradingStatus, null=True, on_delete=models.SET_NULL)
     grading_deadline = models.DateTimeField()

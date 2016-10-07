@@ -32,7 +32,7 @@ class Command(BaseCommand):
     def _printMessage(self, msg):
         if self.just_printed_idle_msg:
             print()
-            self.just_printed_idle_msg
+            self.just_printed_idle_msg = False
         print(msg)
 
     def handle(self, *args, **options):
@@ -75,7 +75,7 @@ class Command(BaseCommand):
             # grading results, we abort the grading task and reset the status
             testbed_list = Testbed.objects.filter(
                     status=Testbed.STATUS_BUSY,
-                    report_time__lt=now)
+                    grading_deadline__lt=now)
             for testbed in testbed_list:
                 graded_task = testbed.task_being_graded
                 testbed.status = Testbed.STATUS_AVAILABLE
@@ -118,14 +118,15 @@ class Command(BaseCommand):
                 task.status_update_time = timezone.now()
                 task.save()
 
-                self._printMessage('grading grading task id=%d using testbed hardware_id=%s' % (task.id, testbed.unique_hardware_id))
+                self._printMessage('grading task id=%d using testbed hardware_id=%s' % (task.id, testbed.unique_hardware_id))
 
                 try:
                     # upload firmware command
                     filename = task.submission_id.file.path
-                    files = {'firmware': ('filename', open(filename, 'rb'), 'text/plain')}
                     url = 'http://' + testbed.ip_address + '/dut/program/'
-                    r = requests.post(url, data={'dut': testbed.unique_hardware_id}, files=files)
+                    data = {'num_duts': 1, 'dut0': testbed.unique_hardware_id}
+                    files = {'firmware0': ('filename', open(filename, 'rb'), 'text/plain')}
+                    r = requests.post(url, data=data, files=files)
 
                     # upload input waveform command
                     filename = task.assignment_task_id.test_input.path
@@ -146,6 +147,7 @@ class Command(BaseCommand):
                     testbed.save()
                     task.grading_status = TaskGradingStatus.STAT_PENDING
                     task.save()
+                    self._printMessage('Testbed id=%d goes offline' % testbed.id)
 
 
 
