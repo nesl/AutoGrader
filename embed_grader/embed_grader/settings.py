@@ -51,6 +51,7 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.locale.LocaleMiddleware',
+    'embed_grader.exception_logging.ExceptionLoggingMiddleware',
 ]
 
 ROOT_URLCONF = 'embed_grader.urls'
@@ -140,8 +141,10 @@ STATIC_URL = '/static/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'uploaded_files/')
 MEDIA_URL = '/media/'
 
-## Security related settings
+## Convenience related settings
+APPEND_SLASH = True
 
+## Security related settings
 # Keep CSRF key secure
 CSRF_COOKIE_SECURE = True
 
