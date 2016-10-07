@@ -19,11 +19,14 @@
             <li>
                 <a href="{% url 'homepage' %}">Courses</a>
             </li>
+            <li>
+                <a href="{% url 'submissions_full_log' %}">Submissions</a>
+            </li>
             {% if role != 20 %}
             <li>
                 <a href="{% url 'testbed-type-list' %}">Testbed Types</a>
             </li>
-            <li>
+            <li class="active">
                 <a href="{% url 'hardware-type-list' %}">Hardware Types</a>
             </li>
             {% endif %}

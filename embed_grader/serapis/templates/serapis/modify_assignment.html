@@ -19,6 +19,9 @@
         <li>
             <a href="{% url 'homepage' %}">Courses</a>
         </li>
+        <li>
+            <a href="{% url 'submissions_full_log' %}">Submissions</a>
+        </li>
         {% if role != 20 %}
         <li class="active">
             <a href="{% url 'membership' course.id %}">Students</a>

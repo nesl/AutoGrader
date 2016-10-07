@@ -38,6 +38,7 @@ urlpatterns = [
     url(r'^modify-assignment-task/(?P<task_id>[0-9]+)/$', views.modify_assignment_task, name='modify-assignment-task'),
 
     url(r'^submission/(?P<submission_id>[0-9]+)/$', views.submission, name='submission'),
+    url(r'^submissions_full_log/$', views.submissions_full_log, name='submissions_full_log'),
 
     ##Testbed and Hardware pages
     url(r'^testbed-type-list/$', views.testbed_type_list, name='testbed-type-list'),

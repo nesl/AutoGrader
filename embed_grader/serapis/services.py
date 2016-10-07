@@ -21,9 +21,12 @@ def testbed_summary_report(request):
     ip = get_ip(request)
     #print(ip)
     try:
-        info_json_string = request.POST['summary']
-    except MultiValueDictKeyError:
-        return HttpResponseBadRequest('Bad request')
+        info_json_string = request.POST.get('summary', '')
+    except requests.exceptions.RequestException as e:
+        return HttpResponse("Error: {}".format(e))
+    except MultiValueDictKeyError as ex:
+        return HttpResponse("Error2: {}".format(ex))
+
 
     info = json.loads(info_json_string)
     #for k in info:
@@ -32,7 +35,7 @@ def testbed_summary_report(request):
     testbed_id = info['id']
     #print('A', 'localport', port)
     #print('----------')
-    
+
     tmp_testbed_list = Testbed.objects.filter(unique_hardware_id=testbed_id)
     flag_ask_status = False
     if tmp_testbed_list:
@@ -96,14 +99,14 @@ def testbed_status_report(request):
 def testbed_return_output_waveform(request):
     if not request.method == 'POST':
         return HttpResponseBadRequest('Bad request')
-    
+
     form = ReturningWaveformForm(request.POST, request.FILES)
     if not form.is_valid():
         return HttpResponseBadRequest('Bad form request')
 
     unique_hardware_id = form.cleaned_data['id']
     waveform = form.cleaned_data['waveform']
-    
+
     testbed_list = Testbed.objects.filter(unique_hardware_id=unique_hardware_id)
     if not testbed_list:
         return HttpResponseBadRequest('Bad request')
@@ -126,5 +129,5 @@ def testbed_return_output_waveform(request):
     testbed_status = Testbed.STATUS_AVAILABLE
     testbed.status = Testbed.STATUS_AVAILABLE
     testbed.save()
-    
+
     return HttpResponse("Gotcha!")

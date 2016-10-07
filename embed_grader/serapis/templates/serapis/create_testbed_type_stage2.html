@@ -18,8 +18,11 @@
             <li>
                 <a href="{% url 'homepage' %}">Courses</a>
             </li>
-            {% if role != 20 %}
             <li>
+                <a href="{% url 'submissions_full_log' %}">Submissions</a>
+            </li>
+            {% if role != 20 %}
+            <li class="active">
                 <a href="{% url 'testbed-type-list' %}">Testbed Types</a>
             </li>
             <li>

@@ -50,7 +50,7 @@ class Command(BaseCommand):
             #
             # invalidation
             #
-            
+
             # remove testbed records in database when timeout
             if timer_testbed_invalidation_remove <= 0:
                 threshold_time = now - datetime.timedelta(0, K_TESTBED_INVALIDATION_REMOVE_SEC)
