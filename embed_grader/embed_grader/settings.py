@@ -21,13 +21,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = config.secret_key
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG = False
-#
-# ALLOWED_HOSTS = ['.autograder.nesl.ucla.edu']
+DEBUG = False
 
-DEBUG = True
-
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['.autograder.nesl.ucla.edu']
 
 
 # Application definition
@@ -43,7 +39,6 @@ INSTALLED_APPS = [
     'datetimewidget',
     'widget_tweaks',
     'bootstrap3',
-    'sslserver'
 ]
 
 MIDDLEWARE_CLASSES = [
