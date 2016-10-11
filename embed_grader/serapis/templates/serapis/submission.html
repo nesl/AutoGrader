@@ -36,6 +36,15 @@
 
 {% block main-content %}
     <div class="main-content">
+        <div class="top-buffer">
+          <ol class="breadcrumb">
+              <li><a href="{% url 'homepage' %}">Courses</a></li>
+              <li><a href="{% url 'course' course.id %}">{{ course.course_code }}</a></li>
+              <li><a href="{% url 'assignment' assignment.id %}">{{ assignment.name }}</a></li>
+              <li>{{submission.id}}</li>
+          </ol>
+        </div>
+
         <h2 class="page-header"><a href="{% url 'course' course.id %}">{{ course.course_code }}</a>:
         <a href="{% url 'assignment' assignment.id %}">{{ assignment.name }}</a> Submission Detail</h2>
         <h5>Student: {{ author.first_name }} {{ author.last_name}}</h5>

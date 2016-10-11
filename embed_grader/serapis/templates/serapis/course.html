@@ -40,10 +40,10 @@
 {% block main-content %}
 <div class="main-content">
     <div class="top-buffer">
-    <ol class="breadcrumb">
-        <li><a href="{% url 'homepage' %}">Courses</a></li>
-        <li class="active">{{ course.course_code }}</a></li>
-    </ol>
+      <ol class="breadcrumb">
+          <li><a href="{% url 'homepage' %}">Courses</a></li>
+          <li class="active">{{ course.course_code }}</a></li>
+      </ol>
     </div>
 
     <h1 class="page-header">Course - {{ course.course_code }}: {{ course.name }}</h1>

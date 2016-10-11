@@ -23,7 +23,7 @@
                 <a href="{% url 'submissions_full_log' %}">Submissions</a>
             </li>
             <!-- {% if role != 20 %} -->
-            <li class="active">
+            <li>
                 <a href="{% url 'membership' course.id %}">Students</a>
             </li>
             <li>
@@ -40,6 +40,15 @@
 
 {% block main-content %}
     <div class="main-content">
+        <div class="top-buffer">
+          <ol class="breadcrumb">
+              <li><a href="{% url 'homepage' %}">Courses</a></li>
+              <li><a href="{% url 'course' course.id %}">{{ course.course_code }}</a></li>
+              <li><a href="{% url 'assignment' assignment.id %}">{{ assignment.name }}</a></li>
+              <li></li>
+          </ol>
+        </div>
+
         <h1 class="page-header">Modify task detail</h1>
 
         <form action="." method="post" enctype="multipart/form-data" class="form">

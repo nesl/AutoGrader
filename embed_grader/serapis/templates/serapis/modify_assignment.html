@@ -1,6 +1,7 @@
 {% extends 'serapis/base_sidebar.html' %}
 {% load staticfiles %}
 {% load bootstrap3 %}
+{% load widget_tweaks %}
 
 {% block sidebar-content %}
     <!-- SIDEBAR USER TITLE -->
@@ -23,7 +24,7 @@
             <a href="{% url 'submissions_full_log' %}">Submissions</a>
         </li>
         {% if role != 20 %}
-        <li class="active">
+        <li >
             <a href="{% url 'membership' course.id %}">Students</a>
         </li>
         <li>
@@ -40,11 +41,19 @@
 
 {% block main-content %}
   <div class="main-content">
-    <h1 class="page-header">Modify an assignment</h1>
+    <div class="top-buffer">
+      <ol class="breadcrumb">
+          <li><a href="{% url 'homepage' %}">Courses</a></li>
+          <li><a href="{% url 'course' course.id %}">{{ course.course_code }}</a></li>
+          <li>{{ assignment.name }}</li>
+      </ol>
+    </div>
+
+    <h2 class="page-header">Modify an assignment</h2>
 
     <form action="." method="post">
         {% csrf_token %}
-        {% bootstrap_form form %}
+        {% bootstrap_form form%}
         <p>Cannot find the testbed you want? Just <a href="{% url 'create-testbed-type' %}">create one!</a></p>
         <input class="btn btn-primary" type="submit" value="Submit"/>
         {% if tasks is not None %}
