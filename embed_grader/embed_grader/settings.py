@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'datetimewidget',
     'widget_tweaks',
     'bootstrap3',
+    'guardian',
     'sslserver'
 ]
 
@@ -155,3 +156,8 @@ SESSION_COOKIE_SECURE = True
 
 # Redirect HTTP requests to HTTPS
 SECURE_SSL_REDIRECT = True
+
+AUTHENTICATION_BACKENDS = {
+    'django.contrib.auth.backends.ModelBackend', # this is default
+    'guardian.backends.ObjectPermissionBackend'
+}

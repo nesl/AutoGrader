@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+
 import datetime
 
 class UserProfile(models.Model):
@@ -33,6 +34,10 @@ class HardwareType(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        permissions = (
+            ('view_hardware_type', 'View hardware type'),
+        )
 
 class HardwareTypePin(models.Model):
     hardware_type = models.ForeignKey(HardwareType, on_delete = models.CASCADE)
@@ -98,6 +103,17 @@ class Course(models.Model):
     def __str__(self):
         return '%s: %s %s %d' % (self.course_code, self.name, self.get_quarter_display(), self.year)
 
+    class Meta:
+        permissions = (
+            ('view_course', 'View course'),
+            ('modify_course', 'Modify course'),
+            ('create_course', 'Create course'),
+            ('view_membership', 'View membership'),
+            ('create_assignment', 'Create assignment'),
+            ('view_assignment', 'View assignment'),
+            ('modify_assignment', 'Modify assignment'),
+
+        )
 
 ROLE_SUPER_USER = 0
 ROLE_INSTRUCTOR = 10
