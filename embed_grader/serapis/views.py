@@ -33,45 +33,45 @@ import hashlib, random, pytz
 #TODO(timestring): recheck whether I should use disabled instead of readonly to enforce data integrity
 
 #syncdb
-# User = get_user_model()
-# course_list = Course.objects.all()
-# group_dict = {}
-# for course in course_list:
-#     instructor_group_name = course.course_code.replace(" ","") + "_Instructor_Group"
-#     student_group_name = course.course_code.replace(" ","") + "_Student_Group"
-#
-#     # create course groups if not exist already
-#     if not Group.objects.get(name=instructor_group_name):
-#         group_dict[instructor_group_name] = Group.objects.create(name=instructor_group_name)
-#
-#     if not Group.objects.get(name=student_group_name):
-#         group_dict[student_group_name] = Group.objects.create(name=student_group_name)
-#
-#     instructor_group = Group.objects.get(name=instructor_group_name)
-#     student_group = Group.objects.get(name=student_group_name)
-#
-#     #assign permissions
-#     assign_perm('serapis.view_hardware_type', instructor_group)
-#     assign_perm('view_course', instructor_group, course)
-#     assign_perm('view_course', student_group, course)
-#     assign_perm('serapis.create_course', instructor_group)
-#     assign_perm('modify_course', instructor_group, course)
-#     assign_perm('view_membership', instructor_group, course)
-#     assign_perm('view_assignment', instructor_group, course)
-#     assign_perm('view_assignment', student_group, course)
-#     assign_perm('modify_assignment', instructor_group, course)
-#     assign_perm('create_assignment', instructor_group, course)
-#
-#
-#     instructor_list = CourseUserList.objects.filter(course_id = course, role=ROLE_INSTRUCTOR)
-#     for instructor in instructor_list:
-#         user = User.objects.get(username = instructor.user_id)
-#         user.groups.add(instructor_group)
-#
-#     student_list = CourseUserList.objects.filter(course_id = course, role = ROLE_STUDENT)
-#     for student in student_list:
-#         user = User.objects.get(username = student.user_id)
-#         user.groups.add(student_group)
+User = get_user_model()
+course_list = Course.objects.all()
+group_dict = {}
+for course in course_list:
+    instructor_group_name = course.course_code.replace(" ","") + "_Instructor_Group"
+    student_group_name = course.course_code.replace(" ","") + "_Student_Group"
+
+    # create course groups if not exist already
+    if not Group.objects.get(name=instructor_group_name):
+        group_dict[instructor_group_name] = Group.objects.create(name=instructor_group_name)
+
+    if not Group.objects.get(name=student_group_name):
+        group_dict[student_group_name] = Group.objects.create(name=student_group_name)
+
+    instructor_group = Group.objects.get(name=instructor_group_name)
+    student_group = Group.objects.get(name=student_group_name)
+
+    #assign permissions
+    assign_perm('serapis.view_hardware_type', instructor_group)
+    assign_perm('view_course', instructor_group, course)
+    assign_perm('view_course', student_group, course)
+    assign_perm('serapis.create_course', instructor_group)
+    assign_perm('modify_course', instructor_group, course)
+    assign_perm('view_membership', instructor_group, course)
+    assign_perm('view_assignment', instructor_group, course)
+    assign_perm('view_assignment', student_group, course)
+    assign_perm('modify_assignment', instructor_group, course)
+    assign_perm('create_assignment', instructor_group, course)
+
+
+    instructor_list = CourseUserList.objects.filter(course_id = course, role=ROLE_INSTRUCTOR)
+    for instructor in instructor_list:
+        user = User.objects.get(username = instructor.user_id)
+        user.groups.add(instructor_group)
+
+    student_list = CourseUserList.objects.filter(course_id = course, role = ROLE_STUDENT)
+    for student in student_list:
+        user = User.objects.get(username = student.user_id)
+        user.groups.add(student_group)
 
 
 
