@@ -33,45 +33,45 @@ import hashlib, random, pytz
 #TODO(timestring): recheck whether I should use disabled instead of readonly to enforce data integrity
 
 #syncdb
-User = get_user_model()
-course_list = Course.objects.all()
-group_dict = {}
-for course in course_list:
-    instructor_group_name = course.course_code.replace(" ","") + "_Instructor_Group"
-    student_group_name = course.course_code.replace(" ","") + "_Student_Group"
-
-    # create course groups if not exist already
-    if not Group.objects.get(name=instructor_group_name):
-        group_dict[instructor_group_name] = Group.objects.create(name=instructor_group_name)
-
-    if not Group.objects.get(name=student_group_name):
-        group_dict[student_group_name] = Group.objects.create(name=student_group_name)
-
-    instructor_group = Group.objects.get(name=instructor_group_name)
-    student_group = Group.objects.get(name=student_group_name)
-
-    #assign permissions
-    assign_perm('serapis.view_hardware_type', instructor_group)
-    assign_perm('view_course', instructor_group, course)
-    assign_perm('view_course', student_group, course)
-    assign_perm('serapis.create_course', instructor_group)
-    assign_perm('modify_course', instructor_group, course)
-    assign_perm('view_membership', instructor_group, course)
-    assign_perm('view_assignment', instructor_group, course)
-    assign_perm('view_assignment', student_group, course)
-    assign_perm('modify_assignment', instructor_group, course)
-    assign_perm('create_assignment', instructor_group, course)
-
-
-    instructor_list = CourseUserList.objects.filter(course_id = course, role=ROLE_INSTRUCTOR)
-    for instructor in instructor_list:
-        user = User.objects.get(username = instructor.user_id)
-        user.groups.add(instructor_group)
-
-    student_list = CourseUserList.objects.filter(course_id = course, role = ROLE_STUDENT)
-    for student in student_list:
-        user = User.objects.get(username = student.user_id)
-        user.groups.add(student_group)
+# User = get_user_model()
+# course_list = Course.objects.all()
+# group_dict = {}
+# for course in course_list:
+#     instructor_group_name = course.course_code.replace(" ","") + "_Instructor_Group"
+#     student_group_name = course.course_code.replace(" ","") + "_Student_Group"
+#
+#     # create course groups if not exist already
+#     if not Group.objects.get(name=instructor_group_name):
+#         group_dict[instructor_group_name] = Group.objects.create(name=instructor_group_name)
+#
+#     if not Group.objects.get(name=student_group_name):
+#         group_dict[student_group_name] = Group.objects.create(name=student_group_name)
+#
+#     instructor_group = Group.objects.get(name=instructor_group_name)
+#     student_group = Group.objects.get(name=student_group_name)
+#
+#     #assign permissions
+#     assign_perm('serapis.view_hardware_type', instructor_group)
+#     assign_perm('view_course', instructor_group, course)
+#     assign_perm('view_course', student_group, course)
+#     assign_perm('serapis.create_course', instructor_group)
+#     assign_perm('modify_course', instructor_group, course)
+#     assign_perm('view_membership', instructor_group, course)
+#     assign_perm('view_assignment', instructor_group, course)
+#     assign_perm('view_assignment', student_group, course)
+#     assign_perm('modify_assignment', instructor_group, course)
+#     assign_perm('create_assignment', instructor_group, course)
+#
+#
+#     instructor_list = CourseUserList.objects.filter(course_id = course, role=ROLE_INSTRUCTOR)
+#     for instructor in instructor_list:
+#         user = User.objects.get(username = instructor.user_id)
+#         user.groups.add(instructor_group)
+#
+#     student_list = CourseUserList.objects.filter(course_id = course, role = ROLE_STUDENT)
+#     for student in student_list:
+#         user = User.objects.get(username = student.user_id)
+#         user.groups.add(student_group)
 
 
 
@@ -181,7 +181,7 @@ def create_course(request):
     user_profile = UserProfile.objects.get(user=user)
 
     if not user.has_perm('serapis.create_course'):
-        return HttpResponse("Not enough privilege")
+        return HttpResponse("Not enough privilege.")
 
     if request.method == 'POST':
         form = CourseCreationForm(request.POST, user=request.user)
@@ -224,13 +224,14 @@ def enroll_course(request):
 def course(request, course_id):
     user = User.objects.get(username=request.user)
     user_profile = UserProfile.objects.get(user=user)
-    course = Course.objects.get(id=course_id)
 
-    if not course:
-        return HttpResponse("Course cannot be found")
+    try:
+        course = Course.objects.get(id=course_id)
+    except Course.DoesNotExist:
+        return HttpResponse("Course cannot be found.")
 
     if not user.has_perm('view_course',course):
-        return HttpResponse("Not enough privilege")
+        return HttpResponse("Not enough privilege.")
 
     assignment_list = Assignment.objects.filter(course_id=course_id)
 
@@ -255,7 +256,7 @@ def modify_course(request, course_id):
     try:
         course = Course.objects.get(id=course_id)
     except Course.DoesNotExist:
-        return HttpResponse("Course cannot be found")
+        return HttpResponse("Course cannot be found.")
 
     if not user.has_perm('modify_course', course):
         return HttpResponse("Not enough privilege")
@@ -280,11 +281,11 @@ def modify_course(request, course_id):
 @login_required(login_url='/login/')
 def membership(request, course_id):
     user = User.objects.get(username=request.user)
-    # user_profile = UserProfile.objects.get(user=user)
-    course = Course.objects.get(id=course_id)
 
-    if not course:
-        return HttpResponse("Course cannot be found")
+    try:
+        course = Course.objects.get(id=course_id)
+    except Course.DoesNotExist:
+        return HttpResponse("Course cannot be found.")
 
     if not user.has_perm('view_membership', course):
         return HttpResponse("Not enough privilege")
@@ -320,9 +321,10 @@ def membership(request, course_id):
 @login_required(login_url='/login/')
 #Only super user has access to create a course
 def create_assignment(request, course_id):
-    course = Course.objects.get(id=course_id)
-    if not course:
-        return HttpResponse("Course cannot be found")
+    try:
+        course = Course.objects.get(id=course_id)
+    except Course.DoesNotExist:
+        return HttpResponse("Course cannot be found.")
 
     user = User.objects.get(username=request.user)
     user_profile = UserProfile.objects.get(user=user)
@@ -354,9 +356,10 @@ def assignment(request, assignment_id):
     user = User.objects.get(username=request.user)
     user_profile = UserProfile.objects.get(user=user)
 
-    assignment = Assignment.objects.get(id=assignment_id)
-    if not assignment:
-        return HttpResponse("Assignment cannot be found")
+    try:
+        assignment = Assignment.objects.get(id=assignment_id)
+    except Assignment.DoesNotExist:
+        return HttpResponse("Assignment cannot be found.")
 
     now = datetime.now(tz=pytz.timezone('UTC'))
     time_remaining = assignment.deadline - now
@@ -459,8 +462,9 @@ def assignment(request, assignment_id):
 
 @login_required(login_url='/login/')
 def modify_assignment(request, assignment_id):
-    assignment = Assignment.objects.get(id=assignment_id)
-    if not assignment:
+    try:
+        assignment = Assignment.objects.get(id=assignment_id)
+    except Assignment.DoesNotExist:
         return HttpResponse("Assignment cannot be found")
 
     course = assignment.course_id
@@ -504,15 +508,15 @@ def create_assignment_task(request, assignment_id):
     user = User.objects.get(username=request.user)
     user_profile = UserProfile.objects.get(user=user)
 
-    assignment = Assignment.objects.get(id=assignment_id)
-    if not assignment:
+    try:
+        assignment = Assignment.objects.get(id=assignment_id)
+    except Assignment.DoesNotExist:
         return HttpResponse("Assignment cannot be found")
 
     course = assignment.course_id
-    courseUserObj = CourseUserList.objects.get(course_id=course, user_id=user)
 
-    if not courseUserObj or courseUserObj.role == ROLE_STUDENT:
-        raise PermissionDenied
+    if not user.has_perm('modify_assignment',course):
+    	return HttpResponse("Not enough privilege")
 
     if request.method == 'POST':
         form = AssignmentTaskForm(request.POST, request.FILES)
@@ -536,26 +540,29 @@ def create_assignment_task(request, assignment_id):
             'user_profile': user_profile,
             'form': form,
             'course': course,
-            'role':courseUserObj.role,
             'assignment': assignment,
     }
     return render(request, 'serapis/create_assignment_task.html', template_context)
 
 @login_required(login_url='/login/')
 def modify_assignment_task(request, task_id):
-    task = AssignmentTask.objects.get(id=task_id)
+    try:
+        task = AssignmentTask.objects.get(id=task_id)
+    except AssignmentTask.DoesNotExist:
+        return HttpResponse("Assignment task cannot be found")
+
     user = User.objects.get(username=request.user)
     user_profile = UserProfile.objects.get(user=user)
 
-    assignment = Assignment.objects.get(id=task.assignment_id.id)
-    if not assignment:
+    try:
+        assignment = Assignment.objects.get(id=task.assignment_id.id)
+    except Assignment.DoesNotExist:
         return HttpResponse("Assignment cannot be found")
 
     course = assignment.course_id
-    courseUserObj = CourseUserList.objects.get(course_id=course, user_id=user)
 
-    if not courseUserObj or courseUserObj.role == ROLE_STUDENT:
-        raise PermissionDenied
+    if not user.has_perm('modify_assignment',course):
+    	return HttpResponse("Not enough privilege")
 
     if request.method == 'POST':
         form = AssignmentTaskCompleteForm(request.POST, instance=task)
@@ -570,32 +577,31 @@ def modify_assignment_task(request, task_id):
             'user_profile': user_profile,
             'form': form,
             'course': course,
-            'role':courseUserObj.role,
             'assignment': assignment,
     }
     return render(request, 'serapis/modify_assignment_task.html', template_context)
 
 @login_required(login_url='/login/')
 def submission(request, submission_id):
-    submission = Submission.objects.get(id=submission_id)
-    if not submission:
+    try:
+        submission = Submission.objects.get(id=submission_id)
+    except Submission.DoesNotExist:
         return HttpResponse("Submission cannot be found")
 
     user = User.objects.get(username=request.user)
     assignment = submission.assignment_id
     course = assignment.course_id
-    courseUserObj = CourseUserList.objects.get(course_id=course, user_id=user)
 
-    if not courseUserObj:
-        raise PermissionDenied
+    if not user.has_perm('view_assignment',course):
+    	return HttpResponse("Not enough privilege")
 
     author = User.objects.get(username=submission.student_id)
-    if courseUserObj.role == ROLE_STUDENT:
+    if not user.has_perm('modify_assignment',course):
         if author.username != user.username:
-            raise PermissionDenied
+            return HttpResponse("Not enough privilege")
 
     gradings = TaskGradingStatus.objects.filter(submission_id=submission_id).order_by('assignment_task_id')
-    if courseUserObj.role == ROLE_STUDENT:
+    if not user.has_perm('modify_assignment',course):
         assignment_tasks = AssignmentTask.objects.filter(assignment_id=assignment).exclude(mode=2).order_by('id')
     else:
         assignment_tasks = AssignmentTask.objects.filter(assignment_id=assignment).order_by('id')
@@ -657,8 +663,7 @@ def submissions_full_log(request):
         score = round(score, 2)
         score_list.append(score)
 
-        courseUserObj = CourseUserList.objects.get(course_id=course, user_id=user)
-        if courseUserObj.role == ROLE_STUDENT:
+        if not user.has_perm('modify_assignment', course):
             assignment_tasks = AssignmentTask.objects.filter(assignment_id=s.assignment_id).exclude(mode=2).order_by('id')
         else:
             assignment_tasks = AssignmentTask.objects.filter(assignment_id=s.assignment_id).order_by('id')
@@ -682,9 +687,8 @@ def testbed_type_list(request):
     user = User.objects.get(username=request.user)
     user_profile = UserProfile.objects.get(user=user)
 
-    # TODO: should do permission check
-    # if not user_profile.user_role == user_profile.ROLE_SUPER_USER and not user_profile.user_role == user_profile.ROLE_INSTRUCTOR and not user_profile.user_role == user_profile.ROLE_TA:
-    #     return HttpResponse("Not enough privilege")
+    if not user.has_perm('serapis.view_hardware_type'):
+        return HttpResponse("Not enough privilege")
 
     testbed_type_list = TestbedType.objects.all()
     template_context = {
@@ -699,8 +703,12 @@ def testbed_type_list(request):
 def testbed_type(request, testbed_type_id):
     username=request.user
 
-    testbed_type = TestbedType.objects.get(id=testbed_type_id)
-    if not testbed_type:
+    if not user.has_perm('serapis.view_hardware_type'):
+        return HttpResponse("Not enough privilege")
+
+    try:
+        testbed_type = TestbedType.objects.get(id=testbed_type_id)
+    except TestbedType.DoesNotExist:
         return HttpResponse("Testbed type not found")
 
     testbed_type_form = TestbedTypeForm()
@@ -716,9 +724,8 @@ def create_testbed_type(request):
     user = User.objects.get(username=username)
     user_profile = UserProfile.objects.get(user=user)
 
-    # TODO: should do permission check
-    # if not user_profile.user_role == user_profile.ROLE_SUPER_USER and not user_profile.user_role == user_profile.ROLE_INSTRUCTOR and not user_profile.user_role == user_profile.ROLE_TA:
-    #     return HttpResponse("Not enough privilege")
+    if not user.has_perm('serapis.view_hardware_type'):
+        return HttpResponse("Not enough privilege")
 
     was_in_stage = 1
     if request.method == 'POST' and 'stage2' in request.POST:
@@ -954,3 +961,9 @@ def debug_task_grading_status(request):
             'form': form,
     }
     return render(request, 'serapis/debug_task_grading_status.html', template_context)
+
+
+@login_required(login_url='/login/')
+def download_submission_file(request):
+    user = get_object_or_404(User, username=request.user)
+    return HttpResponse("under construction")

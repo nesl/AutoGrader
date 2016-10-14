@@ -21,7 +21,7 @@
             <li>
                 <a href="{% url 'submissions_full_log' %}">Submissions</a>
             </li>
-            {% if role != 20 %}
+            {% if perms.serapis.view_hardware_type %}
             <li class="active">
                 <a href="{% url 'testbed-type-list' %}">Testbed Types</a>
             </li>

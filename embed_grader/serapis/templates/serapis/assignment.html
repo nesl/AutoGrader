@@ -141,14 +141,26 @@
     <hr>
     <p><b>Release time: </b>{{ assignment.release_time }}</p>
     <p><b>Deadline: </b>{{ assignment.deadline }}</p>
-    {% if now < assignment.deadline %}
-    <p><b>Time Remaining: </b>{{ time_remaining }}</p>
+    {% get_obj_perms request.user for course as "course_perms" %}
+    {% if "modify_course" in course_perms %}
+      {% if now < assignment.deadline %}
+        <p><b>Time Remaining: </b>{{ time_remaining }}</p>
+      {% endif %}
+      <form action="." method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          {{ submission_form.as_p }}
+          <input class="btn btn-primary" type="submit" value="Submit" />
+      </form>
+    {% else %}
+      {% if now < assignment.deadline %}
+      <p><b>Time Remaining: </b>{{ time_remaining }}</p>
 
-    <form action="." method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        {{ submission_form.as_p }}
-        <input class="btn btn-primary" type="submit" value="Submit" />
-    </form>
+      <form action="." method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          {{ submission_form.as_p }}
+          <input class="btn btn-primary" type="submit" value="Submit" />
+      </form>
+      {% endif %}
     {% endif %}
 
     <hr/>

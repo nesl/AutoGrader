@@ -40,6 +40,8 @@ urlpatterns = [
     url(r'^submission/(?P<submission_id>[0-9]+)/$', views.submission, name='submission'),
     url(r'^submissions_full_log/$', views.submissions_full_log, name='submissions_full_log'),
 
+    url(r'^submissions_file/$', views.download_submission_file),
+
     ##Testbed and Hardware pages
     url(r'^testbed-type-list/$', views.testbed_type_list, name='testbed-type-list'),
     url(r'^testbed-type/(?P<testbed_type_id>[0-9]+)/$', views.testbed_type, name='testbed-type'),
