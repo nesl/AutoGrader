@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User, Group, Permission, ContentType
+from serapis.models import *
 
 g1=Group.objects.get(name='Instructor')
 g2=Group.objects.get(name='TA')

@@ -1,6 +1,7 @@
 {% extends 'serapis/base_sidebar.html' %}
 {% load staticfiles %}
 {% load bootstrap3 %}
+{% load guardian_tags %}
 
 {% block sidebar-content %}
     <!-- SIDEBAR USER TITLE -->
@@ -22,17 +23,20 @@
             <li>
                 <a href="{% url 'submissions_full_log' %}">Submissions</a>
             </li>
-            <!-- {% if role != 20 %} -->
-            <li class="active">
+            {% get_obj_perms request.user for course as "course_perms" %}
+            {% if "modify_course" in course_perms %}
+            <li>
                 <a href="{% url 'membership' course.id %}">Students</a>
             </li>
+            {% endif %}
+            {% if perms.serapis.view_hardware_type %}
             <li>
                 <a href="{% url 'testbed-type-list' %}">Testbed Types</a>
             </li>
             <li>
                 <a href="{% url 'hardware-type-list' %}">Hardware Types</a>
             </li>
-            <!-- {% endif %} -->
+            {% endif %}
         </ul>
     </div>
     <!-- END MENU -->
@@ -40,6 +44,15 @@
 
 {% block main-content %}
     <div class="main-content">
+        <div class="top-buffer">
+          <ol class="breadcrumb">
+              <li><a href="{% url 'homepage' %}">Courses</a></li>
+              <li><a href="{% url 'course' course.id %}">{{ course.course_code }}</a></li>
+              <li><a href="{% url 'assignment' assignment.id %}">{{ assignment.name }}</a></li>
+              <li></li>
+          </ol>
+        </div>
+
         <h1 class="page-header">Modify task detail</h1>
 
         <form action="." method="post" enctype="multipart/form-data" class="form">
