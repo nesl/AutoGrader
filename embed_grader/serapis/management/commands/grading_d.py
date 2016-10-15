@@ -34,6 +34,8 @@ class Command(BaseCommand):
             print()
             self.just_printed_idle_msg = False
         print(msg)
+        with open('/tmp/embed_grader_scheduler.log', 'a') as fo:
+            fo.write(msg + '\n')
 
     def handle(self, *args, **options):
         timer_testbed_invalidation_offline = 0
@@ -119,6 +121,15 @@ class Command(BaseCommand):
                 task.save()
 
                 self._printMessage('grading task id=%d using testbed hardware_id=%s' % (task.id, testbed.unique_hardware_id))
+                self._printMessage('Grading task %d, status=%s, pts=%.2f, sub=%s, hw_task=%s, hw=%s, course=%s' % (
+                    task.id,
+                    task.get_grading_status_display(),
+                    task.points,
+                    task.submission_id,
+                    task.assignment_task_id,
+                    task.submission_id.assignment_id,
+                    task.submission_id.assignment_id.course_id.course_code))
+
 
                 try:
                     # upload firmware command
@@ -177,8 +188,10 @@ class Command(BaseCommand):
 
                 grading_task.status_update_time = timezone.now()
                 grading_task.save()
-                self._printMessage('Graded task %d, status=%s, pts=%f' % (
-                    grading_task.id, grading_task.get_grading_status_display(), grading_task.points))
+                self._printMessage('Graded task %d, status=%s, pts=%f, sub=%s, hw_task=%s, hw=%s, course=%s' % (
+                    grading_task.id, grading_task.get_grading_status_display(), grading_task.points,
+                    grading_task.submission_id, grading_task.assignment_task_id, grading_task.submission_id.assignment_id,
+                    grading_task.submission_id.assignment_id.course_id.course_code))
 
                 num_graded_tasks = len(TaskGradingStatus.objects.filter(
                         Q(grading_status=TaskGradingStatus.STAT_FINISH)

@@ -314,7 +314,7 @@ def assignment(request, assignment_id):
         return HttpResponse("Assignment cannot be found")
 
     now = datetime.now(tz=pytz.timezone('UTC'))
-    time_remaining = assignment.deadline - now
+    time_remaining = str(assignment.deadline - now)
 
     course = assignment.course_id
 
