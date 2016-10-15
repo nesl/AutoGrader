@@ -1,5 +1,6 @@
 {% extends 'serapis/base_sidebar.html' %}
 {% load staticfiles %}
+{% load guardian_tags %}
 
 {% block sidebar-content %}
     <!-- SIDEBAR USER TITLE -->
@@ -21,10 +22,13 @@
             <li>
                 <a href="{% url 'submissions_full_log' %}">Submissions</a>
             </li>
-            {% if role != 20 %}
+            {% get_obj_perms request.user for course as "course_perms" %}
+            {% if "view_membership" in course_perms %}
             <li>
                 <a href="{% url 'membership' course.id %}">Students</a>
             </li>
+            {% endif %}
+            {% if perms.serapis.view_hardware_type %}
             <li>
                 <a href="{% url 'testbed-type-list' %}">Testbed Types</a>
             </li>
@@ -65,20 +69,23 @@
           <tr>
             <thead class="thead-default">
               <th>Task</th>
-              {% if role != 20 %}
+              {% get_obj_perms request.user for course as "course_perms" %}
+              {% if "modify_assignment" in course_perms %}
                 <th>Status</th>
               {% endif %}
               <th>Points</th>
               <th>Description</th>
               <th>Test Input</th>
-              {% if role != 20 %}
+              {% get_obj_perms request.user for course as "course_perms" %}
+              {% if "modify_assignment" in course_perms %}
                 <th>Grading Script</th>
                 <th>Edit</th>
               {% endif %}
             <thead>
           </tr>
           {% for task in tasks %}
-            {% if role == 20 %}
+            {% get_obj_perms request.user for course as "course_perms" %}
+            {% if "modify_assignment" not in course_perms %}
             <!-- for students -->
               {% if task.get_mode_display != "Hidden" %}
               <tr>
@@ -123,7 +130,8 @@
           {% endfor %}
       </table>
     </div>
-    {% if role != 20%}
+    {% get_obj_perms request.user for course as "course_perms" %}
+    {% if "modify_assignment" in course_perms %}
       <a class="btn btn-primary" href="{% url 'create-assignment-task' assignment.id %}">Create New Task</a>
     {% endif %}
 
@@ -133,14 +141,26 @@
     <hr>
     <p><b>Release time: </b>{{ assignment.release_time }}</p>
     <p><b>Deadline: </b>{{ assignment.deadline }}</p>
-    {% if now < assignment.deadline %}
-    <p><b>Time Remaining: </b>{{ time_remaining }}</p>
+    {% get_obj_perms request.user for course as "course_perms" %}
+    {% if "modify_course" in course_perms %}
+      {% if now < assignment.deadline %}
+        <p><b>Time Remaining: </b>{{ time_remaining }}</p>
+      {% endif %}
+      <form action="." method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          {{ submission_form.as_p }}
+          <input class="btn btn-primary" type="submit" value="Submit" />
+      </form>
+    {% else %}
+      {% if now < assignment.deadline %}
+      <p><b>Time Remaining: </b>{{ time_remaining }}</p>
 
-    <form action="." method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        {{ submission_form.as_p }}
-        <input class="btn btn-primary" type="submit" value="Submit" />
-    </form>
+      <form action="." method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          {{ submission_form.as_p }}
+          <input class="btn btn-primary" type="submit" value="Submit" />
+      </form>
+      {% endif %}
     {% endif %}
 
     <hr/>
@@ -148,7 +168,9 @@
     <h3>Recent Submissions</h3>
     {% if not submission_n_detail_short_list %}
         <p>No submissions to this question yet.</p>
-    {% elif role == 20 %}
+    {% else %}
+      {% get_obj_perms request.user for course as "course_perms" %}
+      {% if "modify_assignment" not in course_perms %}
         <table class="table table-striped table-hover table-sm">
             <tr>
               <thead class="thead-default">
@@ -182,7 +204,7 @@
             {% endfor %}
         </table>
         <a class="btn btn-primary" href="{% url 'course' course.id %}" style="width:100px;">Back</a>
-    {% else %}
+      {% else %}
         <table class="table table-striped table-hover table-sm">
             <tr>
               <thead class="thead-default">
@@ -218,6 +240,7 @@
         <a class="btn btn-primary" href="{% url 'modify-assignment' assignment.id %}" style="width:100px;">
           <span class="glyphicon glyphicon-edit"></span>&nbsp; Edit </a>
         <a class="btn btn-primary" href="{% url 'course' course.id %}" style="width:100px; float:right;">Back</a>
+      {% endif %}
     {% endif %}
     <br>
 <div>

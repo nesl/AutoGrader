@@ -1,5 +1,6 @@
 {% extends 'serapis/base_sidebar.html' %}
 {% load staticfiles %}
+{% load guardian_tags%}
 
 {% block sidebar-content %}
     <!-- SIDEBAR USER TITLE -->
@@ -21,10 +22,13 @@
             <li>
                 <a href="{% url 'submissions_full_log' %}">Submissions</a>
             </li>
-            {% if role != 20 %}
+            {% get_obj_perms request.user for course as "course_perms" %}
+            {% if "view_membership" in course_perms %}
             <li class="active">
                 <a href="{% url 'membership' course.id %}">Students</a>
             </li>
+            {% endif %}
+            {% if perms.serapis.view_hardware_type %}
             <li>
                 <a href="{% url 'testbed-type-list' %}">Testbed Types</a>
             </li>

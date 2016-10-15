@@ -1,5 +1,6 @@
 {% extends 'serapis/base_sidebar.html' %}
 {% load staticfiles %}
+{% load guardian_tags %}
 
 {% block sidebar-content %}
     <!-- SIDEBAR USER TITLE -->
@@ -21,10 +22,13 @@
             <li>
                 <a href="{% url 'submissions_full_log' %}">Submissions</a>
             </li>
-            {% if role != 20 %}
+            {% get_obj_perms request.user for course as "course_perms" %}
+            {% if "view_membership" in course_perms %}
             <li>
                 <a href="{% url 'membership' course.id %}">Students</a>
             </li>
+            {% endif %}
+            {% if perms.serapis.view_hardware_type %}
             <li>
                 <a href="{% url 'testbed-type-list' %}">Testbed Types</a>
             </li>
@@ -40,10 +44,10 @@
 {% block main-content %}
 <div class="main-content">
     <div class="top-buffer">
-    <ol class="breadcrumb">
-        <li><a href="{% url 'homepage' %}">Courses</a></li>
-        <li class="active">{{ course.course_code }}</a></li>
-    </ol>
+      <ol class="breadcrumb">
+          <li><a href="{% url 'homepage' %}">Courses</a></li>
+          <li class="active">{{ course.course_code }}</a></li>
+      </ol>
     </div>
 
     <h1 class="page-header">Course - {{ course.course_code }}: {{ course.name }}</h1>
@@ -63,9 +67,10 @@
                   <th>Testbed Type</th>
                   <th>Release Date</th>
                   <th>Due Date</th>
-                  {% if role != 20 %}
+                    {% get_obj_perms request.user for course as "course_perms" %}
+                    {% if "modify_course" in course_perms %}
                       <th>Edit</th>
-                  {% endif %}
+                    {% endif %}
                 </thead>
               </tr>
               {% for assignment in assignment_list %}
@@ -78,7 +83,8 @@
                       {% endif %}
                       <td>{{ assignment.release_time}} </td>
                       <td>{{ assignment.deadline }}</td>
-                      {% if role != 20 %}
+                      {% get_obj_perms request.user for course as "course_perms" %}
+                      {% if "modify_course" in course_perms %}
                           <td>
                             <a class="btn btn-primary" href="{% url 'modify-assignment' assignment.id %}" style="width:100px">
                             <span class="glyphicon glyphicon-edit"></span>&nbsp;Edit</a>
@@ -92,7 +98,8 @@
 
         <hr/>
         <p>
-          {% if role != 20 %}
+          {% get_obj_perms request.user for course as "course_perms" %}
+          {% if "modify_course" in course_perms %}
             <a href='{% url 'modify-course' course.id %}' class="btn btn-primary">
               <span class="glyphicon glyphicon-edit"></span>&nbsp;Edit Course Detail</a>
             <a href='{% url 'create-assignment' course.id %}' class="btn btn-primary">

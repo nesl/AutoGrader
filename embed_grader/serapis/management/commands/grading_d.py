@@ -3,6 +3,7 @@ import requests
 import datetime
 import time
 import subprocess
+import json
 
 from django.core.management.base import BaseCommand
 from django.utils import timezone
@@ -178,11 +179,15 @@ class Command(BaseCommand):
                             ['python3', grading_script_filename, output_filename],
                             stdout=subprocess.PIPE)
                     try:
-                        normalized_score = float(proc.communicate()[0].decode('ascii'))
+                        result_pack = json.loads(proc.communicate()[0].decode('ascii'))
+                        normalized_score = float(result_pack['score'])
                         normalized_score = min(1., max(0., normalized_score))
+                        #TODO(Ariel): description is in result_pack['detail'] in string format, may
+                        # have to replace '\n' to <br/>, and store into grading_task object. Create
+                        # a new field first.
                         grading_task.grading_status = TaskGradingStatus.STAT_FINISH
                         grading_task.points = assignment_task.points * normalized_score
-                    except ValueError:
+                    except ValueError, JSONDecodeError:
                         grading_task.grading_status = TaskGradingStatus.STAT_INTERNAL_ERROR
                         grading_task.points = 0.0
 
