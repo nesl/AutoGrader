@@ -350,15 +350,14 @@ def assignment(request, assignment_id):
     except Assignment.DoesNotExist:
         return HttpResponse("Assignment cannot be found.")
 
+    course = assignment.course_id
+    if not user.has_perm('view_assignment', course):
+        return HttpResponse("Not enough privilege")
+
     now = datetime.now(tz=pytz.timezone('UTC'))
     time_remaining = str(assignment.deadline - now)
 
-    course = assignment.course_id
-
-    if not user.has_perm('view_assignment',course):
-        return HttpResponse("Not enough privilege")
-
-    # Assignment Submission
+    # Handle POST the request
     assignment_tasks = AssignmentTask.objects.filter(assignment_id=assignment)
     total_points = 0
     public_points = 0
@@ -373,6 +372,7 @@ def assignment(request, assignment_id):
             submission.status = Submission.STAT_GRADING
             submission.save()
 
+            # dispatch grading tasks
             for assignment_task in assignment_tasks:
                 grading_task = TaskGradingStatus()
                 grading_task.submission_id = submission
@@ -382,52 +382,38 @@ def assignment(request, assignment_id):
                 grading_task.status_update_time = timezone.now()
                 grading_task.save()
 
+    # get true total points and total points to students
     for assignment_task in assignment_tasks:
         total_points += assignment_task.points
-        if assignment_task.mode != 2:
+        if assignment_task.mode != AssignmentTask.MODE_HIDDEN:
             public_points += assignment_task.points
 
     submission_form = AssignmentSubmissionForm()
 
-    if not user.has_perm('modify_assignment', course):
+    if user.has_perm('modify_assignment', course):
+        submission_list = Submission.objects.filter(assignment_id=assignment).order_by('-submission_time')
+        submission_short_list = submission_list
+    else:
         submission_list = Submission.objects.filter(student_id=user, assignment_id=assignment).order_by('-submission_time')
         num_display = min(5, len(submission_list))
         submission_short_list = submission_list[:num_display]
-    else:
-        submission_list = Submission.objects.filter(assignment_id=assignment).order_by('-submission_time')
-        submission_short_list = submission_list
 
     submission_grading_detail = []
     student_list = []
+    gradings = []
     for submission in submission_short_list:
         student = User.objects.get(username = submission.student_id)
+        #TODO: is there a function for this?
         student_name = student.first_name + ", " + student.last_name
         student_list.append(student_name)
 
-        task_symbols = []
-        tasks = TaskGradingStatus.objects.filter(submission_id=submission).order_by('assignment_task_id')
+        total_submission_points = 0.
+        tasks = TaskGradingStatus.objects.filter(submission_id=submission)
         for task in tasks:
-            if task.grading_status == TaskGradingStatus.STAT_PENDING:
-                task_symbols.append('(P)')
-            elif task.grading_status == TaskGradingStatus.STAT_EXECUTING:
-                task_symbols.append('(E)')
-            elif task.grading_status == TaskGradingStatus.STAT_OUTPUT_TO_BE_CHECKED:
-                task_symbols.append('(C)')
-            elif task.grading_status == TaskGradingStatus.STAT_FINISH:
-                task_symbols.append(str(task.points))
-            elif task.grading_status == TaskGradingStatus.STAT_INTERNAL_ERROR:
-                task_symbols.append('Error')
-        submission_grading_detail.append(','.join(task_symbols))
-
-    gradings = []
-    for grading in submission_grading_detail:
-        total = 0
-        scoreList = grading.split(',')
-
-        for score in scoreList:
-            if score[0].isnumeric():
-                total += float(score)
-        gradings.append(round(total,2))
+            if task.grading_status == TaskGradingStatus.STAT_FINISH:
+                total_submission_points += task.points
+        submission_grading_detail.append(total_submission_points)
+        gradings.append(round(total_submission_points, 2))
 
 
     submission_n_detail_short_list = zip(submission_short_list, submission_grading_detail, gradings, student_list)
@@ -440,10 +426,10 @@ def assignment(request, assignment_id):
             'submission_form': submission_form,
             'submission_n_detail_short_list': submission_n_detail_short_list,
             'tasks': assignment_tasks,
-            'total_points':total_points,
-            'public_points':public_points,
-            'time_remaining':time_remaining,
-            'now':now
+            'total_points': total_points,
+            'public_points': public_points,
+            'time_remaining': time_remaining,
+            'now': now
     }
 
     return render(request, 'serapis/assignment.html', template_context)
