@@ -32,6 +32,7 @@ import hashlib, random, pytz
 
 #TODO(timestring): recheck whether I should use disabled instead of readonly to enforce data integrity
 
+
 #syncdb
 User = get_user_model()
 course_list = Course.objects.all()
@@ -40,15 +41,8 @@ for course in course_list:
     instructor_group_name = course.course_code.replace(" ","") + "_Instructor_Group"
     student_group_name = course.course_code.replace(" ","") + "_Student_Group"
 
-    # create course groups if not exist already
-    if not Group.objects.get(name=instructor_group_name):
-        group_dict[instructor_group_name] = Group.objects.create(name=instructor_group_name)
-
-    if not Group.objects.get(name=student_group_name):
-        group_dict[student_group_name] = Group.objects.create(name=student_group_name)
-
-    instructor_group = Group.objects.get(name=instructor_group_name)
-    student_group = Group.objects.get(name=student_group_name)
+    instructor_group = Group.objects.get_or_create(name=instructor_group_name)
+    student_group = Group.objects.get_or_create(name=student_group_name)
 
     #assign permissions
     assign_perm('serapis.view_hardware_type', instructor_group)
@@ -72,7 +66,6 @@ for course in course_list:
     for student in student_list:
         user = User.objects.get(username = student.user_id)
         user.groups.add(student_group)
-
 
 
 def registration(request):
