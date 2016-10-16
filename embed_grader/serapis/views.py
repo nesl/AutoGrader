@@ -33,41 +33,6 @@ import hashlib, random, pytz
 #TODO(timestring): recheck whether I should use disabled instead of readonly to enforce data integrity
 
 
-#syncdb
-User = get_user_model()
-course_list = Course.objects.all()
-group_dict = {}
-for course in course_list:
-    instructor_group_name = course.course_code.replace(" ","") + "_Instructor_Group"
-    student_group_name = course.course_code.replace(" ","") + "_Student_Group"
-
-    instructor_group = Group.objects.get_or_create(name=instructor_group_name)
-    student_group = Group.objects.get_or_create(name=student_group_name)
-
-    #assign permissions
-    assign_perm('serapis.view_hardware_type', instructor_group)
-    assign_perm('view_course', instructor_group, course)
-    assign_perm('view_course', student_group, course)
-    assign_perm('serapis.create_course', instructor_group)
-    assign_perm('modify_course', instructor_group, course)
-    assign_perm('view_membership', instructor_group, course)
-    assign_perm('view_assignment', instructor_group, course)
-    assign_perm('view_assignment', student_group, course)
-    assign_perm('modify_assignment', instructor_group, course)
-    assign_perm('create_assignment', instructor_group, course)
-
-
-    instructor_list = CourseUserList.objects.filter(course_id = course, role=ROLE_INSTRUCTOR)
-    for instructor in instructor_list:
-        user = User.objects.get(username = instructor.user_id)
-        user.groups.add(instructor_group)
-
-    student_list = CourseUserList.objects.filter(course_id = course, role = ROLE_STUDENT)
-    for student in student_list:
-        user = User.objects.get(username = student.user_id)
-        user.groups.add(student_group)
-
-
 def registration(request):
     if request.method == 'POST':
         form = UserCreateForm(request.POST)
@@ -179,7 +144,28 @@ def create_course(request):
     if request.method == 'POST':
         form = CourseCreationForm(request.POST, user=request.user)
         if form.is_valid():
-            form.save()
+            # database
+            course = form.save()
+
+            # permission: create groups, add group permissions
+            instructor_group_name = course.course_code.replace(" ","") + "_Instructor_Group"
+            student_group_name = course.course_code.replace(" ","") + "_Student_Group"
+
+            instructor_group = Group.objects.get_or_create(name=instructor_group_name)
+            student_group = Group.objects.get_or_create(name=student_group_name)
+
+            #assign permissions
+            assign_perm('serapis.view_hardware_type', instructor_group)
+            assign_perm('view_course', instructor_group, course)
+            assign_perm('view_course', student_group, course)
+            assign_perm('serapis.create_course', instructor_group)
+            assign_perm('modify_course', instructor_group, course)
+            assign_perm('view_membership', instructor_group, course)
+            assign_perm('view_assignment', instructor_group, course)
+            assign_perm('view_assignment', student_group, course)
+            assign_perm('modify_assignment', instructor_group, course)
+            assign_perm('create_assignment', instructor_group, course)
+
             return HttpResponseRedirect(reverse('homepage'))
     else:
         form = CourseCreationForm()
@@ -194,11 +180,20 @@ def create_course(request):
 
 @login_required(login_url='/login/')
 def enroll_course(request):
+    user = User.objects.get(username=request.user)
     error_message = ''
     if request.method == 'POST':
         form = CourseEnrollmentForm(request.POST, user=request.user)
         if form.is_valid():
+            # database
             form.save()
+            
+            # add user to belonged group
+            course = form.cleaned_data['course_select']
+            student_group_name = course.course_code.replace(" ","") + "_Student_Group"
+            student_group = Group.objects.get(name=student_group_name)
+            user.groups.add(student_group)
+
             return HttpResponseRedirect(reverse('homepage'))
         error_message = "You have already enrolled in this course."
     else:

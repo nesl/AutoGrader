@@ -132,6 +132,7 @@ class CourseUserList(models.Model):
 
     course_id = models.ForeignKey(Course, on_delete=models.CASCADE)
     user_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    #TODO: try not give a default value especially it's permission related
     role = models.IntegerField(choices=USER_ROLES, default=ROLE_STUDENT)
 
     def __str__(self):
@@ -141,7 +142,6 @@ class CourseUserList(models.Model):
 class Assignment(models.Model):
     # basic information
     course_id = models.ForeignKey(Course, on_delete = models.CASCADE)
-    # TODO: permission only for instructor
     name = models.CharField(max_length=50)
     release_time = models.DateTimeField()
     deadline = models.DateTimeField()

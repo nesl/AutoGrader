@@ -167,7 +167,6 @@ class CourseEnrollmentForm(Form):
         course=self.cleaned_data['course_select']
         course_user_list = CourseUserList.objects.create(user_id=self.user, course_id=course)
 
-
 class AssignmentBasicForm(ModelForm):
     error_messages = {
         'time_conflict': "Release time must be earlier than deadline.",
