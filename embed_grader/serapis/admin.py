@@ -19,8 +19,8 @@ class CourseUserListAdmin(admin.ModelAdmin):
         user = obj.user_id
         course = obj.course_id
 
-        instructor_group_name = course.course_code.replace(" ","") + "_Instructor_Group"
-        student_group_name = course.course_code.replace(" ","") + "_Student_Group"
+        instructor_group_name = str(course.id) + "_Instructor_Group"
+        student_group_name = str(course.id) + "_Student_Group"
         instructor_group = Group.objects.get(name=instructor_group_name)
         student_group = Group.objects.get(name=student_group_name)
 

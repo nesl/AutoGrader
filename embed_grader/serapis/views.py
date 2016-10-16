@@ -148,8 +148,8 @@ def create_course(request):
             course = form.save()
 
             # permission: create groups, add group permissions
-            instructor_group_name = course.course_code.replace(" ","") + "_Instructor_Group"
-            student_group_name = course.course_code.replace(" ","") + "_Student_Group"
+            instructor_group_name = str(course.id) + "_Instructor_Group"
+            student_group_name = str(course.id) + "_Student_Group"
 
             instructor_group = Group.objects.get_or_create(name=instructor_group_name)
             student_group = Group.objects.get_or_create(name=student_group_name)
@@ -190,7 +190,8 @@ def enroll_course(request):
             
             # add user to belonged group
             course = form.cleaned_data['course_select']
-            student_group_name = course.course_code.replace(" ","") + "_Student_Group"
+            student_group_name = str(course.id) + "_Student_Group"
+            print(student_group_name)
             student_group = Group.objects.get(name=student_group_name)
             user.groups.add(student_group)
 
@@ -218,7 +219,7 @@ def course(request, course_id):
     except Course.DoesNotExist:
         return HttpResponse("Course cannot be found.")
 
-    if not user.has_perm('view_course',course):
+    if not user.has_perm('view_course', course):
         return HttpResponse("Not enough privilege.")
 
     assignment_list = Assignment.objects.filter(course_id=course_id)
