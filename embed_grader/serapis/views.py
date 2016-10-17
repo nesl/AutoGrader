@@ -187,11 +187,10 @@ def enroll_course(request):
         if form.is_valid():
             # database
             form.save()
-            
+
             # add user to belonged group
             course = form.cleaned_data['course_select']
             student_group_name = str(course.id) + "_Student_Group"
-            print(student_group_name)
             student_group = Group.objects.get(name=student_group_name)
             user.groups.add(student_group)
 
