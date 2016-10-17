@@ -408,8 +408,12 @@ def assignment(request, assignment_id):
         student_list.append(student_name)
 
         total_submission_points = 0.
-        tasks = TaskGradingStatus.objects.filter(submission_id=submission)
+        tasks = TaskGradingStatus.objects.filter(
+                submission_id=submission, grading_status=TaskGradingStatus.STAT_FINISH)
         for task in tasks:
+            if not user.has_perm('modify_assignment', course) and task.assignment_task_id.mode == AssignmentTask.MODE_HIDDEN:
+                # A student cannot see the result of hidden tasks
+                continue
             if task.grading_status == TaskGradingStatus.STAT_FINISH:
                 total_submission_points += task.points
         submission_grading_detail.append(total_submission_points)
