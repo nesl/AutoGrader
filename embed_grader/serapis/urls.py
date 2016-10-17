@@ -60,5 +60,10 @@ urlpatterns = [
     url(r'^tb/waveform/$', services.testbed_return_output_waveform, name='testbed-return-output-waveform'),
 
     ## Media access
+    url(r'^media/HardwareType_pinout/.*/$', media_controls.hardware_type_pinout, name='media-hardware-type-pinout'),
+    url(r'^media/TestbedHardwareList_firmware/.*/$', media_controls.testbed_hardware_list_firmware, name='media-testbed-hardware-list-firmware'),
+    url(r'^media/AssignmentTask_test_input/.*/$', media_controls.assignment_task_test_input, name='media-assignment-task-test-input'),
+    url(r'^media/AssignmentTask_grading_script/.*/$', media_controls.assignment_task_grading_script, name='media-assignment-task-grading-script'),
     url(r'^media/Submission_file/.*/$', media_controls.submission_file, name='media-submission-file'),
-]# + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    url(r'^media/TaskGradingStatus_output_file/.*/$', media_controls.task_grading_status_output_file, name='media-task-grading-status-output-file'),
+]
