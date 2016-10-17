@@ -509,6 +509,7 @@ def create_assignment_task(request, assignment_id):
                 return HttpResponseRedirect(reverse('modify-assignment', args=(assignment_id)))
             else:
                 #TODO(timestring): display why failed
+                print("Create assignment task failed")
                 pass
     else:
         form = AssignmentTaskForm()
@@ -543,12 +544,23 @@ def modify_assignment_task(request, task_id):
     	return HttpResponse("Not enough privilege")
 
     if request.method == 'POST':
-        form = AssignmentTaskCompleteForm(request.POST, instance=task)
+        form = AssignmentTaskForm(request.POST, request.FILES, instance=task)
         if form.is_valid():
-            assignment_task = form.save()
-            return HttpResponseRedirect('/assignment/' + str(assignment.id))
+            assignment_task = form.save(commit=False)
+            assignment_task.assignment_id = assignment
+            binary = assignment_task.test_input._file.file.read()
+            res, msg = grading.check_format(binary)
+            if res:
+                assignment_task.execution_duration = float(grading.get_length(binary)) / 5000.0
+                assignment_task.save()
+                #return HttpResponseRedirect(reverse('modify-assignment', args=(assignment_id)))
+                return HttpResponseRedirect('/assignment/' + str(assignment.id))
+            else:
+                #TODO(timestring): display why failed
+                print("Create assignment task failed")
+                pass
     else:
-        form = AssignmentTaskCompleteForm(instance=task)
+        form = AssignmentTaskForm(instance=task)
 
     template_context = {
             'myuser': request.user,
