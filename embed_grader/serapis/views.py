@@ -13,7 +13,6 @@ from django import forms
 from django.core.urlresolvers import reverse
 from django.db import IntegrityError
 from django.db import transaction
-from django.views.decorators.csrf import csrf_exempt
 
 from django.utils import timezone
 from datetime import datetime, timedelta

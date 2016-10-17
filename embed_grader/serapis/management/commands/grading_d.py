@@ -180,6 +180,8 @@ class Command(BaseCommand):
                             stdout=subprocess.PIPE)
                     try:
                         result_pack = json.loads(proc.communicate()[0].decode('ascii'))
+                        print(result_pack)
+                        print(result_pack['score'])
                         normalized_score = float(result_pack['score'])
                         normalized_score = min(1., max(0., normalized_score))
                         #TODO(Ariel): description is in result_pack['detail'] in string format, may
@@ -187,7 +189,7 @@ class Command(BaseCommand):
                         # a new field first.
                         grading_task.grading_status = TaskGradingStatus.STAT_FINISH
                         grading_task.points = assignment_task.points * normalized_score
-                    except ValueError, JSONDecodeError:
+                    except (ValueError):#, JSONDecodeError):
                         grading_task.grading_status = TaskGradingStatus.STAT_INTERNAL_ERROR
                         grading_task.points = 0.0
 

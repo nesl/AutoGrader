@@ -1,6 +1,10 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 
+from guardian.compat import get_user_model
+from guardian.shortcuts import assign_perm
+
+from django.utils import timezone
 
 import datetime
 
@@ -159,6 +163,26 @@ class Assignment(models.Model):
 
     def __str__(self):
         return self.name
+    
+    VIEWING_SCOPE_NO = 0  # nothing can be seen
+    VIEWING_SCOPE_PARTIAL = 1  # problem statement, public & feedback cases
+    VIEWING_SCOPE_FULL = 2  # problem statement, all cases
+    def viewing_scope_by_user(self, user):
+        # who can create the assignment (i.e., instructor) can see the test input
+        if user.has_perm('create_assignment', self.course_id):
+            return Assignment.VIEWING_SCOPE_FULL
+
+        # students cannot see test input if homework is not released yet
+        now = timezone.now()
+        if now < self.release_time:
+            return Assignment.VIEWING_SCOPE_NO
+
+        # students can see everything after deadline
+        if now >= self.release_time:
+            return Assignment.VIEWING_SCOPE_FULL
+
+        # during the homework session (before deadline), students can only see some cases
+        return VIEWING_SCOPE_PARTIAL
 
 
 class AssignmentTask(models.Model):
@@ -182,6 +206,20 @@ class AssignmentTask(models.Model):
 
     def __str__(self):
         return self.brief_description
+
+    def can_access_test_input_by_user(self, user):
+        viewing_scope = self.assignment_id.viewing_scope_by_user(user)
+        if viewing_scope == Assignment.VIEWING_SCOPE_NO:
+            return False
+        elif viewing_scope == Assignment.VIEWING_SCOPE_FULL:
+            return True
+        else:
+            if self.mode == MODE_HIDDEN:
+                return False
+            return True
+
+    def can_access_grading_script_by_user(self, user):
+        return user.has_perm('create_assignment', self.assignment_id.course_id)
 
 
 class Submission(models.Model):
@@ -207,6 +245,10 @@ class Submission(models.Model):
 
     def __str__(self):
         return self.student_id.first_name + " " + self.student_id.last_name + ", " + str(self.id)
+    
+    def can_access_file_by_user(self, user):
+        return (user.has_perm('modify_assignment', self.assignment_id.course_id)
+                or user == student_id)
 
 
 class TaskGradingStatus(models.Model):
@@ -240,6 +282,21 @@ class TaskGradingStatus(models.Model):
     output_file = models.FileField(upload_to='TaskGradingStatus_output_file', null=True, blank=True)
     status_update_time = models.DateTimeField()
     points = models.FloatField(default=0.0)
+    
+    def can_access_output_file_by_user(self, user):
+        # If the user is an instructor, she can see the output file
+        if user.has_perm('create_assignment', self.assignment_task_id.assignment_id.course_id):
+            return True
+
+        # Otherwise, the user is a student. We need to make sure the user is the owner
+        # of this output file
+        if user != self.submission_id.student_id:
+            return False
+
+        # Now, is the output ready to download? Depends on the mode of the task.
+        # Fortunately, the accessibility of an input file and an output file within the
+        # same task should be the same. We can simply ask the permission of the input file.
+        return self.assignment_task_id.can_access_test_input_by_user(self, user)
 
 
 class Testbed(models.Model):

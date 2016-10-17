@@ -5,6 +5,7 @@ from django.conf.urls.static import static
 
 from . import views
 from . import services
+from . import media_controls
 
 
 urlpatterns = [
@@ -14,7 +15,7 @@ urlpatterns = [
 
     url(r'^about/$', views.about, name='about'),
 
-    ##Registration and Password related pages
+    ## Registration and Password related pages
     url(r'^registration/$', views.registration, name='registration'),
     url(r'^password_reset/$', auth_views.password_reset, {'template_name': 'serapis/password_reset_form.html', 'email_template_name': 'serapis/password_reset_email.html'}, name='password_reset'),
     url(r'^password_reset_done/$', auth_views.password_reset_done, {'template_name': 'serapis/password_reset_done.html'}, name='password_reset_done'),
@@ -23,14 +24,14 @@ urlpatterns = [
     url(r'^activate/(?P<key>.+)$', views.activation, name='activation'),
     url(r'^new_activation/(?P<user_id>\d+)/$', views.new_activation, name='new_activation'),
 
-    ##Course pages
+    ## Course pages
     url(r'^course/(?P<course_id>[0-9]+)/$', views.course, name='course'),
     url(r'^course/(?P<course_id>[0-9]+)/membership/$', views.membership, name='membership'),
     url(r'^create-course/$', views.create_course, name='create-course'),
     url(r'^modify-course/(?P<course_id>[0-9]+)/$', views.modify_course, name='modify-course'),
     url(r'^enroll-course/$', views.enroll_course, name='enroll-course'),
 
-    ##Assignment pages
+    ## Assignment pages
     url(r'^assignment/(?P<assignment_id>[0-9]+)/$', views.assignment, name='assignment'),
     url(r'^create-assignment/(?P<course_id>[0-9]+)/$', views.create_assignment, name='create-assignment'),
     url(r'^modify-assignment/(?P<assignment_id>[0-9]+)/$', views.modify_assignment, name='modify-assignment'),
@@ -42,7 +43,7 @@ urlpatterns = [
 
     url(r'^submissions_file/$', views.download_submission_file),
 
-    ##Testbed and Hardware pages
+    ## Testbed and Hardware pages
     url(r'^testbed-type-list/$', views.testbed_type_list, name='testbed-type-list'),
     url(r'^testbed-type/(?P<testbed_type_id>[0-9]+)/$', views.testbed_type, name='testbed-type'),
     url(r'^create-testbed-type/$', views.create_testbed_type, name='create-testbed-type'),
@@ -53,7 +54,16 @@ urlpatterns = [
 
     url(r'^debug-task-grading-status/$', views.debug_task_grading_status, name='debug-task-grading-status'),
 
+    ## Testbed
     url(r'^tb/summary/$', services.testbed_summary_report, name='tb-summary'),
     url(r'^tb/status/$', services.testbed_status_report, name='tb-status'),
     url(r'^tb/waveform/$', services.testbed_return_output_waveform, name='testbed-return-output-waveform'),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+    ## Media access
+    url(r'^media/HardwareType_pinout/.*/$', media_controls.hardware_type_pinout, name='media-hardware-type-pinout'),
+    url(r'^media/TestbedHardwareList_firmware/.*/$', media_controls.testbed_hardware_list_firmware, name='media-testbed-hardware-list-firmware'),
+    url(r'^media/AssignmentTask_test_input/.*/$', media_controls.assignment_task_test_input, name='media-assignment-task-test-input'),
+    url(r'^media/AssignmentTask_grading_script/.*/$', media_controls.assignment_task_grading_script, name='media-assignment-task-grading-script'),
+    url(r'^media/Submission_file/.*/$', media_controls.submission_file, name='media-submission-file'),
+    url(r'^media/TaskGradingStatus_output_file/.*/$', media_controls.task_grading_status_output_file, name='media-task-grading-status-output-file'),
+]
