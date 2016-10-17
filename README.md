@@ -21,6 +21,7 @@ Web frontend of Embedded Systems Auto Grader project
   - ```pip3 install django-bootstrap3```
   - ```pip3 install django-ipware```
   - ```pip3 install requests```
+  - ```pip3 install django-guardian```
 
 - Install web server components for deployment
   - ```sudo pip3 install uwsgi```
