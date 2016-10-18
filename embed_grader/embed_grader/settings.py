@@ -25,7 +25,7 @@ SECRET_KEY = config.secret_key
 #
 # ALLOWED_HOSTS = ['.autograder.nesl.ucla.edu']
 
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = []
 
