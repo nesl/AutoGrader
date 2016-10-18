@@ -66,4 +66,6 @@ urlpatterns = [
     url(r'^media/AssignmentTask_grading_script/.*/$', media_controls.assignment_task_grading_script, name='media-assignment-task-grading-script'),
     url(r'^media/Submission_file/.*/$', media_controls.submission_file, name='media-submission-file'),
     url(r'^media/TaskGradingStatus_output_file/.*/$', media_controls.task_grading_status_output_file, name='media-task-grading-status-output-file'),
+    url(r'^media/TaskGradingStatus_grading_detail/.*/$', media_controls.task_grading_status_grading_detail, name='media-task-grading-status-grading-detail'),
+    url(r'^media/TaskGradingStatus_DUT_serial_output/.*/$', media_controls.task_grading_status_dut_serial_output, name='media-task-grading-status-dut-serial-output'),
 ]
