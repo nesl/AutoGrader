@@ -1,5 +1,6 @@
 from django import forms
 from django.forms import formset_factory
+from django.forms import Form
 
 
 class ReturnDutOutputForm(Form):
