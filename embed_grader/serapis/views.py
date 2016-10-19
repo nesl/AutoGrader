@@ -653,6 +653,7 @@ def task_grading_detail(request, task_grading_id):
     assignment_task = grading.assignment_task_id
     grading.points = round(grading.points,2)
 
+    feedback = ''
     if grading.grading_detail:
         url = grading.grading_detail.path
         feedback = open(url, 'r').read()
