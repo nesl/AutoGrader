@@ -108,7 +108,10 @@ class Command(BaseCommand):
                 if not testbed_list:
                     break
 
-                task_list = TaskGradingStatus.objects.filter(grading_status=TaskGradingStatus.STAT_PENDING)
+                # We choose a task which is pending and prioritize more based on the mode
+                # of a task, i.e., public, feedback, or hidden. The way we define the
+                # task mode is already in order.
+                task_list = TaskGradingStatus.objects.filter(grading_status=TaskGradingStatus.STAT_PENDING).order_by('assignment_task_id__mode')
                 if not task_list:
                     break
 
