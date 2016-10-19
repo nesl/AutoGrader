@@ -16,7 +16,7 @@ from serapis.models import *
 K_TESTBED_INVALIDATION_OFFLINE_SEC = 30
 K_TESTBED_INVALIDATION_REMOVE_SEC = 10 * 60
 
-K_GRADING_GRACE_PERIOD_SEC = 15
+K_GRADING_GRACE_PERIOD_SEC = 60
 
 K_CYCLE_DURATION_SEC = 5
 
@@ -84,10 +84,13 @@ class Command(BaseCommand):
                 graded_task = testbed.task_being_graded
                 testbed.status = Testbed.STATUS_AVAILABLE
                 testbed.save()
-                graded_task.grading_status = TaskGradingStatus.STAT_PENDING
-                graded_task.save()
                 self._printMessage('Testbed id=%d passed the grading deadline' % testbed.id)
-                self._printMessage('Abort the grading task id=%d and reset to pending' % (graded_task.id))
+                if graded_task:
+                    graded_task.grading_status = TaskGradingStatus.STAT_PENDING
+                    graded_task.save()
+                    self._printMessage('Abort the grading task id=%d and reset to pending' % (graded_task.id))
+                else:
+                    self._printMessage('Wait, no grading task is found, why being busy then')
 
             #TODO: delete the following thing, currently for debugging
             #task_list = TaskGradingStatus.objects.all()
