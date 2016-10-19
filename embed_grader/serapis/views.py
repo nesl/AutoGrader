@@ -599,7 +599,6 @@ def submission(request, submission_id):
     task_symbols = []
     score = 0;
     for task in gradings:
-        print(task.output_file)
         if task.grading_status == TaskGradingStatus.STAT_PENDING:
             task_symbols.append('Pending')
         elif task.grading_status == TaskGradingStatus.STAT_EXECUTING:
@@ -632,6 +631,48 @@ def submission(request, submission_id):
         'myuser': request.user,
     }
     return render(request, 'serapis/submission.html', template_context)
+
+@login_required(login_url='/login/')
+def task_grading_detail(request, task_grading_id):
+    try:
+        grading_detail = TaskGradingStatus.objects.get(id=task_grading_id)
+    except Submission.DoesNotExist:
+        return HttpResponse("Task grading detail cannot be found")
+
+    user = User.objects.get(username=request.user)
+    submission = grading_detail.submission_id
+    assignment = submission.assignment_id
+    course = assignment.course_id
+    if not user.has_perm('view_assignment',course):
+    	return HttpResponse("Not enough privilege")
+
+    author = User.objects.get(username=submission.student_id)
+    if not user.has_perm('modify_assignment',course):
+        if author.username != user.username:
+            return HttpResponse("Not enough privilege")
+
+    assignment_task = grading_detail.assignment_task_id
+    grading_detail.points = round(grading_detail.points,2)
+
+    if grading_detail.grading_detail:
+        url = grading_detail.grading_detail.url
+        print(url)
+        # feedback = open(url, 'r').read()
+        # print(feedback)
+
+
+    template_context = {
+        'myuser': request.user,
+        'course': course,
+        'assignment': assignment,
+        'submission':submission,
+        'grading_detail':grading_detail,
+        'assignment_task':assignment_task
+    }
+
+    return render(request, 'serapis/task_grading_detail.html', template_context)
+
+
 
 @login_required(login_url='/login/')
 def submissions_full_log(request):
@@ -672,6 +713,7 @@ def submissions_full_log(request):
     }
 
     return render(request, 'serapis/submissions_full_log.html', template_context)
+
 
 @login_required(login_url='/login/')
 def testbed_type_list(request):
@@ -952,8 +994,3 @@ def debug_task_grading_status(request):
             'form': form,
     }
     return render(request, 'serapis/debug_task_grading_status.html', template_context)
-
-
-@login_required(login_url='/login/')
-def download_submission_file(request):
-    return HttpResponse("under construction")

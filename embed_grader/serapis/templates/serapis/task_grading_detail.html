@@ -1,0 +1,72 @@
+{% extends 'serapis/base_sidebar.html' %}
+{% load staticfiles %}
+{% load guardian_tags %}
+
+{% block sidebar-content %}
+    <!-- SIDEBAR USER TITLE -->
+    <div class="profile-usertitle">
+        <div class="profile-usertitle-name">
+            Submission
+        </div>
+        <div class="profile-usertitle-job">
+            {{ assignment.name }}
+        </div>
+    </div>
+    <!-- END SIDEBAR USER TITLE -->
+    <!-- SIDEBAR MENU -->
+    <div class="profile-usermenu">
+        <ul class="nav nav-bar">
+            <li>
+                <a href="{% url 'homepage' %}">Courses</a>
+            </li>
+            <li class="active">
+                <a href="{% url 'submissions_full_log' %}">Submissions</a>
+            </li>
+            {% get_obj_perms request.user for course as "course_perms" %}
+            {% if "view_membership" in course_perms %}
+            <li>
+                <a href="{% url 'membership' course.id %}">Students</a>
+            </li>
+            {% endif %}
+            {% if perms.serapis.view_hardware_type %}
+            <li>
+                <a href="{% url 'testbed-type-list' %}">Testbed Types</a>
+            </li>
+            <li>
+                <a href="{% url 'hardware-type-list' %}">Hardware Types</a>
+            </li>
+            {% endif %}
+        </ul>
+    </div>
+    <!-- END MENU -->
+{% endblock %}
+
+{% block main-content %}
+    <div class="main-content">
+        <div class="top-buffer">
+          <ol class="breadcrumb">
+              <li><a href="{% url 'homepage' %}">Courses</a></li>
+              <li><a href="{% url 'course' course.id %}">{{ course.course_code }}</a></li>
+              <li><a href="{% url 'assignment' assignment.id %}">{{ assignment.name }}</a></li>
+              <li><a href="{% url 'submission' submission.id %}">Submission</a></li>
+              <li>Task <a>{{ grading_detail.assignment_task_id.brief_description }}</a> grading detail</li>
+          </ol>
+        </div>
+
+        <h3 class="page-header"><a href="{% url 'assignment' assignment.id %}">{{ assignment.name }}</a>:
+          <a>{{ grading_detail.assignment_task_id.brief_description }}</a> Grading Detail</h3>
+
+        <h5>Student: {{ author.first_name }} {{ author.last_name}}</h5>
+        <h5>Submission: <a href="{% url 'submission' submission.id %}">{{ submission.submission_time }}</a></h5>
+        {% if grading_detail.points == assignment_task.points %}
+          <h5>Score: <span class="badge" style="background:green; width:80px;">{{ grading_detail.points }} / {{ assignment_task.points }}</span></h5>
+        {% else %}
+          <h5>Score: <span class="badge" style="background:darkred; width:80px;">{{ grading_detail.points }} / {{ assignment_task.points }}</span></h5>
+        {% endif %}
+        <hr>
+        <h5>Output File: </h5>
+        <h5>Feedback: </h5>
+        <h5>DUT Serial Output: </h5>
+
+    </div>
+{% endblock %}

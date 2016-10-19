@@ -52,8 +52,8 @@
           </ol>
         </div>
 
-        <h2 class="page-header"><a href="{% url 'course' course.id %}">{{ course.course_code }}</a>:
-        <a href="{% url 'assignment' assignment.id %}">{{ assignment.name }}</a> Submission Detail</h2>
+        <h3 class="page-header"><a href="{% url 'course' course.id %}">{{ course.course_code }}</a>:
+        <a href="{% url 'assignment' assignment.id %}">{{ assignment.name }}</a> Submission Detail</h3>
         <h5>Student: {{ author.first_name }} {{ author.last_name}}</h5>
         <h5>Submitted: {{ submission.submission_time }}</h5>
         {% if score == total_points %}
@@ -77,7 +77,7 @@
                 <th>Output File</th>
                 <th>Grading Detail</th>
                 <th>DUT Serial Output</th>
-                <!-- <th>Task Grading Detail</th> -->
+                <th>Task Grading Detail</th>
             </tr>
             {% for s in submission_n_detail_short_list %}
                 <tr>
@@ -93,7 +93,7 @@
                       <a href="{{ MEDIA_URL }}{{ s.0.output_file.url }}" class="btn btn-primary" style="font-size: 12px;
                       background:white; color:SteelBlue; border-color:SteelBlue; width:100px">
                       {% else %}
-                      <a class="btn btn-primary" style="font-size: 12px; background:white; color:SteelBlue; border-color:SteelBlue; width:100px">
+                      <a class="btn btn-primary" style="font-size: 12px; background:white; color:grey; border-color:grey; width:100px">
                       {% endif %}
                         <span class="glyphicon glyphicon-download-alt"></span> Download</a>
                     </td>
@@ -102,7 +102,7 @@
                       <a href="{{ MEDIA_URL }}{{ s.0.grading_detail.url }}" class="btn btn-primary" style="font-size: 12px;
                       background:white; color:SteelBlue; border-color:SteelBlue; width:100px">
                       {% else %}
-                      <a class="btn btn-primary" style="font-size: 12px; background:white; color:SteelBlue; border-color:SteelBlue; width:100px">
+                      <a class="btn btn-primary" style="font-size: 12px; background:white; color:grey; border-color:grey; width:100px">
                       {% endif %}
                         <span class="glyphicon glyphicon-download-alt"></span> Download</a>
                     </td>
@@ -111,15 +111,15 @@
                       <a href="{{ MEDIA_URL }}{{ s.0.DUT_serial_output.url }}" class="btn btn-primary" style="font-size: 12px;
                       background:white; color:SteelBlue; border-color:SteelBlue; width:100px">
                       {% else %}
-                      <a class="btn btn-primary" style="font-size: 12px; background:white; color:SteelBlue; border-color:SteelBlue; width:100px">
+                      <a class="btn btn-primary" style="font-size: 12px; background:white; color:grey; border-color:grey; width:100px">
                       {% endif %}
                         <span class="glyphicon glyphicon-download-alt"></span> Download</a>
                     </td>
-                    <!-- <td>
-                      <a href="" class="btn btn-primary" style="font-size: 12px;
+                    <td>
+                      <a href="{% url 'task-grading-detail' s.0.id %}" class="btn btn-primary" style="font-size: 12px;
                       background:white; color:SteelBlue; border-color:SteelBlue; width:100px">
                         <span class="glyphicon glyphicon-file"></span> Detail </a>
-                    </td> -->
+                    </td>
                 </tr>
             {% endfor %}
         </table>
