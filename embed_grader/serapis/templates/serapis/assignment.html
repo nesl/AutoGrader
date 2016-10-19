@@ -52,7 +52,7 @@
 
     </div>
 
-    <h1 class="page-header">Assignment - {{ assignment.name }}</h1>
+    <h2 class="page-header">Assignment - {{ assignment.name }}</h2>
 
     <h3>Description</h3>
     <p>{{ assignment.problem_statement|linebreaks }}</p>
@@ -95,7 +95,7 @@
                   {% if task.get_mode_display == "Public"%}
                     <td style="width:25%;">
                       <a href="{{ MEDIA_URL }}{{ task.test_input.url }}" class="btn btn-primary"
-                      style="font-size: 12px; background:white; color:darkred; border-color:darkred">
+                      style="font-size: 12px; background:white; color:SteelBlue; border-color:SteelBlue">
                       <span class="glyphicon glyphicon-download-alt"></span>&nbsp;Download
                     </td>
                   {% else%}
@@ -112,17 +112,17 @@
                 <td style="width:30%; text-align:left">{{ task.description }}</td>
                 <td style="width:10%;">
                   <a href="{{ MEDIA_URL }}{{ task.test_input.url }}" class="btn btn-primary"
-                  style="font-size: 12px; background:white; color:darkred; border-color:darkred">
+                  style="font-size: 12px; background:white; color:SteelBlue; border-color:SteelBlue">
                   <span class="glyphicon glyphicon-download-alt"></span>&nbsp;Download
                 </td>
                 <td style="width:10%;">
                   <a href="{{ MEDIA_URL }}{{ task.grading_script.url }}" class="btn btn-primary"
-                  style="font-size: 12px; background:white; color:darkred; border-color:darkred">
+                  style="font-size: 12px; background:white; color:SteelBlue; border-color:SteelBlue">
                   <span class="glyphicon glyphicon-download-alt"></span>&nbsp;Download
                 </td>
                 <td style="width:10%">
                   <a href="{% url 'modify-assignment-task' task.id %}" class="btn btn-primary"
-                  style="font-size: 12px; background:white; color:darkred; border-color:darkred;width:80px">
+                  style="font-size: 12px; background:white; color:SteelBlue; border-color:SteelBlue;width:80px">
                   <span class="glyphicon glyphicon-edit"></span>&nbsp;Edit
                 </td>
             </tr>
@@ -193,11 +193,11 @@
                     <td>{{ s.0.submission_time }}</td>
                     <td>
                       <a class="btn btn-primary" href="{% url 'submission' s.0.id %}"
-                      style="font-size:12px; background:white; width:90px; color:darkred; border-color:darkred">
+                      style="font-size:12px; background:white; width:90px; color:SteelBlue; border-color:SteelBlue">
                       <span class="glyphicon glyphicon-file"></span>&nbsp;Detail
                     </td>
                     <td><a href="{{ MEDIA_URL }}{{ s.0.file.url }}" class="btn btn-primary"
-                      style="font-size: 12px; background:white; color:darkred; border-color:darkred">
+                      style="font-size: 12px; background:white; color:SteelBlue; border-color:SteelBlue">
                       <span class="glyphicon glyphicon-download-alt"></span>&nbsp;Download
                     </td>
                 </tr>
@@ -226,11 +226,11 @@
                     <td style="width:25%">{{ s.0.submission_time }}</td>
                     <td style="width:20%">
                       <a class="btn btn-primary" href="{% url 'submission' s.0.id %}"
-                      style="font-size:12px; background:white; width:90px; color:darkred; border-color:darkred">
+                      style="font-size:12px; background:white; width:90px; color:SteelBlue; border-color:SteelBlue">
                       <span class="glyphicon glyphicon-file"></span>&nbsp;Detail
                     </td>
                     <td style="width:20%">
-                      <a href="{{ MEDIA_URL }}{{ s.0.file.url }}" class="btn btn-primary" style="font-size:12px; background:white; color:darkred; border-color:darkred">
+                      <a href="{{ MEDIA_URL }}{{ s.0.file.url }}" class="btn btn-primary" style="font-size:12px; background:white; color:SteelBlue; border-color:SteelBlue">
                       <span class="glyphicon glyphicon-download-alt"></span>&nbsp;Download
                     </td>
                 </tr>

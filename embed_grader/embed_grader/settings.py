@@ -23,9 +23,9 @@ SECRET_KEY = config.secret_key
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config.debug
 
-# ALLOWED_HOSTS = ['.autograder.nesl.ucla.edu']
-
 ALLOWED_HOSTS = ['.autograder.nesl.ucla.edu']
+# DEBUG = True
+# ALLOWED_HOSTS = []
 
 # Application definition
 
