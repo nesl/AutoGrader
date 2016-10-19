@@ -126,6 +126,10 @@ class Command(BaseCommand):
 
                 task.grading_status = TaskGradingStatus.STAT_EXECUTING
                 task.status_update_time = timezone.now()
+                task.points = 0
+                task.output_file = None
+                task.grading_detail = None
+                task.DUT_serial_output = None
                 task.save()
 
                 self._printMessage('grading task id=%d using testbed hardware_id=%s' % (task.id, testbed.unique_hardware_id))
