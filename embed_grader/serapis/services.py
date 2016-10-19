@@ -99,10 +99,12 @@ def testbed_show_status_report(request):
 @csrf_exempt
 def testbed_return_dut_output(request):
     if not request.method == 'POST':
+        print('Error: not use post')
         return HttpResponseBadRequest('Bad request')
     
     form = ReturnDutOutputForm(request.POST, request.FILES)
     if not form.is_valid():
+        print('Error: form is incorrect', form.errors)
         return HttpResponseBadRequest('Bad form request')
 
     #TODO: should use use formset_factory to populate ReturnDutOutputForm,
@@ -114,6 +116,7 @@ def testbed_return_dut_output(request):
     
     testbed_list = Testbed.objects.filter(unique_hardware_id=unique_hardware_id)
     if not testbed_list:
+        print('Error: testbed not found')
         return HttpResponseBadRequest('Bad request')
     testbed = testbed_list[0]
 
@@ -121,6 +124,7 @@ def testbed_return_dut_output(request):
 
     task = testbed.task_being_graded
     if not task:
+        print('Error: task not found')
         return HttpResponseBadRequest('Bad request')
 
     task.grading_status = TaskGradingStatus.STAT_OUTPUT_TO_BE_CHECKED
