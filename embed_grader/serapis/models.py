@@ -163,7 +163,7 @@ class Assignment(models.Model):
 
     def __str__(self):
         return self.name
-    
+
     VIEWING_SCOPE_NO = 0  # nothing can be seen
     VIEWING_SCOPE_PARTIAL = 1  # problem statement, public & feedback cases
     VIEWING_SCOPE_FULL = 2  # problem statement, all cases
@@ -245,7 +245,7 @@ class Submission(models.Model):
 
     def __str__(self):
         return self.student_id.first_name + " " + self.student_id.last_name + ", " + str(self.id)
-    
+
     def can_access_file_by_user(self, user):
         return (user.has_perm('modify_assignment', self.assignment_id.course_id)
                 or user == student_id)
@@ -282,7 +282,9 @@ class TaskGradingStatus(models.Model):
     output_file = models.FileField(upload_to='TaskGradingStatus_output_file', null=True, blank=True)
     status_update_time = models.DateTimeField()
     points = models.FloatField(default=0.0)
-    
+    grading_detail = models.FileField(upload_to='TaskGradingStatus_grading_detail',null=True, blank=True)
+    DUT_serial_output = models.FileField(upload_to='TaskGradingStatus_DUT_serial_output',null=True, blank=True)
+
     def can_access_output_file_by_user(self, user):
         # If the user is an instructor, she can see the output file
         if user.has_perm('create_assignment', self.assignment_task_id.assignment_id.course_id):

@@ -335,6 +335,3 @@ class TaskGradingStatusDebugForm(ModelForm):
         fields = ['id', 'grading_status', 'execution_status', 'output_file']
 
 
-class ReturningWaveformForm(Form):
-    id = forms.CharField()
-    waveform = forms.FileField()

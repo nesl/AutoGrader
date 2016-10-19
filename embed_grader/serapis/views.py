@@ -186,11 +186,10 @@ def enroll_course(request):
         if form.is_valid():
             # database
             form.save()
-            
+
             # add user to belonged group
             course = form.cleaned_data['course_select']
             student_group_name = str(course.id) + "_Student_Group"
-            print(student_group_name)
             student_group = Group.objects.get(name=student_group_name)
             user.groups.add(student_group)
 
@@ -415,6 +414,7 @@ def assignment(request, assignment_id):
                 continue
             if task.grading_status == TaskGradingStatus.STAT_FINISH:
                 total_submission_points += task.points
+
         submission_grading_detail.append(total_submission_points)
         gradings.append(round(total_submission_points, 2))
 
@@ -599,6 +599,7 @@ def submission(request, submission_id):
     task_symbols = []
     score = 0;
     for task in gradings:
+        print(task.output_file)
         if task.grading_status == TaskGradingStatus.STAT_PENDING:
             task_symbols.append('Pending')
         elif task.grading_status == TaskGradingStatus.STAT_EXECUTING:
