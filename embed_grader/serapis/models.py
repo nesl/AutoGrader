@@ -248,7 +248,7 @@ class Submission(models.Model):
 
     def can_access_file_by_user(self, user):
         return (user.has_perm('modify_assignment', self.assignment_id.course_id)
-                or user == student_id)
+                or user == self.student_id)
 
 
 class TaskGradingStatus(models.Model):
@@ -298,7 +298,7 @@ class TaskGradingStatus(models.Model):
         # Now, is the output ready to download? Depends on the mode of the task.
         # Fortunately, the accessibility of an input file and an output file within the
         # same task should be the same. We can simply ask the permission of the input file.
-        return self.assignment_task_id.can_access_test_input_by_user(self, user)
+        return self.assignment_task_id.can_access_test_input_by_user(user)
 
 
 class Testbed(models.Model):
