@@ -28,7 +28,6 @@ from guardian.shortcuts import assign_perm
 
 import hashlib, random, pytz
 
-
 #TODO(timestring): recheck whether I should use disabled instead of readonly to enforce data integrity
 
 
@@ -635,12 +634,12 @@ def submission(request, submission_id):
 @login_required(login_url='/login/')
 def task_grading_detail(request, task_grading_id):
     try:
-        grading_detail = TaskGradingStatus.objects.get(id=task_grading_id)
+        grading = TaskGradingStatus.objects.get(id=task_grading_id)
     except Submission.DoesNotExist:
         return HttpResponse("Task grading detail cannot be found")
 
     user = User.objects.get(username=request.user)
-    submission = grading_detail.submission_id
+    submission = grading.submission_id
     assignment = submission.assignment_id
     course = assignment.course_id
     if not user.has_perm('view_assignment',course):
@@ -651,23 +650,22 @@ def task_grading_detail(request, task_grading_id):
         if author.username != user.username:
             return HttpResponse("Not enough privilege")
 
-    assignment_task = grading_detail.assignment_task_id
-    grading_detail.points = round(grading_detail.points,2)
+    assignment_task = grading.assignment_task_id
+    grading.points = round(grading.points,2)
 
-    if grading_detail.grading_detail:
-        url = grading_detail.grading_detail.url
-        print(url)
-        # feedback = open(url, 'r').read()
-        # print(feedback)
-
+    if grading.grading_detail:
+        url = grading.grading_detail.path
+        feedback = open(url, 'r').read()
+        print(feedback)
 
     template_context = {
         'myuser': request.user,
         'course': course,
         'assignment': assignment,
         'submission':submission,
-        'grading_detail':grading_detail,
-        'assignment_task':assignment_task
+        'grading':grading,
+        'assignment_task':assignment_task,
+        'feedback':feedback
     }
 
     return render(request, 'serapis/task_grading_detail.html', template_context)

@@ -58,15 +58,32 @@
 
         <h5>Student: {{ author.first_name }} {{ author.last_name}}</h5>
         <h5>Submission: <a href="{% url 'submission' submission.id %}">{{ submission.submission_time }}</a></h5>
-        {% if grading_detail.points == assignment_task.points %}
-          <h5>Score: <span class="badge" style="background:green; width:80px;">{{ grading_detail.points }} / {{ assignment_task.points }}</span></h5>
+        {% if grading.points == assignment_task.points %}
+          <h5>Score: <span class="badge" style="background:green; width:80px;">{{ grading.points }} / {{ assignment_task.points }}</span></h5>
         {% else %}
-          <h5>Score: <span class="badge" style="background:darkred; width:80px;">{{ grading_detail.points }} / {{ assignment_task.points }}</span></h5>
+          <h5>Score: <span class="badge" style="background:darkred; width:80px;">{{ grading.points }} / {{ assignment_task.points }}</span></h5>
+        {% endif %}
+        {% if grading.DUT_serial_output %}
+        <a href="{{ MEDIA_URL }}{{ grading.DUT_serial_output.url }}" class="btn btn-primary"
+          style="font-size: 12px;background:white; color:SteelBlue; border-color:SteelBlue; width:150px">
+          <span class="glyphicon glyphicon-download-alt"></span> &nbsp;DUT Serial Output
+        </a>
         {% endif %}
         <hr>
-        <h5>Output File: </h5>
-        <h5>Feedback: </h5>
-        <h5>DUT Serial Output: </h5>
+        {% if grading.grading_detail %}
+          <h5>Feedback<h5>
+          <br>
+          <p style="white-space:pre; font-size:13px">{{feedback}}</p>
+        {% endif %}
 
+        <hr>
+        {% if grading.output_file %}
+          <h5>Output File: &nbsp; <a href="{{ MEDIA_URL }}{{ grading.output_file.url }}" class="btn btn-primary"
+            style="font-size: 12px;background:white; color:SteelBlue; border-color:SteelBlue;">
+            <span class="glyphicon glyphicon-download-alt"></span> &nbsp;Download
+          </a></h5>
+          <h3>[reserved for waveform]</h3>
+          <hr>
+        {% endif %}
     </div>
 {% endblock %}

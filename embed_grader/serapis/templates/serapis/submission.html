@@ -88,38 +88,47 @@
                     {% else %}
                       <td><span class="badge" style="background:green; width:80px">{{ s.0.points }} / {{ s.2.points }}</span></td>
                     {% endif %}
-                    <td>
-                      {% if s.0.output_file %}
-                      <a href="{{ MEDIA_URL }}{{ s.0.output_file.url }}" class="btn btn-primary" style="font-size: 12px;
-                      background:white; color:SteelBlue; border-color:SteelBlue; width:100px">
-                      {% else %}
-                      <a class="btn btn-primary" style="font-size: 12px; background:white; color:grey; border-color:grey; width:100px">
-                      {% endif %}
-                        <span class="glyphicon glyphicon-download-alt"></span> Download</a>
-                    </td>
-                    <td>
-                      {% if s.0.grading_detail %}
-                      <a href="{{ MEDIA_URL }}{{ s.0.grading_detail.url }}" class="btn btn-primary" style="font-size: 12px;
-                      background:white; color:SteelBlue; border-color:SteelBlue; width:100px">
-                      {% else %}
-                      <a class="btn btn-primary" style="font-size: 12px; background:white; color:grey; border-color:grey; width:100px">
-                      {% endif %}
-                        <span class="glyphicon glyphicon-download-alt"></span> Download</a>
-                    </td>
-                    <td>
-                      {% if s.0.DUT_serial_output %}
-                      <a href="{{ MEDIA_URL }}{{ s.0.DUT_serial_output.url }}" class="btn btn-primary" style="font-size: 12px;
-                      background:white; color:SteelBlue; border-color:SteelBlue; width:100px">
-                      {% else %}
-                      <a class="btn btn-primary" style="font-size: 12px; background:white; color:grey; border-color:grey; width:100px">
-                      {% endif %}
-                        <span class="glyphicon glyphicon-download-alt"></span> Download</a>
-                    </td>
-                    <td>
-                      <a href="{% url 'task-grading-detail' s.0.id %}" class="btn btn-primary" style="font-size: 12px;
-                      background:white; color:SteelBlue; border-color:SteelBlue; width:100px">
-                        <span class="glyphicon glyphicon-file"></span> Detail </a>
-                    </td>
+
+                    {% get_obj_perms request.user for course as "course_perms" %}
+                    {% if "modify_course" in course_perms or s.0.assignment_task_id.mode == 0 %}
+                      <td>
+                        {% if s.0.output_file %}
+                        <a href="{{ MEDIA_URL }}{{ s.0.output_file.url }}" class="btn btn-primary" style="font-size: 12px;
+                        background:white; color:SteelBlue; border-color:SteelBlue; width:100px">
+                        {% else %}
+                        <a class="btn btn-primary" style="font-size: 12px; background:white; color:grey; border-color:grey; width:100px">
+                        {% endif %}
+                          <span class="glyphicon glyphicon-download-alt"></span> Download</a>
+                      </td>
+                      <td>
+                        {% if s.0.grading_detail %}
+                        <a href="{{ MEDIA_URL }}{{ s.0.grading_detail.url }}" class="btn btn-primary" style="font-size: 12px;
+                        background:white; color:SteelBlue; border-color:SteelBlue; width:100px">
+                        {% else %}
+                        <a class="btn btn-primary" style="font-size: 12px; background:white; color:grey; border-color:grey; width:100px">
+                        {% endif %}
+                          <span class="glyphicon glyphicon-download-alt"></span> Download</a>
+                      </td>
+                      <td>
+                        {% if s.0.DUT_serial_output %}
+                        <a href="{{ MEDIA_URL }}{{ s.0.DUT_serial_output.url }}" class="btn btn-primary" style="font-size: 12px;
+                        background:white; color:SteelBlue; border-color:SteelBlue; width:100px">
+                        {% else %}
+                        <a class="btn btn-primary" style="font-size: 12px; background:white; color:grey; border-color:grey; width:100px">
+                        {% endif %}
+                          <span class="glyphicon glyphicon-download-alt"></span> Download</a>
+                      </td>
+                      <td>
+                        <a href="{% url 'task-grading-detail' s.0.id %}" class="btn btn-primary" style="font-size: 12px;
+                        background:white; color:SteelBlue; border-color:SteelBlue; width:100px">
+                          <span class="glyphicon glyphicon-file"></span> Detail </a>
+                      </td>
+                    {% else %}
+                      <td>N/A</td>
+                      <td>N/A</td>
+                      <td>N/A</td>
+                      <td>N/A</td>
+                    {% endif %}
                 </tr>
             {% endfor %}
         </table>
