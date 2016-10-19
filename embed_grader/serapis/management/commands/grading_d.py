@@ -5,6 +5,7 @@ import time
 import subprocess
 import json
 
+from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from django.db.models import Q
@@ -180,16 +181,12 @@ class Command(BaseCommand):
                             stdout=subprocess.PIPE)
                     try:
                         result_pack = json.loads(proc.communicate()[0].decode('ascii'))
-                        print(result_pack)
-                        print(result_pack['score'])
                         normalized_score = float(result_pack['score'])
                         normalized_score = min(1., max(0., normalized_score))
-                        #TODO(Ariel): description is in result_pack['detail'] in string format, may
-                        # have to replace '\n' to <br/>, and store into grading_task object. Create
-                        # a new field first.
+                        grading_task.grading_detail.save('description.txt', ContentFile(result_pack['detail']))
                         grading_task.grading_status = TaskGradingStatus.STAT_FINISH
                         grading_task.points = assignment_task.points * normalized_score
-                    except (ValueError):#, JSONDecodeError):
+                    except (ValueError):
                         grading_task.grading_status = TaskGradingStatus.STAT_INTERNAL_ERROR
                         grading_task.points = 0.0
 

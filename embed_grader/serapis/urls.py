@@ -54,10 +54,10 @@ urlpatterns = [
 
     url(r'^debug-task-grading-status/$', views.debug_task_grading_status, name='debug-task-grading-status'),
 
-    ## Testbed
-    url(r'^tb/summary/$', services.testbed_summary_report, name='tb-summary'),
-    url(r'^tb/status/$', services.testbed_status_report, name='tb-status'),
-    url(r'^tb/waveform/$', services.testbed_return_output_waveform, name='testbed-return-output-waveform'),
+    ## Report from testbeds
+    url(r'^tb/send-summary/$', services.testbed_show_summary_report, name='tb-show-summary'),
+    url(r'^tb/send-status/$', services.testbed_show_status_report, name='tb-show-status'),
+    url(r'^tb/send-dut-output/$', services.testbed_return_dut_output, name='testbed-return-dut-output'),
 
     ## Media access
     url(r'^media/HardwareType_pinout/.*/$', media_controls.hardware_type_pinout, name='media-hardware-type-pinout'),
@@ -66,4 +66,6 @@ urlpatterns = [
     url(r'^media/AssignmentTask_grading_script/.*/$', media_controls.assignment_task_grading_script, name='media-assignment-task-grading-script'),
     url(r'^media/Submission_file/.*/$', media_controls.submission_file, name='media-submission-file'),
     url(r'^media/TaskGradingStatus_output_file/.*/$', media_controls.task_grading_status_output_file, name='media-task-grading-status-output-file'),
+    url(r'^media/TaskGradingStatus_grading_detail/.*/$', media_controls.task_grading_status_grading_detail, name='media-task-grading-status-grading-detail'),
+    url(r'^media/TaskGradingStatus_DUT_serial_output/.*/$', media_controls.task_grading_status_dut_serial_output, name='media-task-grading-status-dut-serial-output'),
 ]
