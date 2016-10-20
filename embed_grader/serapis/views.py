@@ -465,7 +465,7 @@ def modify_assignment(request, assignment_id):
     tasks = None
     if assignment.testbed_type_id:
         form.fields['testbed_type_id'].widget = forms.NumberInput(attrs={'readonly':'readonly'})
-        tasks = AssignmentTask.objects.filter(assignment_id=assignment)
+        tasks = AssignmentTask.objects.filter(assignment_id=assignment).order_by('id')
 
     form.fields['course_id'].widget = forms.NumberInput(attrs={'readonly':'readonly'})
 
@@ -643,31 +643,32 @@ def task_grading_detail(request, task_grading_id):
     submission = grading.submission_id
     assignment = submission.assignment_id
     course = assignment.course_id
-    if not user.has_perm('view_assignment',course):
+    if not user.has_perm('view_assignment', course):
     	return HttpResponse("Not enough privilege")
 
-    author = User.objects.get(username=submission.student_id)
-    if not user.has_perm('modify_assignment',course):
-        if author.username != user.username:
+    author = submission.student_id
+    print(author, user)
+    if not user.has_perm('modify_assignment', course):
+        if author != user:
             return HttpResponse("Not enough privilege")
 
     assignment_task = grading.assignment_task_id
-    grading.points = round(grading.points,2)
+    grading.points = round(grading.points, 2)
 
-    feedback = ''
     if grading.grading_detail:
-        url = grading.grading_detail.path
-        feedback = open(url, 'r').read()
+        path = grading.grading_detail.path
+        feedback = open(path, 'r').read()
         print(feedback)
 
     template_context = {
         'myuser': request.user,
         'course': course,
         'assignment': assignment,
-        'submission':submission,
-        'grading':grading,
-        'assignment_task':assignment_task,
-        'feedback':feedback
+        'submission': submission,
+        'author': author,
+        'grading': grading,
+        'assignment_task': assignment_task,
+        'feedback': feedback,
     }
 
     return render(request, 'serapis/task_grading_detail.html', template_context)
