@@ -48,8 +48,8 @@
               <li><a href="{% url 'homepage' %}">Courses</a></li>
               <li><a href="{% url 'course' course.id %}">{{ course.course_code }}</a></li>
               <li><a href="{% url 'assignment' assignment.id %}">{{ assignment.name }}</a></li>
-              <li><a href="{% url 'submission' submission.id %}">Submission</a></li>
-              <li>Task <a>{{ grading_detail.assignment_task_id.brief_description }}</a> grading detail</li>
+              <li><a href="{% url 'submission' submission.id %}">submission detail ({{submission.id}})</a></li>
+              <li>{{ assignment_task.brief_description }}</li>
           </ol>
         </div>
 

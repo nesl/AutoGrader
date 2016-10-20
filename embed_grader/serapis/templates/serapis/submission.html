@@ -48,7 +48,7 @@
               <li><a href="{% url 'homepage' %}">Courses</a></li>
               <li><a href="{% url 'course' course.id %}">{{ course.course_code }}</a></li>
               <li><a href="{% url 'assignment' assignment.id %}">{{ assignment.name }}</a></li>
-              <li>{{submission.id}}</li>
+              <li>submission detail ({{submission.id}})</li>
           </ol>
         </div>
 

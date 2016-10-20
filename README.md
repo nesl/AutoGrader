@@ -21,6 +21,7 @@ Web frontend of Embedded Systems Auto Grader project
   - ```pip3 install django-bootstrap3```
   - ```pip3 install django-ipware```
   - ```pip3 install django-guardian```
+  - ```pip3 install django-chartjs```
 
 - If you are using PostgreSQL as your database
   - ```pip install psycopg2```

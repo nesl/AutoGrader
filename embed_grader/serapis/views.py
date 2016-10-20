@@ -404,7 +404,7 @@ def assignment(request, assignment_id):
     for submission in submission_short_list:
         student = User.objects.get(username = submission.student_id)
         #TODO: is there a function for this?
-        student_name = student.last_name + ", " + student.first_name
+        student_name = student.first_name + " " + student.last_name
         student_list.append(student_name)
 
         total_submission_points = 0.
@@ -650,7 +650,6 @@ def task_grading_detail(request, task_grading_id):
     	return HttpResponse("Not enough privilege")
 
     author = submission.student_id
-    print(author, user)
     if not user.has_perm('modify_assignment', course):
         if author != user:
             return HttpResponse("Not enough privilege")
