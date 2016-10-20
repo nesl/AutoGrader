@@ -355,7 +355,7 @@ def assignment(request, assignment_id):
     time_remaining = str(assignment.deadline - now)
 
     # Handle POST the request
-    assignment_tasks = AssignmentTask.objects.filter(assignment_id=assignment)
+    assignment_tasks = AssignmentTask.objects.filter(assignment_id=assignment).order_by('id')
     total_points = 0
     public_points = 0
     if request.method == 'POST':
@@ -401,7 +401,7 @@ def assignment(request, assignment_id):
     for submission in submission_short_list:
         student = User.objects.get(username = submission.student_id)
         #TODO: is there a function for this?
-        student_name = student.first_name + ", " + student.last_name
+        student_name = student.last_name + ", " + student.first_name
         student_list.append(student_name)
 
         total_submission_points = 0.
@@ -591,7 +591,7 @@ def submission(request, submission_id):
 
     gradings = TaskGradingStatus.objects.filter(submission_id=submission_id).order_by('assignment_task_id')
     if not user.has_perm('modify_assignment',course):
-        assignment_tasks = AssignmentTask.objects.filter(assignment_id=assignment).exclude(mode=2).order_by('id')
+        assignment_tasks = AssignmentTask.objects.filter(assignment_id=assignment).exclude(mode=AssignmentTask.MODE_HIDDEN).order_by('id')
     else:
         assignment_tasks = AssignmentTask.objects.filter(assignment_id=assignment).order_by('id')
 

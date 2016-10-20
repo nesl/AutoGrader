@@ -63,7 +63,7 @@
     <hr/>
 
     <br>
-    <h3>Tasks ({{public_points}}/{{total_points}})</h3>
+    <h3>Tasks (Sample: {{public_points}} points. Total: {{total_points}} points)</h3>
     <div class="table-responsive">
       <table class="table table-striped table-hover table-sm">
           <tr>
@@ -184,7 +184,7 @@
             {% for s in submission_n_detail_short_list %}
                 <tr>
                     <td>{{ s.0.get_status_display }}</td>
-                    {% if s.2 < total_points %}
+                    {% if s.2 < public_points %}
                     <td><span class="badge" style="background:darkred; width:80px;">{{ s.2 }} / {{ public_points }}</span></td>
                     {% else %}
                       <td><span class="badge" style="background:green; width:80px;">{{ s.2 }} / {{ public_points }}</span></td>
