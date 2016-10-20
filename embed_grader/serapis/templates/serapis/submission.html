@@ -56,10 +56,10 @@
         <a href="{% url 'assignment' assignment.id %}">{{ assignment.name }}</a> Submission Detail</h3>
         <h5>Student: {{ author.first_name }} {{ author.last_name}}</h5>
         <h5>Submitted: {{ submission.submission_time }}</h5>
-        {% if score == total_points %}
-          <h5>Score: <span class="badge" style="background:green; width:80px;">{{ score }} / {{ total_points }}</span></h5>
-        {% else %}
+        {% if score < total_points %}
           <h5>Score: <span class="badge" style="background:darkred; width:80px;">{{ score }} / {{ total_points }}</span></h5>
+        {% else %}
+          <h5>Score: <span class="badge" style="background:green; width:80px;">{{ score }} / {{ total_points }}</span></h5>
         {% endif %}
         <h5>Files:
           <a href="{{ MEDIA_URL }}{{ submission.file.url }}" class="btn btn-primary">

@@ -407,12 +407,12 @@ def assignment(request, assignment_id):
         total_submission_points = 0.
         tasks = TaskGradingStatus.objects.filter(
                 submission_id=submission, grading_status=TaskGradingStatus.STAT_FINISH)
+
+
         for task in tasks:
-            if not user.has_perm('modify_assignment', course) and task.assignment_task_id.mode == AssignmentTask.MODE_HIDDEN:
-                # A student cannot see the result of hidden tasks
-                continue
             if task.grading_status == TaskGradingStatus.STAT_FINISH:
-                total_submission_points += task.points
+                if user.has_perm('modify_assignment', course) or task.assignment_task_id.mode != AssignmentTask.MODE_HIDDEN:
+                    total_submission_points += task.points
 
         submission_grading_detail.append(total_submission_points)
         gradings.append(round(total_submission_points, 2))
@@ -598,18 +598,19 @@ def submission(request, submission_id):
     task_symbols = []
     score = 0;
     for task in gradings:
-        if task.grading_status == TaskGradingStatus.STAT_PENDING:
-            task_symbols.append('Pending')
-        elif task.grading_status == TaskGradingStatus.STAT_EXECUTING:
-            task_symbols.append('Executing')
-        elif task.grading_status == TaskGradingStatus.STAT_OUTPUT_TO_BE_CHECKED:
-            task_symbols.append('Checking')
-        elif task.grading_status == TaskGradingStatus.STAT_FINISH:
-            score += task.points
-            task.points = round(task.points, 2)
-            task_symbols.append('Finalized')
-        elif task.grading_status == TaskGradingStatus.STAT_INTERNAL_ERROR:
-            task_symbols.append('Error')
+        if user.has_perm('modify_assignment', course) or task.assignment_task_id.mode != AssignmentTask.MODE_HIDDEN:
+            if task.grading_status == TaskGradingStatus.STAT_PENDING:
+                task_symbols.append('Pending')
+            elif task.grading_status == TaskGradingStatus.STAT_EXECUTING:
+                task_symbols.append('Executing')
+            elif task.grading_status == TaskGradingStatus.STAT_OUTPUT_TO_BE_CHECKED:
+                task_symbols.append('Checking')
+            elif task.grading_status == TaskGradingStatus.STAT_FINISH:
+                    score += task.points
+                    task.points = round(task.points, 2)
+                    task_symbols.append('Finalized')
+            elif task.grading_status == TaskGradingStatus.STAT_INTERNAL_ERROR:
+                task_symbols.append('Error')
 
     total_points = 0
     for a in assignment_tasks:
@@ -689,8 +690,9 @@ def submissions_full_log(request):
         gradings = TaskGradingStatus.objects.filter(submission_id=s.id).order_by('assignment_task_id')
         score = 0;
         for task in gradings:
-            if task.grading_status == TaskGradingStatus.STAT_FINISH:
-                score += task.points
+            if user.has_perm('modify_assignment', course) or task.assignment_task_id.mode != AssignmentTask.MODE_HIDDEN:
+                if task.grading_status == TaskGradingStatus.STAT_FINISH:
+                    score += task.points
         score = round(score, 2)
         score_list.append(score)
 
