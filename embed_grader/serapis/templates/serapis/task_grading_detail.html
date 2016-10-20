@@ -53,11 +53,12 @@
           </ol>
         </div>
 
-        <h3 class="page-header"><a href="{% url 'assignment' assignment.id %}">{{ assignment.name }}</a>:
-          <a>{{ grading_detail.assignment_task_id.brief_description }}</a> Grading Detail</h3>
+        <h3 class="page-header">Grading Detail</h3>
 
         <h5>Student: {{ author.first_name }} {{ author.last_name }}</h5>
-        <h5>Submission: <a href="{% url 'submission' submission.id %}">{{ submission.submission_time }}</a></h5>
+        <h5>Submission time: {{ submission.submission_time }}</h5>
+        <h5>Submission ID: {{ submission.id }}</h5>
+        <h5>Task case: {{ assignment_task.brief_description }}</h5>
         {% if grading.points == assignment_task.points %}
           <h5>Score: <span class="badge" style="background:green; width:80px;">{{ grading.points }} / {{ assignment_task.points }}</span></h5>
         {% else %}

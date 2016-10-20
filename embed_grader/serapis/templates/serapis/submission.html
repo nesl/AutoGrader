@@ -52,10 +52,10 @@
           </ol>
         </div>
 
-        <h3 class="page-header"><a href="{% url 'course' course.id %}">{{ course.course_code }}</a>:
-        <a href="{% url 'assignment' assignment.id %}">{{ assignment.name }}</a> Submission Detail</h3>
-        <h5>Student: {{ author.first_name }} {{ author.last_name}}</h5>
-        <h5>Submitted: {{ submission.submission_time }}</h5>
+        <h3 class="page-header">Submission Detail</h3>
+        <h5>Student: {{ author.first_name }} {{ author.last_name }}</h5>
+        <h5>Submission time: {{ submission.submission_time }}</h5>
+        <h5>Submission ID: {{ submission.id }}</h5>
         {% if score < total_points %}
           <h5>Score: <span class="badge" style="background:darkred; width:80px;">{{ score }} / {{ total_points }}</span></h5>
         {% else %}
