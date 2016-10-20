@@ -82,8 +82,59 @@
             style="font-size: 12px;background:white; color:SteelBlue; border-color:SteelBlue;">
             <span class="glyphicon glyphicon-download-alt"></span> &nbsp;Download
           </a></h5>
-          <h3>[reserved for waveform]</h3>
+          <p id="timestamps"  style="display: none;">{{timestamps}}</p>
+          <p id="val" style="display: none;">{{val}}</p>
+
+          <script type="text/javascript" src="../../static/Chart.js"></script>
+          <canvas id="waveform" style="width:100%; height:200px"></canvas>
+
+          <script type="text/javascript">
+            var label = document.getElementById('timestamps').innerHTML;
+            var data = document.getElementById('val').innerHTML;
+
+            label = label.replace('[', '')
+            label = label.replace(']', '')
+            var label_array = label.split(',')
+            var timestamps = []
+            for(item in label_array)
+              timestamps.push(parseInt(label_array[item]))
+
+
+            data = data.replace('[', '')
+            data = data.replace(']', '')
+            var data_array = data.split(',')
+            var signal = []
+            for(item in data_array)
+              signal.push(parseInt(data_array[item]))
+
+             $(function() {
+               console.log(signal);
+               console.log(timestamps);
+                 var output_file_data = {
+                     labels : timestamps,
+                     datasets : [
+                         {
+                           fill: false,
+                           lineTension: 0.1,
+                           pointBorderWidth: 1,
+                           pointHoverRadius: 5,
+                           pointRadius: 1,
+                           pointHitRadius: 10,
+                           data : signal
+                         }
+                     ]
+                 }
+
+                 var output_waveform = document.getElementById('waveform').getContext('2d');
+                 new Chart(output_waveform, {
+                   type: 'line',
+                   data: output_file_data
+                 }).Line(output_file_data);
+               });
+          </script>
+
           <hr>
         {% endif %}
     </div>
+
 {% endblock %}
