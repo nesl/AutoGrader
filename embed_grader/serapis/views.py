@@ -28,6 +28,9 @@ from guardian.shortcuts import assign_perm
 
 import hashlib, random, pytz
 
+from chartjs.views.lines import BaseLineChartView
+from django.views.generic import TemplateView
+
 #TODO(timestring): recheck whether I should use disabled instead of readonly to enforce data integrity
 
 
@@ -656,9 +659,20 @@ def task_grading_detail(request, task_grading_id):
 
     feedback = ''
     if grading.grading_detail:
-        url = grading.grading_detail.path
-        feedback = open(url, 'r').read()
-        print(feedback)
+        feedback = open(grading.grading_detail.path, 'r').read()
+
+    output = ''
+    timestamps = []
+    val = []
+
+    if grading.output_file:
+        outputfile = open(grading.output_file.path, 'r')
+        lines = outputfile.readlines()
+        for line in lines:
+            line = line.rstrip('\n')
+            line = line.split(',')
+            timestamps.append(int(line[1]))
+            val.append(int(line[2]))
 
     template_context = {
         'myuser': request.user,
@@ -667,7 +681,9 @@ def task_grading_detail(request, task_grading_id):
         'submission':submission,
         'grading':grading,
         'assignment_task':assignment_task,
-        'feedback':feedback
+        'feedback':feedback,
+        'timestamps':timestamps,
+        'val':val
     }
 
     return render(request, 'serapis/task_grading_detail.html', template_context)

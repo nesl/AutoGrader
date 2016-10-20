@@ -43,6 +43,7 @@ urlpatterns = [
 
     url(r'^task-grading-detail/(?P<task_grading_id>[0-9]+)/$', views.task_grading_detail, name='task-grading-detail'),
 
+
     ## Testbed and Hardware pages
     url(r'^testbed-type-list/$', views.testbed_type_list, name='testbed-type-list'),
     url(r'^testbed-type/(?P<testbed_type_id>[0-9]+)/$', views.testbed_type, name='testbed-type'),
