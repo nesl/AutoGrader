@@ -87,6 +87,7 @@
           <!-- Generating Waveform -->
           <script src="https://www.amcharts.com/lib/3/amcharts.js"></script>
           <script src="https://www.amcharts.com/lib/3/serial.js"></script>
+          <script src="https://www.amcharts.com/lib/3/xy.js"></script>
           <script src="https://www.amcharts.com/lib/3/plugins/export/export.min.js"></script>
           <link rel="stylesheet" href="https://www.amcharts.com/lib/3/plugins/export/export.css" type="text/css" media="all"/>
           <script src="https://www.amcharts.com/lib/3/themes/light.js"></script>
@@ -110,10 +111,11 @@
                   "value": plot_pack.data[cid][i]
                 });
               }
+              max_tick = plot_pack.time[i-1]
 
               gid = "g" + cid;
               charts[cid] = AmCharts.makeChart("waveform" + cid, {
-                "type": "serial",
+                "type": "xy",
                 "titles": [{"text": plot_pack.labels[cid]}],
                 "theme": "light",
                 "autoMarginOffset": 25,
@@ -127,33 +129,23 @@
                   "bulletAlpha": 0,
                   "bulletSize": 4,
                   "bulletBorderAlpha": 0,
-                  "valueField": "value"
+                  //"valueField": "value"
+                  "xField": "tick",
+                  "yField": "value",
                 }],
-                "chartScrollbar": {
-                  "graph": gid,
-                  "gridAlpha": 0,
-                  "color": "#888888",
-                  "scrollbarHeight": 55,
-                  "backgroundAlpha": 0,
-                  "selectedBackgroundAlpha": 0.1,
-                  "selectedBackgroundColor": "#888888",
-                  "graphFillAlpha": 0,
-                  "autoGridCount": true,
-                  "selectedGraphFillAlpha": 0,
-                  "graphLineAlpha": 1,
-                  "graphLineColor": "#c2c2c2",
-                  "selectedGraphLineColor": "#888888",
-                  "selectedGraphLineAlpha": 1
-                },
-                "chartCursor": {
-                  "fullWidth":true,
-                  "cursorAlpha": 0.05,
-                  "graphBulletAlpha": 1
-                },
-                "categoryField": "tick",
-                "categoryAxis": {
-                  "gridAlpha": 0
-                },
+                "valueAxes": [
+                    {
+                        "axisAlpha":0,
+                    },
+                    {
+                        "axisAlpha": 0,
+                        "title": "Time in Ticks",
+                        "position": "bottom",
+                        "maximum": max_tick,
+                    }
+                ],
+                "chartScrollbar": {},
+                "chartCursor": {},
                 "export": {
                   "enabled": true
                 }
