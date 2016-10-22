@@ -86,52 +86,92 @@
           <p id="timestamps"  style="display: none;">{{timestamps}}</p>
           <p id="val" style="display: none;">{{val}}</p>
 
-          <script type="text/javascript" src="../../static/Chart.js"></script>
-          <canvas id="waveform" style="width:100%; height:200px"></canvas>
+          <!-- Generating Waveform -->
+          <script src="https://www.amcharts.com/lib/3/amcharts.js"></script>
+          <script src="https://www.amcharts.com/lib/3/serial.js"></script>
+          <script src="https://www.amcharts.com/lib/3/plugins/export/export.min.js"></script>
+          <link rel="stylesheet" href="https://www.amcharts.com/lib/3/plugins/export/export.css" type="text/css" media="all"/>
+          <script src="https://www.amcharts.com/lib/3/themes/light.js"></script>
+          <div id="waveform" style="width:100%; height:500px;"></div>
 
           <script type="text/javascript">
             var label = document.getElementById('timestamps').innerHTML;
             var data = document.getElementById('val').innerHTML;
 
-            label = label.replace('[', '')
-            label = label.replace(']', '')
-            var label_array = label.split(',')
-            var timestamps = []
-            for(item in label_array)
-              timestamps.push(parseInt(label_array[item]))
+            label = label.replace('[', '');
+            label = label.replace(']', '');
+            var timestamps = label.split(',');
+            for(var i=0; i<timestamps.length; i++)
+              timestamps[i]= timestamps[i].replace(' ','');
 
-
-            data = data.replace('[', '')
-            data = data.replace(']', '')
-            var data_array = data.split(',')
-            var signal = []
+            data = data.replace('[', '');
+            data = data.replace(']', '');
+            var data_array = data.split(',');
+            var signal = [];
             for(item in data_array)
-              signal.push(parseInt(data_array[item]))
+              signal.push(parseInt(data_array[item]));
 
-             $(function() {
-               console.log(signal);
-               console.log(timestamps);
-                 var output_file_data = {
-                     labels : timestamps,
-                     datasets : [
-                         {
-                           fill: false,
-                           lineTension: 0.1,
-                           pointBorderWidth: 1,
-                           pointHoverRadius: 5,
-                           pointRadius: 1,
-                           pointHitRadius: 10,
-                           data : signal
-                         }
-                     ]
-                 }
 
-                 var output_waveform = document.getElementById('waveform').getContext('2d');
-                 new Chart(output_waveform, {
-                   type: 'line',
-                   data: output_file_data
-                 }).Line(output_file_data);
-               });
+            waveform_data = [];
+            for(var i=0; i<timestamps.length; i++){
+              waveform_data.push({
+                "year":timestamps[i],
+                "value":signal[i]
+              });
+            }
+
+            var chart = AmCharts.makeChart("waveform", {
+            "type": "serial",
+            "titles":[{"text":"Output Waveform"}],
+            "theme": "light",
+            "autoMarginOffset":25,
+            "dataProvider": waveform_data,
+            "graphs": [{
+                "id":"g1",
+                "balloonText": "[[year]]<br><b>[[value]]</b>",
+                "type": "step",
+                "lineThickness": 2,
+                "bullet":"square",
+                "bulletAlpha":0,
+                "bulletSize":4,
+                "bulletBorderAlpha":0,
+                "valueField": "value"
+            }],
+            "chartScrollbar": {
+                "graph":"g1",
+                "gridAlpha":0,
+                "color":"#888888",
+                "scrollbarHeight":55,
+                "backgroundAlpha":0,
+                "selectedBackgroundAlpha":0.1,
+                "selectedBackgroundColor":"#888888",
+                "graphFillAlpha":0,
+                "autoGridCount":true,
+                "selectedGraphFillAlpha":0,
+                "graphLineAlpha":1,
+                "graphLineColor":"#c2c2c2",
+                "selectedGraphLineColor":"#888888",
+                "selectedGraphLineAlpha":1
+            },
+            "chartCursor": {
+                "fullWidth":true,
+                "cursorAlpha": 0.05,
+                "graphBulletAlpha": 1
+            },
+            "categoryField": "year",
+            "categoryAxis": {
+                "gridAlpha": 0
+            },
+            "export": {
+                "enabled": true
+             }
+          });
+
+          chart.addListener("dataUpdated", zoomChart);
+
+          function zoomChart(){
+            chart.zoomToIndexes(0, 20);
+          }
           </script>
 
           <hr>
