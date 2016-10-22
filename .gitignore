@@ -33,12 +33,15 @@ embed_grader/uploaded_files
 
 #Nginx config file
 embed_grader_nginx.conf
+dev_grader_nginx.conf
 
 #List of useful commands: start/stop server, log files
 production_server_commands.txt
 
 #uwsgi initialization file
 embed_grader/embed_grader_wsgi.ini
+embed_grader/dev_grader_wsgi.ini
 
 #SSL/TLS certification bot
 certbot-auto
+
