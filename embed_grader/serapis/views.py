@@ -660,18 +660,83 @@ def task_grading_detail(request, task_grading_id):
     if grading.grading_detail:
         feedback = open(grading.grading_detail.path, 'r').read()
 
-    output = ''
-    timestamps = []
-    val = []
+    if not grading.output_file:
+        print('Something serious wrong. output file cannot be found in TaskGradingStatus ID=%d' % grading.id)
+        return HttpResponse("Please contact PI (TaskGradingStatus ID=%d)" % grading.id)
 
-    if grading.output_file:
-        outputfile = open(grading.output_file.path, 'r')
-        lines = outputfile.readlines()
-        for line in lines:
-            line = line.rstrip('\n')
-            line = line.split(',')
-            timestamps.append(int(line[1]))
-            val.append(int(line[2]))
+    with open(assignment_task.test_input.path, 'r') as f:
+        lines = f.readlines()
+    lines = [l.strip().split(',') for l in lines]
+    in_events = [(float(l[1]), int(l[2])) for l in lines if int(l[0]) == 68]
+    if not in_events:
+        in_events = [(0.0, 0)]
+    elif in_events[0][0] != 0:
+        in_events[0:0] = [(0.0, 0)]
+
+    with open(grading.output_file.path, 'r') as f:
+        lines = f.readlines()
+    lines = [l.strip().split(',') for l in lines]
+    out_events = [(float(l[1]), int(l[2])) for l in lines if int(l[0]) == 68]
+    if not out_events:
+        out_events = [(0.0, 0)]
+    elif out_events[0][0] != 0:
+        out_events[0:0] = [(0.0, 0)]
+   
+    #TODO: remove the assumption of 1 sec = 5000 ticks
+    session_length = assignment_task.execution_duration * 5000.0
+
+    #TODO: now only assume 13 input pins and 2 output pins, which we should generalize this part
+    events = []
+    in_idx = 0
+    out_idx = 0
+    in_last_val = 0
+    out_last_val = 0
+    while in_idx < len(in_events) or out_idx < len(out_events):
+        if in_idx == len(in_events):
+            cur_time = out_events[out_idx][0]
+            out_last_val = out_events[out_idx][1]
+            out_idx += 1
+        elif out_idx == len(out_events):
+            cur_time = in_events[in_idx][0]
+            in_last_val = in_events[in_idx][1]
+            in_idx += 1
+        else:
+            cur_time = min(in_events[in_idx][0], out_events[out_idx][0])
+            if in_events[in_idx][0] == cur_time:
+                in_last_val = in_events[in_idx][1]
+                in_idx += 1
+            if out_events[out_idx][0] == cur_time:
+                out_last_val = out_events[out_idx][1]
+                out_idx += 1
+        cur_val = in_last_val | (out_last_val) << 13
+        events.append((cur_time, cur_val))
+    events.append((session_length + 0.01, cur_val))
+    
+    plot_time = []
+    plot_data = [[] for _ in range(3 + 2)]
+    plot_labels = [
+            'D6-D2 (period)',
+            'D13-D7 (ratio)',
+            'D1 (req)',
+            'D14 (hardware PWM)',
+            'D0 (software PWM)']
+    bit_lens = [5, 7, 1, 1, 1]
+    for i in range(len(events) - 1):
+        plot_time.append(events[i][0])
+        v = events[i][1]
+        for j in range(5):
+            mask = (1 << bit_lens[j]) - 1
+            plot_data[j].append(v & mask)
+            v >>= bit_lens[j]
+        
+        plot_time.append(events[i+1][0] - 0.01)
+        v = events[i][1]
+        for j in range(5):
+            mask = (1 << bit_lens[j]) - 1
+            plot_data[j].append(v & mask)
+            v >>= bit_lens[j]
+    plot_pack = {'time': plot_time, 'data': plot_data, 'labels': plot_labels}
+    js_plot_pack_string = json.dumps(plot_pack)
 
     template_context = {
         'myuser': request.user,
@@ -682,8 +747,7 @@ def task_grading_detail(request, task_grading_id):
         'grading': grading,
         'assignment_task': assignment_task,
         'feedback': feedback,
-        'timestamps': timestamps,
-        'val': val
+        'js_plot_pack_string': js_plot_pack_string,
     }
 
     return render(request, 'serapis/task_grading_detail.html', template_context)

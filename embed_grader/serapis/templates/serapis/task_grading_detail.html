@@ -83,8 +83,6 @@
             style="font-size: 12px;background:white; color:SteelBlue; border-color:SteelBlue;">
             <span class="glyphicon glyphicon-download-alt"></span> &nbsp;Download
           </a></h5>
-          <p id="timestamps"  style="display: none;">{{timestamps}}</p>
-          <p id="val" style="display: none;">{{val}}</p>
 
           <!-- Generating Waveform -->
           <script src="https://www.amcharts.com/lib/3/amcharts.js"></script>
@@ -92,86 +90,80 @@
           <script src="https://www.amcharts.com/lib/3/plugins/export/export.min.js"></script>
           <link rel="stylesheet" href="https://www.amcharts.com/lib/3/plugins/export/export.css" type="text/css" media="all"/>
           <script src="https://www.amcharts.com/lib/3/themes/light.js"></script>
-          <div id="waveform" style="width:100%; height:500px;"></div>
+          <div id="waveform3" style="width:100%; height:300px;"></div>
+          <div id="waveform4" style="width:100%; height:300px;"></div>
+          <div id="waveform0" style="width:100%; height:300px;"></div>
+          <div id="waveform1" style="width:100%; height:300px;"></div>
+          <div id="waveform2" style="width:100%; height:300px;"></div>
 
           <script type="text/javascript">
-            var label = document.getElementById('timestamps').innerHTML;
-            var data = document.getElementById('val').innerHTML;
+            {% autoescape off %}
+            var plot_pack = {{ js_plot_pack_string }};
+            {% endautoescape %}
 
-            label = label.replace('[', '');
-            label = label.replace(']', '');
-            var timestamps = label.split(',');
-            for(var i=0; i<timestamps.length; i++)
-              timestamps[i]= timestamps[i].replace(' ','');
+            charts = []
+            for (var cid = 0; cid < plot_pack.data.length; cid++) {
+              waveform_data = [];
+              for (var i = 0; i < plot_pack.data[cid].length; i++){
+                waveform_data.push({
+                  "tick": plot_pack.time[i],
+                  "value": plot_pack.data[cid][i]
+                });
+              }
 
-            data = data.replace('[', '');
-            data = data.replace(']', '');
-            var data_array = data.split(',');
-            var signal = [];
-            for(item in data_array)
-              signal.push(parseInt(data_array[item]));
-
-
-            waveform_data = [];
-            for(var i=0; i<timestamps.length; i++){
-              waveform_data.push({
-                "year":timestamps[i],
-                "value":signal[i]
+              gid = "g" + cid;
+              charts[cid] = AmCharts.makeChart("waveform" + cid, {
+                "type": "serial",
+                "titles": [{"text": plot_pack.labels[cid]}],
+                "theme": "light",
+                "autoMarginOffset": 25,
+                "dataProvider": waveform_data,
+                "graphs": [{
+                  "id": gid,
+                  "balloonText": "[[tick]]<br><b>[[value]]</b>",
+                  "type": "step",
+                  "lineThickness": 2,
+                  "bullet": "square",
+                  "bulletAlpha": 0,
+                  "bulletSize": 4,
+                  "bulletBorderAlpha": 0,
+                  "valueField": "value"
+                }],
+                "chartScrollbar": {
+                  "graph": gid,
+                  "gridAlpha": 0,
+                  "color": "#888888",
+                  "scrollbarHeight": 55,
+                  "backgroundAlpha": 0,
+                  "selectedBackgroundAlpha": 0.1,
+                  "selectedBackgroundColor": "#888888",
+                  "graphFillAlpha": 0,
+                  "autoGridCount": true,
+                  "selectedGraphFillAlpha": 0,
+                  "graphLineAlpha": 1,
+                  "graphLineColor": "#c2c2c2",
+                  "selectedGraphLineColor": "#888888",
+                  "selectedGraphLineAlpha": 1
+                },
+                "chartCursor": {
+                  "fullWidth":true,
+                  "cursorAlpha": 0.05,
+                  "graphBulletAlpha": 1
+                },
+                "categoryField": "tick",
+                "categoryAxis": {
+                  "gridAlpha": 0
+                },
+                "export": {
+                  "enabled": true
+                }
               });
+
+              //function zoomChart() {
+              //  charts[cid].zoomToIndexes(0, 20);
+              //}
+              //charts[cid].addListener("dataUpdated", zoomChart);
             }
-
-            var chart = AmCharts.makeChart("waveform", {
-            "type": "serial",
-            "titles":[{"text":"Output Waveform"}],
-            "theme": "light",
-            "autoMarginOffset":25,
-            "dataProvider": waveform_data,
-            "graphs": [{
-                "id":"g1",
-                "balloonText": "[[year]]<br><b>[[value]]</b>",
-                "type": "step",
-                "lineThickness": 2,
-                "bullet":"square",
-                "bulletAlpha":0,
-                "bulletSize":4,
-                "bulletBorderAlpha":0,
-                "valueField": "value"
-            }],
-            "chartScrollbar": {
-                "graph":"g1",
-                "gridAlpha":0,
-                "color":"#888888",
-                "scrollbarHeight":55,
-                "backgroundAlpha":0,
-                "selectedBackgroundAlpha":0.1,
-                "selectedBackgroundColor":"#888888",
-                "graphFillAlpha":0,
-                "autoGridCount":true,
-                "selectedGraphFillAlpha":0,
-                "graphLineAlpha":1,
-                "graphLineColor":"#c2c2c2",
-                "selectedGraphLineColor":"#888888",
-                "selectedGraphLineAlpha":1
-            },
-            "chartCursor": {
-                "fullWidth":true,
-                "cursorAlpha": 0.05,
-                "graphBulletAlpha": 1
-            },
-            "categoryField": "year",
-            "categoryAxis": {
-                "gridAlpha": 0
-            },
-            "export": {
-                "enabled": true
-             }
-          });
-
-          chart.addListener("dataUpdated", zoomChart);
-
-          function zoomChart(){
-            chart.zoomToIndexes(0, 20);
-          }
           </script>
 
           <hr>

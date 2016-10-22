@@ -37,6 +37,7 @@ dev_grader_nginx.conf
 
 #List of useful commands: start/stop server, log files
 production_server_commands.txt
+dev_server_commands.txt
 
 #uwsgi initialization file
 embed_grader/embed_grader_wsgi.ini
