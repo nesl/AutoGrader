@@ -119,8 +119,12 @@
                           <span class="glyphicon glyphicon-download-alt"></span> Download</a>
                       </td>
                       <td>
+                        {% if s.0.grading_detail %}
                         <a href="{% url 'task-grading-detail' s.0.id %}" class="btn btn-primary" style="font-size: 12px;
                         background:white; color:SteelBlue; border-color:SteelBlue; width:100px">
+                        {% else %}
+                        <a class="btn btn-primary" style="font-size: 12px; background:white; color:grey; border-color:grey; width:100px">
+                        {% endif %}
                           <span class="glyphicon glyphicon-file"></span> Detail </a>
                       </td>
                     {% else %}
