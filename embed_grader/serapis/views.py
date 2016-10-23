@@ -364,23 +364,27 @@ def assignment(request, assignment_id):
     if request.method == 'POST':
         form = AssignmentSubmissionForm(request.POST, request.FILES)
         if form.is_valid():
-            submission = form.save(commit=False)
-            submission.student_id = user
-            submission.assignment_id = assignment
-            submission.submission_time = timezone.now()
-            submission.grading_result = 0.
-            submission.status = Submission.STAT_GRADING
-            submission.save()
+            if assignment.is_deadline_passed() and not user.has_perm('modify_assignment', course):
+                #TODO: Show error message: deadline is passed
+                print('Silent error msg: deadline is passed')
+            else:
+                submission = form.save(commit=False)
+                submission.student_id = user
+                submission.assignment_id = assignment
+                submission.submission_time = timezone.now()
+                submission.grading_result = 0.
+                submission.status = Submission.STAT_GRADING
+                submission.save()
 
-            # dispatch grading tasks
-            for assignment_task in assignment_tasks:
-                grading_task = TaskGradingStatus()
-                grading_task.submission_id = submission
-                grading_task.assignment_task_id = assignment_task
-                grading_task.grading_status = TaskGradingStatus.STAT_PENDING
-                grading_task.execution_status = TaskGradingStatus.EXEC_UNKNOWN
-                grading_task.status_update_time = timezone.now()
-                grading_task.save()
+                # dispatch grading tasks
+                for assignment_task in assignment_tasks:
+                    grading_task = TaskGradingStatus()
+                    grading_task.submission_id = submission
+                    grading_task.assignment_task_id = assignment_task
+                    grading_task.grading_status = TaskGradingStatus.STAT_PENDING
+                    grading_task.execution_status = TaskGradingStatus.EXEC_UNKNOWN
+                    grading_task.status_update_time = timezone.now()
+                    grading_task.save()
 
     # get true total points and total points to students
     for assignment_task in assignment_tasks:

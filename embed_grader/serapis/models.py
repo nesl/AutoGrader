@@ -178,11 +178,17 @@ class Assignment(models.Model):
             return Assignment.VIEWING_SCOPE_NO
 
         # students can see everything after deadline
-        if now >= self.release_time:
+        if now >= self.deadline:
             return Assignment.VIEWING_SCOPE_FULL
 
         # during the homework session (before deadline), students can only see some cases
         return VIEWING_SCOPE_PARTIAL
+
+    def is_released(self):
+        return timezone.now() > self.release_time
+       
+    def is_deadline_passed(self): 
+        return timezone.now() >= self.deadline
 
 
 class AssignmentTask(models.Model):
