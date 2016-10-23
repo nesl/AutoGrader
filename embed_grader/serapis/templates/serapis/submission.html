@@ -90,7 +90,7 @@
                     {% endif %}
 
                     {% get_obj_perms request.user for course as "course_perms" %}
-                    {% if "modify_course" in course_perms or s.0.assignment_task_id.mode == 0 %}
+                    {% if "modify_course" in course_perms or s.0.assignment_task_id.mode == 0 or now > assignment.deadline%}
                       <td>
                         {% if s.0.output_file %}
                         <a href="{{ MEDIA_URL }}{{ s.0.output_file.url }}" class="btn btn-primary" style="font-size: 12px;

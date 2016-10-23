@@ -389,7 +389,7 @@ def assignment(request, assignment_id):
     # get true total points and total points to students
     for assignment_task in assignment_tasks:
         total_points += assignment_task.points
-        if assignment_task.mode != AssignmentTask.MODE_HIDDEN:
+        if assignment_task.mode != AssignmentTask.MODE_HIDDEN or now > assignment.deadline:
             public_points += assignment_task.points
 
     submission_form = AssignmentSubmissionForm()
@@ -418,7 +418,7 @@ def assignment(request, assignment_id):
 
         for task in tasks:
             if task.grading_status == TaskGradingStatus.STAT_FINISH:
-                if user.has_perm('modify_assignment', course) or task.assignment_task_id.mode != AssignmentTask.MODE_HIDDEN:
+                if user.has_perm('modify_assignment', course) or task.assignment_task_id.mode != AssignmentTask.MODE_HIDDEN or now > assignment.deadline:
                     total_submission_points += task.points
 
         submission_grading_detail.append(total_submission_points)
@@ -597,15 +597,16 @@ def submission(request, submission_id):
             return HttpResponse("Not enough privilege")
 
     gradings = TaskGradingStatus.objects.filter(submission_id=submission_id).order_by('assignment_task_id')
-    if not user.has_perm('modify_assignment',course):
-        assignment_tasks = AssignmentTask.objects.filter(assignment_id=assignment).exclude(mode=AssignmentTask.MODE_HIDDEN).order_by('id')
-    else:
+    now = datetime.now(tz=pytz.timezone('UTC'))
+    if user.has_perm('modify_assignment',course) or now > assignment.deadline:
         assignment_tasks = AssignmentTask.objects.filter(assignment_id=assignment).order_by('id')
+    else:
+        assignment_tasks = AssignmentTask.objects.filter(assignment_id=assignment).exclude(mode=AssignmentTask.MODE_HIDDEN).order_by('id')
 
     task_symbols = []
     score = 0;
     for task in gradings:
-        if user.has_perm('modify_assignment', course) or task.assignment_task_id.mode != AssignmentTask.MODE_HIDDEN:
+        if user.has_perm('modify_assignment', course) or task.assignment_task_id.mode != AssignmentTask.MODE_HIDDEN or now > assignment.deadline:
             if task.grading_status == TaskGradingStatus.STAT_PENDING:
                 task_symbols.append('Pending')
             elif task.grading_status == TaskGradingStatus.STAT_EXECUTING:
@@ -636,6 +637,7 @@ def submission(request, submission_id):
         'score':score,
         'total_points':total_points,
         'myuser': request.user,
+        'now':now
     }
     return render(request, 'serapis/submission.html', template_context)
 
@@ -685,7 +687,7 @@ def task_grading_detail(request, task_grading_id):
         out_events = [(0.0, 0)]
     elif out_events[0][0] != 0:
         out_events[0:0] = [(0.0, 0)]
-   
+
     #TODO: remove the assumption of 1 sec = 5000 ticks
     session_length = assignment_task.execution_duration * 5000.0
 
@@ -715,7 +717,7 @@ def task_grading_detail(request, task_grading_id):
         cur_val = in_last_val | (out_last_val) << 13
         events.append((cur_time, cur_val))
     events.append((session_length + 0.01, cur_val))
-    
+
     plot_time = []
     plot_data = [[] for _ in range(3 + 2)]
     plot_labels = [
@@ -732,7 +734,7 @@ def task_grading_detail(request, task_grading_id):
             mask = (1 << bit_lens[j]) - 1
             plot_data[j].append(v & mask)
             v >>= bit_lens[j]
-        
+
         plot_time.append(events[i+1][0] - 0.01)
         v = events[i][1]
         for j in range(5):
@@ -771,19 +773,23 @@ def submissions_full_log(request):
         course = s.assignment_id.course_id
         course_list.append(course)
 
+        assignment = s.assignment_id;
+        now = datetime.now(tz=pytz.timezone('UTC'))
+
         gradings = TaskGradingStatus.objects.filter(submission_id=s.id).order_by('assignment_task_id')
         score = 0;
         for task in gradings:
-            if user.has_perm('modify_assignment', course) or task.assignment_task_id.mode != AssignmentTask.MODE_HIDDEN:
+            if user.has_perm('modify_assignment', course) or task.assignment_task_id.mode != AssignmentTask.MODE_HIDDEN or now > assignment.deadline:
                 if task.grading_status == TaskGradingStatus.STAT_FINISH:
                     score += task.points
         score = round(score, 2)
         score_list.append(score)
 
-        if not user.has_perm('modify_assignment', course):
-            assignment_tasks = AssignmentTask.objects.filter(assignment_id=s.assignment_id).exclude(mode=2).order_by('id')
-        else:
+        if user.has_perm('modify_assignment', course) or now > assignment.deadline:
             assignment_tasks = AssignmentTask.objects.filter(assignment_id=s.assignment_id).order_by('id')
+        else:
+            assignment_tasks = AssignmentTask.objects.filter(assignment_id=s.assignment_id).exclude(mode=2).order_by('id')
+
 
         total_points = 0
         for a in assignment_tasks:
