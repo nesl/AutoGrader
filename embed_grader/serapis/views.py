@@ -13,6 +13,7 @@ from django import forms
 from django.core.urlresolvers import reverse
 from django.db import IntegrityError
 from django.db import transaction
+from django.db.models import Max
 
 from django.utils import timezone
 from datetime import datetime, timedelta
@@ -28,9 +29,8 @@ from guardian.shortcuts import assign_perm
 
 import hashlib, random, pytz
 
-from chartjs.views.lines import BaseLineChartView
 from django.views.generic import TemplateView
-
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 #TODO(timestring): recheck whether I should use disabled instead of readonly to enforce data integrity
 
 
@@ -393,13 +393,15 @@ def assignment(request, assignment_id):
             public_points += assignment_task.points
 
     submission_form = AssignmentSubmissionForm()
-
+    submission_short_list = []
     if user.has_perm('modify_assignment', course):
-        submission_list = Submission.objects.filter(assignment_id=assignment).order_by('-submission_time')
-        submission_short_list = submission_list
+        submission_list = Submission.objects.filter(assignment_id=assignment).values('student_id').annotate(submission_time = Max('submission_time'))
+        for s in submission_list:
+            submission_short_list.append(Submission.objects.get(student_id = s['student_id'], submission_time=s['submission_time']))
+        submission_short_list.sort(key=lambda x:x.submission_time, reverse=True)
     else:
         submission_list = Submission.objects.filter(student_id=user, assignment_id=assignment).order_by('-submission_time')
-        num_display = min(5, len(submission_list))
+        num_display = min(10, len(submission_list))
         submission_short_list = submission_list[:num_display]
 
     submission_grading_detail = []
@@ -425,7 +427,16 @@ def assignment(request, assignment_id):
         gradings.append(round(total_submission_points, 2))
 
 
-    submission_n_detail_short_list = zip(submission_short_list, submission_grading_detail, gradings, student_list)
+    recent_submission_list = list(zip(submission_short_list, submission_grading_detail, gradings, student_list))
+
+    # page = request.GET.get('page',1)
+    # paginator = Paginator(recent_submission_list, 5)
+    # try:
+    #     submission_log = paginator.page(page)
+    # except PageNotAnInteger:
+    #     submission_log = paginator.page(1)
+    # except EmptyPage:
+    #     submission_log = paginator.page(paginator.num_pages)
 
     template_context = {
             'myuser': request.user,
@@ -433,7 +444,7 @@ def assignment(request, assignment_id):
             'assignment': assignment,
             'course': course,
             'submission_form': submission_form,
-            'submission_n_detail_short_list': submission_n_detail_short_list,
+            'submission_n_detail_short_list': recent_submission_list,
             'tasks': assignment_tasks,
             'total_points': total_points,
             'public_points': public_points,
@@ -796,7 +807,17 @@ def submissions_full_log(request):
             total_points += a.points
         total_points_list.append(round(total_points,2))
 
-    submission_full_log = zip(submission_list, course_list, score_list, total_points_list)
+    page = request.GET.get('page',1)
+    submission_full_log_list = list(zip(submission_list, course_list, score_list, total_points_list))
+    paginator = Paginator(submission_full_log_list, 10)
+    try:
+        submission_full_log = paginator.page(page)
+    except PageNotAnInteger:
+        submission_full_log = paginator.page(1)
+    except EmptyPage:
+        submission_full_log = paginator.page(paginator.num_pages)
+
+
     template_context = {
         'user': user,
         'submission_full_log':submission_full_log,

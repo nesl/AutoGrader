@@ -24,7 +24,6 @@ SECRET_KEY = config.secret_key
 DEBUG = config.debug
 
 ALLOWED_HOSTS = ['.autograder.nesl.ucla.edu']
-# DEBUG = True
 # ALLOWED_HOSTS = []
 
 # Application definition
