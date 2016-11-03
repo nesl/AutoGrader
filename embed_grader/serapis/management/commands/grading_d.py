@@ -4,6 +4,8 @@ import datetime
 import time
 import subprocess
 import json
+import pytz
+import random
 
 from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand
@@ -18,26 +20,34 @@ K_TESTBED_INVALIDATION_REMOVE_SEC = 10 * 60
 
 K_GRADING_GRACE_PERIOD_SEC = 60
 
-K_CYCLE_DURATION_SEC = 5
+#TODO: rename the variable, change the purpose already because randomness
+K_CYCLE_DURATION_SEC = 4
 
+TB_ID = 4
 
 class Command(BaseCommand):
     help = 'Daemon of sending grading tasks to backend'
 
     just_printed_idle_msg = False
+    idle_cnt = 0
 
     def _printAlive(self):
-        sys.stdout.write('.')
-        sys.stdout.flush()
-        self.just_printed_idle_msg = True
+        self.idle_cnt += 1
+        if self.idle_cnt % 1 == 0:
+            sys.stdout.write('.')
+            sys.stdout.flush()
+            self.just_printed_idle_msg = True
 
     def _printMessage(self, msg):
+        time_str = timezone.now().astimezone(pytz.timezone('US/Pacific')).strftime("%H:%M:%S")
         if self.just_printed_idle_msg:
             print()
             self.just_printed_idle_msg = False
-        print(msg)
+            self.idle_cnt = 0
+        final_msg = '%s - %s' % (time_str, msg)
+        print(final_msg)
         with open('/tmp/embed_grader_scheduler.log', 'a') as fo:
-            fo.write(msg + '\n')
+            fo.write(final_msg + '\n')
 
     def handle(self, *args, **options):
         timer_testbed_invalidation_offline = 0
@@ -78,6 +88,7 @@ class Command(BaseCommand):
             # hardware is not aware. If the testbed passed the grading deadline without reporting
             # grading results, we abort the grading task and reset the status
             testbed_list = Testbed.objects.filter(
+                    unique_hardware_id=TB_ID,
                     status=Testbed.STATUS_BUSY,
                     grading_deadline__lt=now)
             for testbed in testbed_list:
@@ -92,19 +103,12 @@ class Command(BaseCommand):
                 else:
                     self._printMessage('Wait, no grading task is found, why being busy then')
 
-            #TODO: delete the following thing, currently for debugging
-            #task_list = TaskGradingStatus.objects.all()
-            #n = len(task_list)
-            #t = task_list[n-1]
-            #t.grading_status = TaskGradingStatus.STAT_PENDING
-            #t.save()
-
             #
             # task assignment
             #
             while True:
                 #TODO: I also need to check the testbed type
-                testbed_list = Testbed.objects.filter(status=Testbed.STATUS_AVAILABLE)
+                testbed_list = Testbed.objects.filter(status=Testbed.STATUS_AVAILABLE, unique_hardware_id=TB_ID)
                 if not testbed_list:
                     break
 
@@ -132,11 +136,8 @@ class Command(BaseCommand):
                 task.DUT_serial_output = None
                 task.save()
 
-                self._printMessage('grading task id=%d using testbed hardware_id=%s' % (task.id, testbed.unique_hardware_id))
-                self._printMessage('Grading task %d, status=%s, pts=%.2f, sub=%s, hw_task=%s, hw=%s, course=%s' % (
+                self._printMessage('Executing task %d, sub=%s, hw_task=%s, hw=%s, course=%s' % (
                     task.id,
-                    task.get_grading_status_display(),
-                    task.points,
                     task.submission_id,
                     task.assignment_task_id,
                     task.submission_id.assignment_id,
@@ -147,7 +148,7 @@ class Command(BaseCommand):
                     # upload firmware command
                     filename = task.submission_id.file.path
                     url = 'http://' + testbed.ip_address + '/dut/program/'
-                    data = {'num_duts': 1, 'dut0': testbed.unique_hardware_id}
+                    data = {'num_duts': 1, 'dut0': 1}
                     files = {'firmware0': ('filename', open(filename, 'rb'), 'text/plain')}
                     r = requests.post(url, data=data, files=files)
 
@@ -220,4 +221,4 @@ class Command(BaseCommand):
 
             # go to sleep
             self._printAlive()
-            time.sleep(K_CYCLE_DURATION_SEC)
+            time.sleep(1.0 + K_CYCLE_DURATION_SEC * random.random())
