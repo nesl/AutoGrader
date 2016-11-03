@@ -77,8 +77,29 @@
             {% endfor %}
         </table>
       {% endif %}
-    </div>
 
-
+      <div style="margin:0 auto;">
+        {% if submission_full_log.has_other_pages %}
+          <ul class="pagination">
+            {% if submission_full_log.has_previous %}
+              <li><a href="?page={{ submission_full_log.previous_page_number }}">&laquo;</a></li>
+            {% else %}
+              <li class="disabled"><span>&laquo;</span></li>
+            {% endif %}
+            {% for i in submission_full_log.paginator.page_range %}
+              {% if submission_full_log.number == i %}
+                <li class="active"><span>{{ i }} <span class="sr-only">(current)</span></span></li>
+              {% else %}
+                <li><a href="?page={{ i }}">{{ i }}</a></li>
+              {% endif %}
+            {% endfor %}
+            {% if submission_full_log.has_next %}
+              <li><a href="?page={{ submission_full_log.next_page_number }}">&raquo;</a></li>
+            {% else %}
+              <li class="disabled"><span>&raquo;</span></li>
+            {% endif %}
+          </ul>
+        {% endif %}
+      </div>
     </div>
 {% endblock %}

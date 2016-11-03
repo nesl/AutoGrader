@@ -28,9 +28,8 @@ from guardian.shortcuts import assign_perm
 
 import hashlib, random, pytz
 
-from chartjs.views.lines import BaseLineChartView
 from django.views.generic import TemplateView
-
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 #TODO(timestring): recheck whether I should use disabled instead of readonly to enforce data integrity
 
 
@@ -796,7 +795,17 @@ def submissions_full_log(request):
             total_points += a.points
         total_points_list.append(round(total_points,2))
 
-    submission_full_log = zip(submission_list, course_list, score_list, total_points_list)
+    page = request.GET.get('page',1)
+    submission_full_log_list = list(zip(submission_list, course_list, score_list, total_points_list))
+    paginator = Paginator(submission_full_log_list, 10)
+    try:
+        submission_full_log = paginator.page(page)
+    except PageNotAnInteger:
+        submission_full_log = paginator.page(1)
+    except EmptyPage:
+        submission_full_log = paginator.page(paginator.num_pages)
+
+
     template_context = {
         'user': user,
         'submission_full_log':submission_full_log,
