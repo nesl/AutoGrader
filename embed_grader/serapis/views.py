@@ -817,11 +817,18 @@ def submissions_full_log(request):
     except EmptyPage:
         submission_full_log = paginator.page(paginator.num_pages)
 
+    index = submission_full_log.number - 1
+    max_index = len(paginator.page_range)
+    start_index = index - 3 if index >= 3 else 0
+    end_index = index + 3 if index <= max_index - 3 else max_index
+    page_range = paginator.page_range[start_index:end_index]
+
 
     template_context = {
         'user': user,
         'submission_full_log':submission_full_log,
         'myuser': request.user,
+        'page_range':page_range
     }
 
     return render(request, 'serapis/submissions_full_log.html', template_context)
