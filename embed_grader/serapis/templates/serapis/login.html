@@ -52,10 +52,11 @@
         <label for="id_password" class="sr-only">Password</label>
         <input type="password" id="id_password" name="password" class="form-control" placeholder="Password" required>
         <div class="checkbox">
-            <label>
-                <input type="checkbox" value="remember-me"> Remember me
-            </label>
+            <!-- <label>
+                <input name="remember_me" type="checkbox"> Remember me
+            </label> -->
             <a class="forgot" href="{% url 'password_reset' %}" style="float:right">Reset Password</a>
+            <br>
         </div>
         <br>
         <button class="btn btn-lg btn-primary btn-block" type="submit">Log In</button>

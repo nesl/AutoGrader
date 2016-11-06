@@ -109,3 +109,30 @@ Licensed under MIT
 .profile-content {
   min-height: 460px;
 }
+
+.nav-bar li:hover #submenu1 {
+  display: block;
+  max-height: 200px;
+}
+
+#submenu1 {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+#submenu1 a {
+  background-color: #f6f9fb;
+  font-size: 13px;
+  text-align: right;
+}
+
+#submenu1 a:hover {
+  background-color: white;
+}
+
+#submenu1 {
+  overflow: hidden;
+  max-height: 0;
+  -webkit-transition: all 0.5s ease-out;
+}
