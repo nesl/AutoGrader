@@ -40,7 +40,6 @@ INSTALLED_APPS = [
     'widget_tweaks',
     'bootstrap3',
     'guardian',
-    'chartjs',
     'sslserver'
 ]
 

@@ -1,7 +1,6 @@
 {% extends 'serapis/base_sidebar.html' %}
 {% load staticfiles %}
 
-
 {% block sidebar-content %}
   <!-- SIDEBAR USER TITLE -->
   <div class="profile-usertitle">
@@ -25,7 +24,7 @@
               data-target="#submenu1" aria-expanded="false">Submissions</a>
               <ul class="nav collapse" id="submenu1" role="menu" aria-labelledby="btn-1">
                 <li class="active"><a href="{% url 'submissions_full_log' %}">My Submissions</a></li>
-                <li><a href="{% url 'submissions_full_log' %}">Student Submissions</a></li>
+                <li><a href="">Student Submissions</a></li>
               </ul>
           </li>
           <li>
@@ -53,12 +52,37 @@
       {% if submissions_count == 0 %}
         <p>No submission history found.</p>
       {% else %}
+        <div class="filter">
+          <select class="form-control" id="course" style="width:200px; float:left; margin-right:10px">
+            <option value=0 selected>--- Select Course ---</option>
+            {% for course in course_list %}
+              <option value="{{course.id}}">{{ course.course_code }}</option>
+            {% endfor %}
+          </select>
+          <select class="form-control" id="assignment" style="width:200px;float:left;margin-right:10px">
+            <option value=0 selected>--- Select Assignment ---</option>
+            {% for assignment in assignment_list %}
+              <option value="{{assignment.id}}">{{ assignment.name }}</option>
+            {% endfor %}
+          </select>
+          <a id="filter" href="?course=0&assignment=0" class="btn btn-primary" style="width:100px" >Filter</a>
+          <script type="text/javascript">
+            $(document).ready(function() {
+              $("#course, #assignment").change(function(){
+                var selected_course = $("#course option:selected").val();
+                var selected_assignment = $("#assignment option:selected").val();
+                $('a').attr('href','?course='+selected_course+'&assignment='+selected_assignment);
+              });
+            });
+          </script>
+        </div>
+        <hr>
         <table class="table table-striped table-hover">
             <tr>
               <thead class="thead-default">
                 <th>Assignment</th>
                 <th>Score</th>
-                <th>Submission Time</th>
+                <th><a>Submission Time</a></th>
                 <th>Detail</th>
                 <th>Code</th>
               </thead>
