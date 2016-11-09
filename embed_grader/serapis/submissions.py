@@ -92,6 +92,88 @@ def submission(request, submission_id):
     return render(request, 'serapis/submission.html', template_context)
 
 
+@login_required(login_url='/login/')
+def submissions_full_log(request):
+    user = User.objects.get(username=request.user)
+
+    # check filters
+    filtered_course = request.GET.get('course')
+    filtered_assignment = request.GET.get('assignment')
+
+    if filtered_assignment and int(filtered_assignment) > 0:
+        assignment_obj = Assignment.objects.filter(id=filtered_assignment)
+        submission_list = Submission.objects.filter(student_id=user, assignment_id=filtered_assignment)
+        submissions_count = len(submission_list)
+    elif filtered_course and int(filtered_course) > 0:
+        filtered_assign_list = Assignment.objects.filter(course_id=filtered_course)
+        submission_list = Submission.objects.filter(student_id=user, assignment_id__in=filtered_assign_list)
+        submissions_count = len(submission_list)
+    else:
+        submission_list = Submission.objects.filter(student_id = user).order_by('-submission_time')
+        submissions_count = len(submission_list)
+
+    course_list = [];
+    assignment_list = [];
+    score_list = [];
+    total_points_list = [];
+    now = datetime.now(tz=pytz.timezone('UTC'))
+    for s in submission_list:
+        course = s.assignment_id.course_id
+        course_list.append(course)
+
+        assignment = s.assignment_id;
+        assignment_list.append(assignment)
+
+        gradings = TaskGradingStatus.objects.filter(submission_id=s.id).order_by('assignment_task_id')
+        score = 0;
+        for task in gradings:
+            if user.has_perm('modify_assignment', course) or task.assignment_task_id.mode != AssignmentTask.MODE_HIDDEN or now > assignment.deadline:
+                if task.grading_status == TaskGradingStatus.STAT_FINISH:
+                    score += task.points
+        score = round(score, 2)
+        score_list.append(score)
+
+        if user.has_perm('modify_assignment', course) or now > assignment.deadline:
+            assignment_tasks = AssignmentTask.objects.filter(assignment_id=s.assignment_id).order_by('id')
+        else:
+            assignment_tasks = AssignmentTask.objects.filter(assignment_id=s.assignment_id).exclude(mode=2).order_by('id')
+
+        total_points = 0
+        for a in assignment_tasks:
+            total_points += a.points
+        total_points_list.append(round(total_points,2))
+
+    page = request.GET.get('page',1)
+    submission_full_log_list = list(zip(submission_list, course_list, score_list, total_points_list))
+    # paginator = Paginator(submission_full_log_list, 10)
+    # try:
+    #     submission_full_log = paginator.page(page)
+    # except PageNotAnInteger:
+    #     submission_full_log = paginator.page(1)
+    # except EmptyPage:
+    #     submission_full_log = paginator.page(paginator.num_pages)
+
+    submission_full_log = submission_full_log_list
+
+    # index = submission_full_log.number - 1
+    # max_index = len(paginator.page_range)
+    # start_index = index - 3 if index >= 3 else 0
+    # end_index = index + 3 if index <= max_index - 3 else max_index
+    # page_range = paginator.page_range[start_index:end_index]
+
+
+    template_context = {
+        'user': user,
+        'submission_full_log':submission_full_log,
+        'myuser': request.user,
+        # 'page_range':page_range,
+        'course_list':set(course_list),
+        'assignment_list':set(assignment_list),
+        'now':datetime.now().replace(microsecond=0)
+    }
+
+    return render(request, 'serapis/submissions_full_log.html', template_context)
+
 
 @login_required(login_url='/login/')
 def task_grading_detail(request, task_grading_id):
@@ -209,86 +291,3 @@ def task_grading_detail(request, task_grading_id):
     }
 
     return render(request, 'serapis/task_grading_detail.html', template_context)
-
-
-
-@login_required(login_url='/login/')
-def submissions_full_log(request):
-    user = User.objects.get(username=request.user)
-
-    # check filters
-    filtered_course = request.GET.get('course')
-    filtered_assignment = request.GET.get('assignment')
-
-    if filtered_assignment and int(filtered_assignment) > 0:
-        assignment_obj = Assignment.objects.filter(id=filtered_assignment)
-        submission_list = Submission.objects.filter(student_id=user, assignment_id=filtered_assignment)
-        submissions_count = len(submission_list)
-    elif filtered_course and int(filtered_course) > 0:
-        filtered_assign_list = Assignment.objects.filter(course_id=filtered_course)
-        submission_list = Submission.objects.filter(student_id=user, assignment_id__in=filtered_assign_list)
-        submissions_count = len(submission_list)
-        print(submission_list)
-
-    else:
-        submission_list = Submission.objects.filter(student_id = user).order_by('-submission_time')
-        submissions_count = len(submission_list)
-
-    course_list = [];
-    assignment_list = [];
-    score_list = [];
-    total_points_list = [];
-    for s in submission_list:
-        course = s.assignment_id.course_id
-        course_list.append(course)
-
-        assignment = s.assignment_id;
-        assignment_list.append(assignment)
-        now = datetime.now(tz=pytz.timezone('UTC'))
-
-        gradings = TaskGradingStatus.objects.filter(submission_id=s.id).order_by('assignment_task_id')
-        score = 0;
-        for task in gradings:
-            if user.has_perm('modify_assignment', course) or task.assignment_task_id.mode != AssignmentTask.MODE_HIDDEN or now > assignment.deadline:
-                if task.grading_status == TaskGradingStatus.STAT_FINISH:
-                    score += task.points
-        score = round(score, 2)
-        score_list.append(score)
-
-        if user.has_perm('modify_assignment', course) or now > assignment.deadline:
-            assignment_tasks = AssignmentTask.objects.filter(assignment_id=s.assignment_id).order_by('id')
-        else:
-            assignment_tasks = AssignmentTask.objects.filter(assignment_id=s.assignment_id).exclude(mode=2).order_by('id')
-
-        total_points = 0
-        for a in assignment_tasks:
-            total_points += a.points
-        total_points_list.append(round(total_points,2))
-
-    page = request.GET.get('page',1)
-    submission_full_log_list = list(zip(submission_list, course_list, score_list, total_points_list))
-    paginator = Paginator(submission_full_log_list, 10)
-    try:
-        submission_full_log = paginator.page(page)
-    except PageNotAnInteger:
-        submission_full_log = paginator.page(1)
-    except EmptyPage:
-        submission_full_log = paginator.page(paginator.num_pages)
-
-    index = submission_full_log.number - 1
-    max_index = len(paginator.page_range)
-    start_index = index - 3 if index >= 3 else 0
-    end_index = index + 3 if index <= max_index - 3 else max_index
-    page_range = paginator.page_range[start_index:end_index]
-
-
-    template_context = {
-        'user': user,
-        'submission_full_log':submission_full_log,
-        'myuser': request.user,
-        'page_range':page_range,
-        'course_list':set(course_list),
-        'assignment_list':set(assignment_list)
-    }
-
-    return render(request, 'serapis/submissions_full_log.html', template_context)
