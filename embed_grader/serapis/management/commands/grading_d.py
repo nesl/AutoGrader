@@ -155,15 +155,15 @@ class Command(BaseCommand):
                     # upload input waveform command
                     filename = task.assignment_task_id.test_input.path
                     files = {'waveform': ('filename', open(filename, 'rb'), 'text/plain')}
-                    url = 'http://' + testbed.ip_address + '/tester/waveform/'
+                    url = 'http://' + testbed.ip_address + '/tb/upload_input_waveform/'
                     r = requests.post(url, data={'dut': testbed.unique_hardware_id}, files=files)
 
                     # reset command
-                    url = 'http://' + testbed.ip_address + '/tester/reset/'
+                    url = 'http://' + testbed.ip_address + '/he/reset/'
                     r = requests.post(url)
 
                     # start command
-                    url = 'http://' + testbed.ip_address + '/tester/start/'
+                    url = 'http://' + testbed.ip_address + '/tb/start/'
                     r = requests.post(url)
 
                 except requests.exceptions.ConnectionError:
