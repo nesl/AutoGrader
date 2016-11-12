@@ -43,6 +43,7 @@ class HardwareType(models.Model):
             ('view_hardware_type', 'View hardware type'),
         )
 
+
 class HardwareTypePin(models.Model):
     hardware_type = models.ForeignKey(HardwareType, on_delete = models.CASCADE)
     pin_name = models.CharField(max_length=10)
@@ -154,9 +155,9 @@ class Assignment(models.Model):
     output_statement = models.TextField()
 
     # testbed related
-    testbed_type_id = models.ForeignKey(TestbedType, on_delete = models.CASCADE, default = None, null = True)
+    testbed_type_id = models.ForeignKey(TestbedType, on_delete=models.CASCADE, default=None, null=True)
     # Testbenches are reserved using AssignmentTestBenches table
-    num_testbeds = models.IntegerField(default = None, null = True)
+    num_testbeds = models.IntegerField(default=None, null=True)
 
     # internal
     # TODO: status (completition of problem statement, is it ready to submit)
@@ -206,9 +207,9 @@ class AssignmentTask(models.Model):
     mode = models.IntegerField(choices=EVAL_MODES)
     points = models.FloatField()
     description = models.TextField(null=True)
-    test_input = models.FileField(upload_to='AssignmentTask_test_input')
-    grading_script = models.FileField(upload_to='AssignmentTask_grading_script')
+    
     execution_duration = models.FloatField()
+    grading_script = models.FileField(upload_to='AssignmentTask_grading_script')
 
     def __str__(self):
         return self.brief_description
@@ -228,6 +229,17 @@ class AssignmentTask(models.Model):
         return user.has_perm('create_assignment', self.assignment_id.course_id)
 
 
+class AssignmentTaskFileSchema(models.Model):
+    assignment_id = models.ForeignKey(Assignment, on_delete=models.CASCADE)
+    field = models.CharField(max_length=100)
+
+
+class AssignmentTaskFile(models.Model):
+    assignment_task_id = models.ForeignKey(AssignmentTask, on_delete=models.CASCADE)
+    file_schema_id = models.ForeignKey(AssignmentTaskFileSchema, on_delete=models.CASCADE)
+    file = models.FileField(upload_to='AssignmentTaskFile_file')
+
+
 class Submission(models.Model):
     STAT_RECEIVED = 0
     STAT_GRADING = 10
@@ -245,16 +257,24 @@ class Submission(models.Model):
     submission_time = models.DateTimeField()
     grading_result = models.FloatField()
     status = models.IntegerField(choices = SUBMISSION_STATES, default = STAT_RECEIVED)
-    #TODO: let's say the student is going to submit the binary only,
-    #      we'll worry about the multiple submission files later
-    file = models.FileField(upload_to='Submission_file')
-
+    
     def __str__(self):
         return self.student_id.first_name + " " + self.student_id.last_name + ", " + str(self.id)
 
     def can_access_file_by_user(self, user):
         return (user.has_perm('modify_assignment', self.assignment_id.course_id)
                 or user == self.student_id)
+
+
+class SubmissionFileSchema(models.Model):
+    assignment_id = models.ForeignKey(Assignment, on_delete=models.CASCADE)
+    field = models.CharField(max_length=100)
+
+
+class SubmissionFile(models.Model):
+    submission_id = models.ForeignKey(Submission, on_delete=models.CASCADE)
+    file_schema_id = models.ForeignKey(SubmissionFileSchema, on_delete=models.CASCADE)
+    file = models.FileField(upload_to='SubmissionFile_file')
 
 
 class TaskGradingStatus(models.Model):
@@ -285,12 +305,11 @@ class TaskGradingStatus(models.Model):
     assignment_task_id = models.ForeignKey(AssignmentTask, on_delete=models.CASCADE)
     grading_status = models.IntegerField(choices=GRADING_STATES, default=STAT_PENDING)
     execution_status = models.IntegerField(choices=EXECUTION_STATUS, default=EXECUTION_STATUS)
-    output_file = models.FileField(upload_to='TaskGradingStatus_output_file', null=True, blank=True)
     status_update_time = models.DateTimeField()
+    
     points = models.FloatField(default=0.0)
     grading_detail = models.FileField(upload_to='TaskGradingStatus_grading_detail',null=True, blank=True)
-    DUT_serial_output = models.FileField(upload_to='TaskGradingStatus_DUT_serial_output',null=True, blank=True)
-
+    
     def can_access_output_file_by_user(self, user):
         # If the user is an instructor, she can see the output file
         if user.has_perm('create_assignment', self.assignment_task_id.assignment_id.course_id):
@@ -305,6 +324,17 @@ class TaskGradingStatus(models.Model):
         # Fortunately, the accessibility of an input file and an output file within the
         # same task should be the same. We can simply ask the permission of the input file.
         return self.assignment_task_id.can_access_test_input_by_user(user)
+
+
+class TaskGradingStatusFileSchema(models.Model):
+    assignment_id = models.ForeignKey(Assignment, on_delete=models.CASCADE)
+    field = models.CharField(max_length=100)
+
+
+class TaskGradingStatusFile(models.Model):
+    task_grading_status_id = models.ForeignKey(TaskGradingStatus, on_delete=models.CASCADE)
+    file_schema_id = models.ForeignKey(TaskGradingStatusFileSchema, on_delete=models.CASCADE)
+    file = models.FileField(upload_to='TaskGradingStatusFile_file')
 
 
 class Testbed(models.Model):
@@ -351,9 +381,3 @@ class HardwareDevice(models.Model):
     )
 
     testbed = models.ForeignKey(Testbed, on_delete=models.CASCADE)
-
-
-#TODO: We're not going to use it for now
-class SubmissionFile(models.Model):
-    submission_id = models.ForeignKey(Submission, on_delete = models.CASCADE)
-    file = models.FileField(upload_to='SubmissionFile_file')

@@ -213,12 +213,14 @@ class AssignmentCompleteForm(ModelForm):
 class AssignmentTaskForm(ModelForm):
     class Meta:
         model = AssignmentTask
-        fields = ['brief_description', 'mode', 'points', 'description', 'test_input', 'grading_script']
+        fields = ['brief_description', 'mode', 'points', 'description', 'grading_script']
+		#TODO: wire to input files
 
 class AssignmentTaskCompleteForm(ModelForm):
     class Meta:
         model = AssignmentTask
-        fields = ['brief_description', 'mode', 'points', 'description', 'test_input', 'grading_script']
+        fields = ['brief_description', 'mode', 'points', 'description', 'grading_script']
+		#TODO: wire to input files
 
 
 class TestbedTypeForm(ModelForm):
@@ -325,13 +327,16 @@ class HardwareTypePinFormSet(modelformset_factory(HardwareTypePin, fields=['pin_
 class AssignmentSubmissionForm(ModelForm):
     class Meta:
         model = Submission
-        fields = ['file']
+        #fields = ['file']
+        fields = []
+		#TODO: wire to files
 
 
 class TaskGradingStatusDebugForm(ModelForm):
     id = forms.IntegerField(widget=forms.NumberInput)
     class Meta:
         model = TaskGradingStatus
-        fields = ['id', 'grading_status', 'execution_status', 'output_file']
+        fields = ['id', 'grading_status', 'execution_status']
+		#TODO: wire output files
 
 
