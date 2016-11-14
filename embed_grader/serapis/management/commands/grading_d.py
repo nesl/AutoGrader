@@ -14,6 +14,7 @@ from django.utils import timezone
 from django.db.models import Q
 
 from serapis.models import *
+from serapis.utils import file_schema
 
 
 K_TESTBED_INVALIDATION_OFFLINE_SEC = 30
@@ -66,30 +67,39 @@ class Command(BaseCommand):
 
 
         try:
-            # upload firmware command
-            filename = task.submission_id.file.path
+            # upload assignment specific files (program DUTs)
+            submission = task.submission_id
+            assignment = submission.assignment_id
+            submission_files = file_schema.get_submission_files(assignment, submission)
             url = 'http://' + testbed.ip_address + '/dut/program/'
-            data = {'num_duts': 1, 'dut0': 1}
-            files = {'firmware0': ('filename', open(filename, 'rb'), 'text/plain')}
-            r = requests.post(url, data=data, files=files)
+            files = {}
+            for field in submission_files:
+                files[field] = ('filename', open(submission_files[field].file.path, 'rb'),
+                        'text/plain')
+            r = requests.post(url, files=files)
 
             # upload input waveform command
-            filename = task.assignment_task_id.test_input.path
-            files = {'waveform': ('filename', open(filename, 'rb'), 'text/plain')}
+            assignment_task = task.assignment_task_id
+            assignment_task_files = file_schema.get_assignment_task_files(
+                    assignment, assignment_task)
             url = 'http://' + testbed.ip_address + '/tb/upload_input_waveform/'
-            r = requests.post(url, data={'dut': testbed.unique_hardware_id}, files=files)
+            files = {}
+            for field in assignment_task_files:
+                files[field] = ('filename', open(assignment_task_files[field].file.path, 'rb'),
+                        'text/plain')
+            r = requests.post(url, files=files)
 
-            # reset command
+            # hardware engine reset command
             url = 'http://' + testbed.ip_address + '/he/reset/'
             r = requests.post(url)
 
-            # start command
+            # execution start command
             url = 'http://' + testbed.ip_address + '/tb/start/'
             r = requests.post(url)
         except:
             testbed.update(status=Testbed.STATUS_OFFLINE)
             task.update(grading_status=TaskGradingStatus.STAT_PENDING)
-            self._printMessage('Testbed id=%d goes offline' % testbed.id)
+            self._printMessage('Something goes wrong, Testbed id=%d goes offline' % testbed.id)
 
     def handle(self, *args, **options):
         timer_testbed_invalidation_offline = 0
