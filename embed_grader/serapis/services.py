@@ -3,7 +3,6 @@ import requests
 
 from django.views.decorators.csrf import csrf_exempt
 
-from django.utils import timezone
 from django.http import *
 from django.utils.datastructures import MultiValueDictKeyError
 from django.utils import timezone
@@ -114,42 +113,25 @@ def testbed_return_dut_output(request):
         print('Error: not use post')
         return HttpResponseBadRequest('Bad request')
     
-    form = ReturnDutOutputForm(request.POST, request.FILES)
-    if not form.is_valid():
-        print('Error: form is incorrect', form.errors)
-        return HttpResponseBadRequest('Bad form request')
+    if not request.POST['id']:
+        print('Error: unique hardware id is not provided')
+        return HttpResponseBadRequest('Bad request')
 
-    #TODO: should use use formset_factory to populate ReturnDutOutputForm,
-    #from django.forms import formset_factory
-    #du_output_forms = formset_factory(ReturnDutOutputForm)
-    unique_hardware_id = form.cleaned_data['id']
-    waveform = form.cleaned_data['dut0_waveform']
-    serial_log = form.cleaned_data['dut0_serial_log']
-    
-    testbed_list = Testbed.objects.filter(unique_hardware_id=unique_hardware_id)
+    testbed_list = Testbed.objects.filter(unique_hardware_id=request.POST['id'])
     if not testbed_list:
         print('Error: testbed not found')
         return HttpResponseBadRequest('Bad request')
     testbed = testbed_list[0]
-
-    now = timezone.now()
 
     task = testbed.task_being_graded
     if not task:
         print('Error: task not found')
         return HttpResponseBadRequest('Bad request')
 
-    task.grading_status = TaskGradingStatus.STAT_OUTPUT_TO_BE_CHECKED
-    task.execution_status = TaskGradingStatus.EXEC_OK
-    task.output_file = waveform
-    task.DUT_serial_output = serial_log
-    task.status_update_time = now
-    task.save()
-
-    testbed.task_being_graded = None
-    testbed.report_time = now
-    testbed.report_status = Testbed.STATUS_AVAILABLE
-    testbed_status = Testbed.STATUS_AVAILABLE
-    testbed.save()
+    form = ReturnDutOutputForm(request.POST, request.FILES, testbed=testbed)
+    if not form.is_valid():
+        print('Error: form is incorrect', form.errors)
+        return HttpResponseBadRequest('Bad form request')
     
+    form.save_and_commit()
     return HttpResponse("Gotcha!")

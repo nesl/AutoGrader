@@ -58,7 +58,7 @@ def get_task_grading_status_file_schema(assignment):
 When strict is set to be True, all the corresponding records has to be found
 in TaskGradingStatusFileSchema.
 """
-def get_submission_files(assignment, task_grading_status, strict=True):
+def get_task_grading_status_files(assignment, task_grading_status, strict=True):
     schema_list = TaskGradingStatusFileSchema.objects.filter(assignment_id=assignment)
     grading_files = {}
     for schema in schema_list:

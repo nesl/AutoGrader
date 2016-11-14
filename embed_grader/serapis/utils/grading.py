@@ -1,75 +1,82 @@
 import struct
 
-def get_words_from_line(line):
-    return [x.strip() for x in line.strip().split(',')]
+def _get_words_from_line(line):
+    words = [x.strip() for x in line.split(',')]
+    if len(words) != 3:
+        return None
+    try:
+        return (chr(int(words[0])), int(words[1]), int(words[2]))
+    except:
+        return None
+
+def _format_error_message(line_idx, msg):
+    return "Error line %d: %s" % (line_idx, msg)
 
 def check_format(file_content):
-    #P packet contains number of packets in the payload 
-    #(i.e. number of packets after the first two packets)
-    has_p_packet = False
-    #L packet contains the total number of ticks for
-    #which the output waveform should be recorded
-    has_l_packet = False
-    max_timestamp = None
-    
-
-    #split file string by new line
+    # split file string by new line
     lines = file_content.decode('UTF-8').strip().split('\n')
+    packets = []
+    for line_idx, line in enumerate(lines, 1):
+        packet = _get_words_from_line(line)
+        if not packet:
+            return (False, _format_error_message(
+                line_idx, "Format error: line %d"))
+        packets.append(packet)
 
-    #first line should be a "P" packet
-    p_packet = lines[0]
-    words = get_words_from_line(p_packet)
-    if chr(int(words[0]))=='P':
-        has_p_packet = True
-    else:
-        return (False, "First packet is not P packet")
-    
-    #the length of payload specified in P packet should be correct
-    if (len(words) != 3) or (int(words[1]) != (len(lines)-2)):
-        print((int(words[1])), len(lines))
-        return (False, "Payload length does not match length in P packet")
+    # first line should be a "P" packet
+    # P packet contains number of packets in the payload 
+    # (i.e. number of packets after the first two packets)
+    pk_type, pk_num_lines, _ = packets[0]
+    if pk_type != 'P':
+        return (False, _format_error_message(1, "First packet is not P packet"))
+    if pk_num_lines != len(lines) - 2:
+        return (False, _format_error_message(
+            1, "Payload length does not match length in P packet"))
+    if pk_num_lines <= 0:
+        return (False, _format_error_message(
+            1, "Empty waveform file"))
 
-    #second packet has to be an "L" packet
-    l_packet = lines[1]
-    words = get_words_from_line(l_packet)
-    if (len(words) == 3) and chr(int(words[0]))=='L':
-        has_l_packet = True
-        max_timestamp = int(words[1])
-    else:
-        return (False, "Second packet is not L packet")
+    # second packet has to be an "L" packet
+    # L packet contains the total number of ticks for
+    # which the output waveform should be recorded
+    pk_type, pk_timestamp, _ = packets[1]
+    if pk_type != 'L':
+        return (False, _format_error_message(
+            2, "Second packet is not L packet"))
+    max_timestamp = pk_timestamp
 
-    #The third packet, i.e. right after L packet, should have a timestamp of "0"
-    time_0_packet = lines[2]
-    words = get_words_from_line(time_0_packet)
-    if (len(words) != 3) or (int(words[1])!=0):
-        return (False, "Third packet should have timestamp 0")
+    # The third packet, i.e. right after L packet, should have a timestamp
+    # of "0"
+    _, pk_timestamp, _ = packets[2]
+    if pk_timestamp != 0:
+        return (False, _format_error_message(
+            3, "Third packet should have timestamp 0"))
 
-    #After the P and L packets, the rest should be either "D" or "A" packets
-    #Expected packet format: "D/A, timestamp, digital/analog value in bitstream" 
-    #The timestamp should increase monotonically
+    # After the P and L packets, the rest should be either "D" or "A" packets
+    # Expected packet format: "D/A, timestamp, digital/analog value in
+    # bitstream"
+
+    # The timestamp should increase monotonically
     prev_time = -1
-    for line in lines[2:]:
-        words = get_words_from_line(line)
-
-        #all lines should have three parts
-        if len(words)!=3:
-            return (False, "Packet length is not 3")
-
-        #first letter should be "D" or "A"
-        first_letter = chr(int(words[0]))
-        if first_letter!='D' and first_letter!='A':
-            return (False, ("Expected either 'D' or 'A' packet, but received %s"%first_letter)) 
-
-        #timestamps should increase monotonically
-        cur_time = int(words[1])
-        if prev_time >= cur_time:
-            return (False, "Timestamp not in order")
+    for line_idx, packet in enumerate(packets[2:], 1):
+        packet = pk_type, pk_time, pk_valu
         
-        #timestamp should not exceed max
-        if cur_time > max_timestamp:
-            return (False, "Timestamp exceeds specified maximum")
+        # packet type should be "D" or "A"
+        if pk_type != 'D' and pk_type != 'A':
+            return (False, _format_error_message(line_idx,
+                "Expected either 'D' or 'A' packet, but received %s" % pk_type))
+
+        # timestamps should increase monotonically
+        if prev_time >= pk_time:
+            return (False, _format_error_message(
+                line_idx, "Timestamp not in order"))
         
-        #update prev_time
+        # timestamp should not exceed max
+        if pk_time > max_timestamp:
+            return (False, _format_error_message(
+                line_idx, "Timestamp exceeds specified maximum"))
+        
+        # update prev_time
         prev_time = cur_time
     
     return (True, "Pass")
@@ -81,17 +88,14 @@ def check_format_by_filename(filename):
 
 
 def get_length(file_content):
-    #Assuming file format has already been verified
-    #split file string by new line
+    # Assuming file format has already been verified
+    # split file string by new line
     lines = file_content.decode('UTF-8').strip().split('\n')
 
-    #second packet has to be an "L" packet
-    l_packet = lines[1]
-    first_letter,time,_ = get_words_from_line(l_packet)
-    if chr(int(first_letter))=='L':
-        return int(time)
-    else:
-        return None
+    # second packet has to be an "L" packet
+    pk_type, pk_timestamp, _ = _get_words_from_line(lines[1])
+    return pk_timestamp
+
 
 def get_length_by_filename(filename):
     with open(filename, 'rb') as f:

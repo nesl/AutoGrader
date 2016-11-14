@@ -362,19 +362,14 @@ def assignment(request, assignment_id):
     total_points = 0
     public_points = 0
     if request.method == 'POST':
-        form = AssignmentSubmissionForm(request.POST, request.FILES)
+        form = AssignmentSubmissionForm(request.POST, request.FILES, assignment=assignment)
+        print('is valid?', form.is_valid())
         if form.is_valid():
             if assignment.is_deadline_passed() and not user.has_perm('modify_assignment', course):
                 #TODO: Show error message: deadline is passed
                 print('Silent error msg: deadline is passed')
             else:
-                submission = form.save(commit=False)
-                submission.student_id = user
-                submission.assignment_id = assignment
-                submission.submission_time = timezone.now()
-                submission.grading_result = 0.
-                submission.status = Submission.STAT_GRADING
-                submission.save()
+                submission, _ = form.save_and_commit(student=user)
 
                 # dispatch grading tasks
                 for assignment_task in assignment_tasks:
@@ -392,7 +387,7 @@ def assignment(request, assignment_id):
         if assignment_task.mode != AssignmentTask.MODE_HIDDEN or now > assignment.deadline:
             public_points += assignment_task.points
 
-    submission_form = AssignmentSubmissionForm()
+    submission_form = AssignmentSubmissionForm(assignment=assignment)
     submission_short_list = []
     if user.has_perm('modify_assignment', course):
         submission_list = Submission.objects.filter(assignment_id=assignment).values('student_id').annotate(submission_time = Max('submission_time'))
@@ -514,22 +509,11 @@ def create_assignment_task(request, assignment_id):
     	return HttpResponse("Not enough privilege")
 
     if request.method == 'POST':
-        form = AssignmentTaskForm(request.POST, request.FILES)
+        form = AssignmentTaskForm(request.POST, request.FILES, assignment=assignment)
         if form.is_valid():
-            assignment_task = form.save(commit=False)
-            assignment_task.assignment_id = assignment
-            binary = assignment_task.test_input._file.file.read()
-            res, msg = grading.check_format(binary)
-            if res:
-                assignment_task.execution_duration = float(grading.get_length(binary)) / 5000.0
-                assignment_task.save()
-                return HttpResponseRedirect(reverse('modify-assignment', args=(assignment_id)))
-            else:
-                #TODO(timestring): display why failed
-                print("Create assignment task failed")
-                pass
+            form.save_and_commit()
     else:
-        form = AssignmentTaskForm()
+        form = AssignmentTaskForm(assignment=assignment)
 
     template_context = {
             'myuser': request.user,
