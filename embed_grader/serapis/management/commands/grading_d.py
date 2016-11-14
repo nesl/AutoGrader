@@ -6,6 +6,7 @@ import subprocess
 import json
 import pytz
 import random
+import threading
 
 from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand
@@ -20,25 +21,27 @@ K_TESTBED_INVALIDATION_REMOVE_SEC = 10 * 60
 
 K_GRADING_GRACE_PERIOD_SEC = 60
 
-#TODO: rename the variable, change the purpose already because randomness
-K_CYCLE_DURATION_SEC = 4
+K_CYCLE_DURATION_SEC = 3
 
-TB_ID = 4
 
 class Command(BaseCommand):
     help = 'Daemon of sending grading tasks to backend'
 
     just_printed_idle_msg = False
     idle_cnt = 0
+    print_lock = threading.Lock()
 
     def _printAlive(self):
+        self.print_lock.acquire()
         self.idle_cnt += 1
-        if self.idle_cnt % 1 == 0:
+        if self.idle_cnt > 0:
             sys.stdout.write('.')
             sys.stdout.flush()
             self.just_printed_idle_msg = True
+        self.print_lock.release()
 
     def _printMessage(self, msg):
+        self.print_lock.acquire()
         time_str = timezone.now().astimezone(pytz.timezone('US/Pacific')).strftime("%H:%M:%S")
         if self.just_printed_idle_msg:
             print()
@@ -48,6 +51,45 @@ class Command(BaseCommand):
         print(final_msg)
         with open('/tmp/embed_grader_scheduler.log', 'a') as fo:
             fo.write(final_msg + '\n')
+        self.print_lock.release()
+
+    def _grade(self, testbed, task):
+        TaskGradingStatusFile.objects.filter(
+                task_grading_status_id=task).update(file=None)
+
+        self._printMessage('Executing task %d, sub=%s, hw_task=%s, hw=%s, course=%s' % (
+            task.id,
+            task.submission_id,
+            task.assignment_task_id,
+            task.submission_id.assignment_id,
+            task.submission_id.assignment_id.course_id.course_code))
+
+
+        try:
+            # upload firmware command
+            filename = task.submission_id.file.path
+            url = 'http://' + testbed.ip_address + '/dut/program/'
+            data = {'num_duts': 1, 'dut0': 1}
+            files = {'firmware0': ('filename', open(filename, 'rb'), 'text/plain')}
+            r = requests.post(url, data=data, files=files)
+
+            # upload input waveform command
+            filename = task.assignment_task_id.test_input.path
+            files = {'waveform': ('filename', open(filename, 'rb'), 'text/plain')}
+            url = 'http://' + testbed.ip_address + '/tb/upload_input_waveform/'
+            r = requests.post(url, data={'dut': testbed.unique_hardware_id}, files=files)
+
+            # reset command
+            url = 'http://' + testbed.ip_address + '/he/reset/'
+            r = requests.post(url)
+
+            # start command
+            url = 'http://' + testbed.ip_address + '/tb/start/'
+            r = requests.post(url)
+        except:
+            testbed.update(status=Testbed.STATUS_OFFLINE)
+            task.update(grading_status=TaskGradingStatus.STAT_PENDING)
+            self._printMessage('Testbed id=%d goes offline' % testbed.id)
 
     def handle(self, *args, **options):
         timer_testbed_invalidation_offline = 0
@@ -83,12 +125,11 @@ class Command(BaseCommand):
                 testbed_list.update(status=Testbed.STATUS_OFFLINE)
                 timer_testbed_invalidation_offline = K_TESTBED_INVALIDATION_OFFLINE_SEC
 
-            # Since hardware front end does not keep track of the status of grading, one thing can
+            # Since hardware front end does not keep track of the status of grading, what can
             # happen is that somehow hardware (either hardware engine or DUT) goes wrong but
-            # hardware is not aware. If the testbed passed the grading deadline without reporting
+            # it is not aware. If the testbed passed the grading deadline without reporting
             # grading results, we abort the grading task and reset the status
             testbed_list = Testbed.objects.filter(
-                    unique_hardware_id=TB_ID,
                     status=Testbed.STATUS_BUSY,
                     grading_deadline__lt=now)
             for testbed in testbed_list:
@@ -106,79 +147,51 @@ class Command(BaseCommand):
             #
             # task assignment
             #
-            while True:
-                #TODO: I also need to check the testbed type
-                testbed_list = Testbed.objects.filter(status=Testbed.STATUS_AVAILABLE, unique_hardware_id=TB_ID)
-                if not testbed_list:
-                    break
 
+            # task assignment policy: choose an available tesbed, find one task which can be
+            # executed on this testbed, and do it
+            testbed_list = Testbed.objects.filter(status=Testbed.STATUS_AVAILABLE)
+            for testbed in testbed_list:
                 # We choose a task which is pending and prioritize more based on the mode
                 # of a task, i.e., public, feedback, or hidden. The way we define the
                 # task mode is already in order.
-                task_list = TaskGradingStatus.objects.filter(grading_status=TaskGradingStatus.STAT_PENDING).order_by('assignment_task_id__mode')
-                if not task_list:
-                    break
+                task_list = TaskGradingStatus.objects.filter(
+                        grading_status=TaskGradingStatus.STAT_PENDING).order_by(
+                                'assignment_task_id__mode')
+                chosen_task = None
+                for task in task_list:
+                    required_tb_type = task.assignment_task_id.assignment_id.testbed_type_id
+                    if testbed.testbed_type_id == required_tb_type:
+                        # we found the task, exit the search
+                        chosen_task = task
+                        break
 
-                testbed = testbed_list[0]
-                task = task_list[0]
+                if not chosen_task:
+                    # next testbed
+                    continue
 
                 testbed.status = Testbed.STATUS_BUSY
-                testbed.task_being_graded = task
-                duration = task.assignment_task_id.execution_duration + K_GRADING_GRACE_PERIOD_SEC
+                testbed.task_being_graded = chosen_task
+                duration = (chosen_task.assignment_task_id.execution_duration
+                        + K_GRADING_GRACE_PERIOD_SEC)
                 testbed.grading_deadline = timezone.now() + datetime.timedelta(0, duration)
                 testbed.save()
 
-                task.grading_status = TaskGradingStatus.STAT_EXECUTING
-                task.status_update_time = timezone.now()
-                task.points = 0
-                task.output_file = None
-                task.grading_detail = None
-                task.DUT_serial_output = None
-                task.save()
+                chosen_task.grading_status = TaskGradingStatus.STAT_EXECUTING
+                chosen_task.status_update_time = timezone.now()
+                chosen_task.points = 0
+                chosen_task.grading_detail = None
+                chosen_task.save()
 
-                self._printMessage('Executing task %d, sub=%s, hw_task=%s, hw=%s, course=%s' % (
-                    task.id,
-                    task.submission_id,
-                    task.assignment_task_id,
-                    task.submission_id.assignment_id,
-                    task.submission_id.assignment_id.course_id.course_code))
-
-
-                try:
-                    # upload firmware command
-                    filename = task.submission_id.file.path
-                    url = 'http://' + testbed.ip_address + '/dut/program/'
-                    data = {'num_duts': 1, 'dut0': 1}
-                    files = {'firmware0': ('filename', open(filename, 'rb'), 'text/plain')}
-                    r = requests.post(url, data=data, files=files)
-
-                    # upload input waveform command
-                    filename = task.assignment_task_id.test_input.path
-                    files = {'waveform': ('filename', open(filename, 'rb'), 'text/plain')}
-                    url = 'http://' + testbed.ip_address + '/tb/upload_input_waveform/'
-                    r = requests.post(url, data={'dut': testbed.unique_hardware_id}, files=files)
-
-                    # reset command
-                    url = 'http://' + testbed.ip_address + '/he/reset/'
-                    r = requests.post(url)
-
-                    # start command
-                    url = 'http://' + testbed.ip_address + '/tb/start/'
-                    r = requests.post(url)
-
-                except requests.exceptions.ConnectionError:
-                    testbed.status = Testbed.STATUS_OFFLINE
-                    testbed.save()
-                    task.grading_status = TaskGradingStatus.STAT_PENDING
-                    task.save()
-                    self._printMessage('Testbed id=%d goes offline' % testbed.id)
-
+                threading.Thread(target=self.grade, name='id=%s' % unique_hardware_id,
+                        kawrgs={'testbed': testbed, 'task': chosen_task}).start()
 
 
             #
             # output checking
             #
-            grading_task_list = TaskGradingStatus.objects.filter(grading_status=TaskGradingStatus.STAT_OUTPUT_TO_BE_CHECKED)
+            grading_task_list = TaskGradingStatus.objects.filter(
+                    grading_status=TaskGradingStatus.STAT_OUTPUT_TO_BE_CHECKED)
             for grading_task in grading_task_list:
                 if grading_task.execution_status == TaskGradingStatus.EXEC_SEG_FAULT:
                     grading_task.grading_status = TaskGradingStatus.STAT_FINISH
@@ -193,7 +206,7 @@ class Command(BaseCommand):
                     try:
                         result_pack = json.loads(proc.communicate()[0].decode('ascii'))
                         normalized_score = float(result_pack['score'])
-                        normalized_score = min(1., max(0., normalized_score))
+                        #normalized_score = min(1., max(0., normalized_score))
                         grading_task.grading_detail.save('description.txt', ContentFile(result_pack['detail']))
                         grading_task.grading_status = TaskGradingStatus.STAT_FINISH
                         grading_task.points = assignment_task.points * normalized_score
@@ -221,4 +234,4 @@ class Command(BaseCommand):
 
             # go to sleep
             self._printAlive()
-            time.sleep(1.0 + K_CYCLE_DURATION_SEC * random.random())
+            time.sleep(K_CYCLE_DURATION_SEC)
