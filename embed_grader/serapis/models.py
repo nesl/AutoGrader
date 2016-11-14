@@ -54,7 +54,7 @@ class HardwareTypePin(models.Model):
 
 # Model that encapsulates the entire Testbed, including the Hardware Engines and DUTs
 class TestbedType(models.Model):
-    name = models.CharField(max_length=50, null=True, blank=True)
+    name = models.CharField(max_length=50, unique=True)
 
     def __str__(self):
         return self.name
