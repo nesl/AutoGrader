@@ -18,25 +18,38 @@ from ipware.ip import get_ip
 
 @csrf_exempt
 def testbed_show_summary_report(request):
-    #print(request.POST)
     ip = get_ip(request)
-    #print(ip)
     try:
         info_json_string = request.POST['summary']
     except MultiValueDictKeyError:
+        print('No summary field in POST request')
         return HttpResponseBadRequest('Bad request')
 
     try:
         info = json.loads(info_json_string)
     except JSONDecodeError:
+        print('Not in JSON format')
         return HttpResponseBadRequest('Bad request')
 
     try:
         port = info['localport']
         testbed_id = info['id']
     except KeyError:
+        print('No localport or id field in JSON')
         return HttpResponseBadRequest('Bad request')
     
+    try:
+        testbed_type_name = info['testbed_type']
+    except JSONDecodeError:
+        print('No testbed_type field in JSON')
+        return HttpResponseBadRequest('Bad request')
+
+    testbed_types = TestbedType.objects.filter(name=testbed_type_name)
+    if not testbed_types:
+        print('Invalid testbed type')
+        return HttpResponseBadRequest('Bad request')
+    testbed_type = testbed_types[0]
+
     tmp_testbed_list = Testbed.objects.filter(unique_hardware_id=testbed_id)
     flag_ask_status = False
     if tmp_testbed_list:
@@ -47,11 +60,10 @@ def testbed_show_summary_report(request):
         testbed = Testbed()
         testbed.unique_hardware_id = testbed_id
         testbed.grading_deadline = timezone.now()
-        #TODO: choose the correct testbed type, as right now just assign a dummy type
-        testbed.testbed_type = TestbedType.objects.first()
         flag_ask_status = True
     ip_port_address = '%s:%d' % (ip, port)
     testbed.ip_address = ip_port_address
+    testbed.testbed_type_id = testbed_type
     if flag_ask_status:
         try:
             r = requests.get('http://' + ip_port_address + '/tester/status/')
