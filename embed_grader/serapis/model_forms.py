@@ -195,7 +195,7 @@ class AssignmentBasicForm(ModelForm):
     def clean(self):
         rt = self.cleaned_data.get("release_time")
         dl = self.cleaned_data.get("deadline")
-        if rt >= dl:
+        if rt and dl and rt >= dl:
             raise forms.ValidationError(self.error_messages['time_conflict'],
                 code='time_conflict')
         return self.cleaned_data
