@@ -512,6 +512,7 @@ def create_assignment_task(request, assignment_id):
         form = AssignmentTaskForm(request.POST, request.FILES, assignment=assignment)
         if form.is_valid():
             form.save_and_commit()
+            return HttpResponseRedirect(reverse('modify-assignment', args=(assignment_id)))
     else:
         form = AssignmentTaskForm(assignment=assignment)
 
