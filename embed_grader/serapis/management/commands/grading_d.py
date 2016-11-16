@@ -129,7 +129,10 @@ class Command(BaseCommand):
             # set testbed to offline in database when timeout
             if timer_testbed_invalidation_offline <= 0:
                 threshold_time = now - datetime.timedelta(0, K_TESTBED_INVALIDATION_OFFLINE_SEC)
-                testbed_list = Testbed.objects.filter(report_time__lt=threshold_time)
+                testbed_list = Testbed.objects.filter(
+                        report_time__lt=threshold_time,
+                        ~Q(status=Testbed.STATUS_OFFLINE)
+                )
                 for testbed in testbed_list:
                     self._printMessage('Set testbed id=%d offline' % (testbed.id))
                 testbed_list.update(status=Testbed.STATUS_OFFLINE)
