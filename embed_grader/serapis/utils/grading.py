@@ -20,7 +20,7 @@ def check_format(file_content):
         packet = _get_words_from_line(line)
         if not packet:
             return (False, _format_error_message(
-                line_idx, "Format error: line %d"))
+                line_idx, "Format error"))
         packets.append(packet)
 
     # first line should be a "P" packet
@@ -59,7 +59,7 @@ def check_format(file_content):
     # The timestamp should increase monotonically
     prev_time = -1
     for line_idx, packet in enumerate(packets[2:], 1):
-        packet = pk_type, pk_time, pk_valu
+        pk_type, pk_time, pk_valu = packet
         
         # packet type should be "D" or "A"
         if pk_type != 'D' and pk_type != 'A':
@@ -77,7 +77,7 @@ def check_format(file_content):
                 line_idx, "Timestamp exceeds specified maximum"))
         
         # update prev_time
-        prev_time = cur_time
+        prev_time = pk_time
     
     return (True, "Pass")
 

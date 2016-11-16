@@ -7,10 +7,14 @@ from django.forms import modelformset_factory
 from django.forms import formset_factory
 from django.forms import Textarea
 from django.forms.widgets import HiddenInput
-from datetimewidget.widgets import DateTimeWidget, DateWidget, TimeWidget
 from django.template.loader import get_template
 from django.template import Context
 from django.core.mail import send_mail
+from django.core.exceptions import ValidationError
+
+from django.utils.translation import gettext as _
+
+from datetimewidget.widgets import DateTimeWidget, DateWidget, TimeWidget
 
 from serapis.models import *
 from serapis.utils import grading
@@ -189,9 +193,9 @@ class AssignmentBasicForm(ModelForm):
         }
 
     def clean(self):
-        rt=self.cleaned_data.get("release_time")
-        dl=self.cleaned_data.get("deadline")
-        if rt>=dl:
+        rt = self.cleaned_data.get("release_time")
+        dl = self.cleaned_data.get("deadline")
+        if rt >= dl:
             raise forms.ValidationError(self.error_messages['time_conflict'],
                 code='time_conflict')
         return self.cleaned_data
@@ -200,20 +204,22 @@ class AssignmentBasicForm(ModelForm):
 class AssignmentCompleteForm(ModelForm):
     class Meta:
         model = Assignment
-        fields = ['course_id', 'name', 'release_time', 'deadline', 'problem_statement', 'input_statement', 'output_statement',
-                'testbed_type_id', 'num_testbeds']
+        fields = ['course_id', 'name', 'release_time', 'deadline', 'problem_statement', 
+                'input_statement', 'output_statement', 'testbed_type_id', 'num_testbeds']
         date_time_options = {
                 'format': 'mm/dd/yyyy hh:ii',
                 'autoclose': True,
                 'showMeridian' : False,
         }
         widgets = {
-            'release_time': DateTimeWidget(bootstrap_version = 3, options = date_time_options),
-            'deadline': DateTimeWidget(bootstrap_version = 3, options = date_time_options),
+            'release_time': DateTimeWidget(bootstrap_version=3, options=date_time_options),
+            'deadline': DateTimeWidget(bootstrap_version=3, options=date_time_options),
         }
 
 
 class AssignmentTaskForm(ModelForm):
+    #TODO: now only support create objects, should also consider update objects
+
     class Meta:
         model = AssignmentTask
         fields = ['brief_description', 'mode', 'points', 'description', 'grading_script',
@@ -226,7 +232,7 @@ class AssignmentTaskForm(ModelForm):
         schema = AssignmentTaskFileSchema.objects.filter(assignment_id=assignment).order_by('id')
         file_fields = []
         for field in schema:
-            field_name = "file_" + field.field
+            field_name = "file_" + field.field  # put 'file_' as a prefix of field names
             file_fields.append(field_name)
             self.fields[field_name] = forms.FileField()
         
@@ -239,7 +245,6 @@ class AssignmentTaskForm(ModelForm):
         
         for field_name in self.file_fields:
             #TODO: assume all files are (input) waveform files, which may not be true in the future
-            print('check %s' % field_name)
             file_field = self.cleaned_data.get(field_name)
             if file_field:
                 binary = file_field.read()
@@ -250,17 +255,19 @@ class AssignmentTaskForm(ModelForm):
     def save_and_commit(self):
         assignment_task = AssignmentTask(
                 assignment_id=self.assignment,
-                brief_descripton=self.cleaned_data['brief_description'],
+                brief_description=self.cleaned_data['brief_description'],
                 mode=self.cleaned_data['mode'],
                 points=self.cleaned_data['points'],
                 description=self.cleaned_data['description'],
                 grading_script=self.cleaned_data['grading_script'],
                 execution_duration=self.cleaned_data['execution_duration'],
         )
+        assignment_task.save()
 
         assignment_task_files = []
         for field_name in self.file_fields:
             field = field_name[5:]  # remove the prefix 'file_'
+            print(field_name, field)
             schema = AssignmentTaskFileSchema.objects.get(
                     assignment_id=self.assignment,
                     field=field,
@@ -268,13 +275,13 @@ class AssignmentTaskForm(ModelForm):
             assignment_task_file = AssignmentTaskFile(
                     assignment_task_id=assignment_task,
                     file_schema_id=schema,
-                    file=self.cleaned_data[field],
+                    file=self.cleaned_data[field_name],
             )
             assignment_task_file.save()
             assignment_task_files.append(assignment_task_file)
             print(assignment_task_file.file.path)
 
-        return (submission, submission_files)
+        return (assignment_task, assignment_task_files)
 
 
 class TestbedTypeForm(ModelForm):
@@ -321,7 +328,8 @@ class TestbedHardwareListDUTForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(TestbedHardwareListDUTForm, self).__init__(*args, **kwargs)
-        self.fields['hardware_type'].queryset = HardwareType.objects.filter(hardware_role=HardwareType.DEVICE_UNDER_TEST)
+        self.fields['hardware_type'].queryset = HardwareType.objects.filter(
+                hardware_role=HardwareType.DEVICE_UNDER_TEST)
         self.fields['hardware_type'].label_from_instance = lambda obj: obj.name
 
 
