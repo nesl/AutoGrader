@@ -65,13 +65,16 @@ def testbed_show_summary_report(request):
     testbed.testbed_type_id = testbed_type
     if flag_ask_status:
         try:
-            r = requests.get('http://' + ip_port_address + '/tester/status/')
+            r = requests.get('http://' + ip_port_address + '/tb/status/')
             if r.text == 'IDLE':
                 testbed.report_status = Testbed.STATUS_AVAILABLE
                 testbed.status = Testbed.STATUS_AVAILABLE
             elif r.text == 'TESTING':
                 testbed.report_status = Testbed.STATUS_BUSY
                 testbed.status = Testbed.STATUS_BUSY
+            else:
+                testbed.report_status = Testbed.STATUS_UNKNOWN
+                testbed.status = Testbed.STATUS_OFFLINE
         except requests.exceptions.ConnectionError:
             testbed.report_status = Testbed.STATUS_UNKNOWN
             testbed.status = Testbed.STATUS_OFFLINE

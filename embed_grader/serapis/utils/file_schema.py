@@ -1,3 +1,5 @@
+from serapis.models import *
+
 def get_assignment_task_file_schema(assignment):
     schema_list = AssignmentTaskFileSchema.objects.filter(assignment_id=assignment)
     return [sch.field for sch in schema_list]

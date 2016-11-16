@@ -363,7 +363,6 @@ def assignment(request, assignment_id):
     public_points = 0
     if request.method == 'POST':
         form = AssignmentSubmissionForm(request.POST, request.FILES, assignment=assignment)
-        print('is valid?', form.is_valid())
         if form.is_valid():
             if assignment.is_deadline_passed() and not user.has_perm('modify_assignment', course):
                 #TODO: Show error message: deadline is passed
@@ -373,13 +372,23 @@ def assignment(request, assignment_id):
 
                 # dispatch grading tasks
                 for assignment_task in assignment_tasks:
-                    grading_task = TaskGradingStatus()
-                    grading_task.submission_id = submission
-                    grading_task.assignment_task_id = assignment_task
-                    grading_task.grading_status = TaskGradingStatus.STAT_PENDING
-                    grading_task.execution_status = TaskGradingStatus.EXEC_UNKNOWN
-                    grading_task.status_update_time = timezone.now()
-                    grading_task.save()
+                    grading_task = TaskGradingStatus.objects.create(
+                        submission_id=submission,
+                        assignment_task_id=assignment_task,
+                        grading_status=TaskGradingStatus.STAT_PENDING,
+                        execution_status=TaskGradingStatus.EXEC_UNKNOWN,
+                        status_update_time=timezone.now()
+                    )
+
+                    # create file records for each task
+                    schema_list = TaskGradingStatusFileSchema.objects.filter(
+                            assignment_id=assignment)
+                    for sch in schema_list:
+                        TaskGradingStatusFile.objects.create(
+                            task_grading_status_id=grading_task,
+                            file_schema_id=sch,
+                            file=None,
+                        )
 
     # get true total points and total points to students
     for assignment_task in assignment_tasks:
@@ -390,7 +399,7 @@ def assignment(request, assignment_id):
     submission_form = AssignmentSubmissionForm(assignment=assignment)
     submission_short_list = []
     if user.has_perm('modify_assignment', course):
-        submission_list = Submission.objects.filter(assignment_id=assignment).values('student_id').annotate(submission_time = Max('submission_time'))
+        submission_list = Submission.objects.filter(assignment_id=assignment).values('student_id').annotate(submission_time=Max('submission_time'))
         for s in submission_list:
             submission_short_list.append(Submission.objects.get(student_id = s['student_id'], submission_time=s['submission_time']))
         submission_short_list.sort(key=lambda x:x.submission_time, reverse=True)

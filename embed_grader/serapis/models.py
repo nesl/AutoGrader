@@ -308,7 +308,8 @@ class TaskGradingStatus(models.Model):
     status_update_time = models.DateTimeField()
     
     points = models.FloatField(default=0.0)
-    grading_detail = models.FileField(upload_to='TaskGradingStatus_grading_detail',null=True, blank=True)
+    grading_detail = models.FileField(upload_to='TaskGradingStatus_grading_detail',
+            null=True, blank=True)
     
     def can_access_output_file_by_user(self, user):
         # If the user is an instructor, she can see the output file
@@ -334,7 +335,7 @@ class TaskGradingStatusFileSchema(models.Model):
 class TaskGradingStatusFile(models.Model):
     task_grading_status_id = models.ForeignKey(TaskGradingStatus, on_delete=models.CASCADE)
     file_schema_id = models.ForeignKey(TaskGradingStatusFileSchema, on_delete=models.CASCADE)
-    file = models.FileField(upload_to='TaskGradingStatusFile_file')
+    file = models.FileField(upload_to='TaskGradingStatusFile_file', null=True, blank=True)
 
 
 class Testbed(models.Model):
@@ -356,7 +357,7 @@ class Testbed(models.Model):
         (STATUS_UNKNOWN, 'Unknown'),
     )
 
-    testbed_type = models.ForeignKey(TestbedType, on_delete=models.CASCADE)
+    testbed_type_id = models.ForeignKey(TestbedType, on_delete=models.CASCADE)
 
     #IP Address. Only allowing IPv4 as the testers are internal
     #TODO: see whether we should switch back to IPAddressField

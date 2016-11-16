@@ -7,6 +7,7 @@ import json
 import pytz
 import random
 import threading
+import traceback
 
 from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand
@@ -97,9 +98,14 @@ class Command(BaseCommand):
             url = 'http://' + testbed.ip_address + '/tb/start/'
             r = requests.post(url)
         except:
-            testbed.update(status=Testbed.STATUS_OFFLINE)
-            task.update(grading_status=TaskGradingStatus.STAT_PENDING)
-            self._printMessage('Something goes wrong, Testbed id=%d goes offline' % testbed.id)
+            testbed.status = Testbed.STATUS_OFFLINE
+            testbed.save()
+            task.grading_status = TaskGradingStatus.STAT_PENDING
+            task.save()
+            self._printMessage('Testbed id=%d goes offline since something goes wrong:'
+                    % testbed.id)
+            exc_type, exc_value, exc_tb = sys.exc_info()
+            traceback.print_exception(exc_type, exc_value, exc_tb)
 
     def handle(self, *args, **options):
         timer_testbed_invalidation_offline = 0
@@ -130,12 +136,20 @@ class Command(BaseCommand):
             if timer_testbed_invalidation_offline <= 0:
                 threshold_time = now - datetime.timedelta(0, K_TESTBED_INVALIDATION_OFFLINE_SEC)
                 testbed_list = Testbed.objects.filter(
+                        ~Q(status=Testbed.STATUS_OFFLINE),
                         report_time__lt=threshold_time,
-                        ~Q(status=Testbed.STATUS_OFFLINE)
                 )
                 for testbed in testbed_list:
                     self._printMessage('Set testbed id=%d offline' % (testbed.id))
-                testbed_list.update(status=Testbed.STATUS_OFFLINE)
+                    testbed.status = Testbed.STATUS_OFFLINE
+                    graded_task = testbed.task_being_graded
+                    testbed.task_being_graded = None
+                    testbed.save()
+                    if graded_task:
+                        graded_task.grading_status = TaskGradingStatus.STAT_PENDING
+                        graded_task.save()
+                        self._printMessage('Abort the grading task id=%d and reset to pending'
+                                % (graded_task.id))
                 timer_testbed_invalidation_offline = K_TESTBED_INVALIDATION_OFFLINE_SEC
 
             # Since hardware front end does not keep track of the status of grading, what can
@@ -148,12 +162,14 @@ class Command(BaseCommand):
             for testbed in testbed_list:
                 graded_task = testbed.task_being_graded
                 testbed.status = Testbed.STATUS_AVAILABLE
+                testbed.task_being_graded = None
                 testbed.save()
                 self._printMessage('Testbed id=%d passed the grading deadline' % testbed.id)
                 if graded_task:
                     graded_task.grading_status = TaskGradingStatus.STAT_PENDING
                     graded_task.save()
-                    self._printMessage('Abort the grading task id=%d and reset to pending' % (graded_task.id))
+                    self._printMessage('Abort the grading task id=%d and reset to pending'
+                            % (graded_task.id))
                 else:
                     self._printMessage('Wait, no grading task is found, why being busy then')
 
@@ -196,8 +212,8 @@ class Command(BaseCommand):
                 chosen_task.grading_detail = None
                 chosen_task.save()
 
-                threading.Thread(target=self.grade, name='id=%s' % unique_hardware_id,
-                        kawrgs={'testbed': testbed, 'task': chosen_task}).start()
+                threading.Thread(target=self._grade, name=('id=%s' % testbed.unique_hardware_id),
+                        kwargs={'testbed': testbed, 'task': chosen_task}).start()
 
 
             #
@@ -220,7 +236,8 @@ class Command(BaseCommand):
                         result_pack = json.loads(proc.communicate()[0].decode('ascii'))
                         normalized_score = float(result_pack['score'])
                         #normalized_score = min(1., max(0., normalized_score))
-                        grading_task.grading_detail.save('description.txt', ContentFile(result_pack['detail']))
+                        grading_task.grading_detail.save(
+                                'description.txt', ContentFile(result_pack['detail']))
                         grading_task.grading_status = TaskGradingStatus.STAT_FINISH
                         grading_task.points = assignment_task.points * normalized_score
                     except (ValueError):
@@ -229,17 +246,21 @@ class Command(BaseCommand):
 
                 grading_task.status_update_time = timezone.now()
                 grading_task.save()
-                self._printMessage('Graded task %d, status=%s, pts=%f, sub=%s, hw_task=%s, hw=%s, course=%s' % (
-                    grading_task.id, grading_task.get_grading_status_display(), grading_task.points,
-                    grading_task.submission_id, grading_task.assignment_task_id, grading_task.submission_id.assignment_id,
-                    grading_task.submission_id.assignment_id.course_id.course_code))
+                self._printMessage(
+                        'Graded task=%d, status=%s, pts=%f, sub=%s, hw_task=%s, hw=%s' % (
+                                grading_task.id, grading_task.get_grading_status_display(),
+                                grading_task.points, grading_task.submission_id,
+                                grading_task.assignment_task_id,
+                                grading_task.submission_id.assignment_id))
 
                 num_graded_tasks = len(TaskGradingStatus.objects.filter(
                         Q(grading_status=TaskGradingStatus.STAT_FINISH)
                         | Q(grading_status=TaskGradingStatus.STAT_INTERNAL_ERROR),
                         submission_id=grading_task.submission_id))
-                num_assignment_tasks = len(AssignmentTask.objects.filter(assignment_id=grading_task.submission_id.assignment_id))
-                self._printMessage('num_graded_tasks=%d, num_assignment_tasks=%d' % (num_graded_tasks, num_assignment_tasks))
+                num_assignment_tasks = len(AssignmentTask.objects.filter(
+                        assignment_id=grading_task.submission_id.assignment_id))
+                self._printMessage('num_graded_tasks=%d, num_assignment_tasks=%d' % (
+                        num_graded_tasks, num_assignment_tasks))
                 if num_graded_tasks == num_assignment_tasks:
                     s = grading_task.submission_id
                     s.status = Submission.STAT_GRADED
