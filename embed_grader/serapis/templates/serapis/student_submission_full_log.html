@@ -60,7 +60,6 @@
                   <th>Score</th>
                   <th>Submission Time</th>
                   <th>Detail</th>
-                  <th>Code</th>
                 </tr>
               </thead>
               <tfoot style="display: table-header-group;">
@@ -70,7 +69,6 @@
                   <th>Score</th>
                   <th>Submission Time</th>
                   <th style="display:none">Detail</th>
-                  <th style="display:none">Code</th>
                 </tr>
               </tfoot>
 
@@ -88,11 +86,6 @@
                       <a class="btn btn-primary" href="{% url 'submission' s.0.id %}"
                       style="font-size:12px; background:white; width:90px; color:SteelBlue; border-color:SteelBlue">
                       <span class="glyphicon glyphicon-file"></span>&nbsp;Detail
-                    </td>
-                    <td>
-                      <a href="{{ MEDIA_URL }}{{ s.0.file.url }}" class="btn btn-primary"
-                        style="font-size: 12px; background:white; color:SteelBlue; border-color:SteelBlue">
-                        <span class="glyphicon glyphicon-download-alt"></span>&nbsp;Download
                     </td>
                 </tr>
             {% endfor %}
