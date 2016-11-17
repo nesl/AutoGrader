@@ -45,6 +45,8 @@ admin.site.register(TaskGradingStatus)
 admin.site.register(AssignmentTaskFileSchema)
 admin.site.register(AssignmentTaskFile)
 admin.site.register(SubmissionFileSchema)
+admin.site.register(TaskGradingStatusFileSchema)
+admin.site.register(TaskGradingStatusFile)
 
 admin.site.register(HardwareType)
 admin.site.register(HardwareTypePin)

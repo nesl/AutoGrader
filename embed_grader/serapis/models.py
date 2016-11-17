@@ -187,8 +187,8 @@ class Assignment(models.Model):
 
     def is_released(self):
         return timezone.now() > self.release_time
-       
-    def is_deadline_passed(self): 
+
+    def is_deadline_passed(self):
         return timezone.now() >= self.deadline
 
 
@@ -207,7 +207,7 @@ class AssignmentTask(models.Model):
     mode = models.IntegerField(choices=EVAL_MODES)
     points = models.FloatField()
     description = models.TextField(null=True)
-    
+
     execution_duration = models.FloatField()
     grading_script = models.FileField(upload_to='AssignmentTask_grading_script')
 
@@ -257,7 +257,7 @@ class Submission(models.Model):
     submission_time = models.DateTimeField()
     grading_result = models.FloatField()
     status = models.IntegerField(choices = SUBMISSION_STATES, default = STAT_RECEIVED)
-    
+
     def __str__(self):
         return self.student_id.first_name + " " + self.student_id.last_name + ", " + str(self.id)
 
@@ -306,11 +306,11 @@ class TaskGradingStatus(models.Model):
     grading_status = models.IntegerField(choices=GRADING_STATES, default=STAT_PENDING)
     execution_status = models.IntegerField(choices=EXECUTION_STATUS, default=EXECUTION_STATUS)
     status_update_time = models.DateTimeField()
-    
+
     points = models.FloatField(default=0.0)
     grading_detail = models.FileField(upload_to='TaskGradingStatus_grading_detail',
             null=True, blank=True)
-    
+
     def can_access_output_file_by_user(self, user):
         # If the user is an instructor, she can see the output file
         if user.has_perm('create_assignment', self.assignment_task_id.assignment_id.course_id):

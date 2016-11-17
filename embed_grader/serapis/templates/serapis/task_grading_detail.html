@@ -71,21 +71,16 @@
         </a>
         {% endif %}
         <hr>
-        {% if grading.grading_detail %}
-          <h5>Feedback<h5>
+        {% for output in output_log %}
+          <h5>{{output.0}}<h5>
           <br>
-          <p style="white-space:pre; font-size:13px">{{feedback}}</p>
+          <p style="white-space:pre; font-size:13px">{{output.1}}</p>
           <hr>
-        {% endif %}
+        {% endfor %}
 
-        {% if grading.output_file %}
-          <h5>Output File: &nbsp; <a href="{{ MEDIA_URL }}{{ grading.output_file.url }}" class="btn btn-primary"
-            style="font-size: 12px;background:white; color:SteelBlue; border-color:SteelBlue;">
-            <span class="glyphicon glyphicon-download-alt"></span> &nbsp;Download
-          </a></h5>
 
           <!-- Generating Waveform -->
-          <script src="https://www.amcharts.com/lib/3/amcharts.js"></script>
+          <!-- <script src="https://www.amcharts.com/lib/3/amcharts.js"></script>
           <script src="https://www.amcharts.com/lib/3/serial.js"></script>
           <script src="https://www.amcharts.com/lib/3/xy.js"></script>
           <script src="https://www.amcharts.com/lib/3/plugins/export/export.min.js"></script>
@@ -95,9 +90,9 @@
           <div id="waveform4" style="width:100%; height:300px;"></div>
           <div id="waveform0" style="width:100%; height:300px;"></div>
           <div id="waveform1" style="width:100%; height:300px;"></div>
-          <div id="waveform2" style="width:100%; height:300px;"></div>
+          <div id="waveform2" style="width:100%; height:300px;"></div> -->
 
-          <script type="text/javascript">
+          <!-- <script type="text/javascript">
             {% autoescape off %}
             var plot_pack = {{ js_plot_pack_string }};
             {% endautoescape %}
@@ -156,10 +151,7 @@
               //}
               //charts[cid].addListener("dataUpdated", zoomChart);
             }
-          </script>
-
-          <hr>
-        {% endif %}
+          </script> -->
     </div>
 
 {% endblock %}
