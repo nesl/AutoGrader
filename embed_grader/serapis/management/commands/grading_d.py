@@ -227,15 +227,18 @@ class Command(BaseCommand):
                     grading_task.points = 0.0
                 else:
                     assignment_task = grading_task.assignment_task_id
-                    grading_script_filename = assignment_task.grading_script.path
-                    output_filename = grading_task.output_file.path
-                    proc = subprocess.Popen(
-                            ['python3', grading_script_filename, output_filename],
-                            stdout=subprocess.PIPE)
+                    grading_script_path = assignment_task.grading_script.path
+                    cmd = ['python3', grading_script_path]
+                    task_grading_status_files = file_schema.get_task_grading_status_files(
+                            assignment_task.assignment_id, grading_task)
+                    for field in task_grading_status_files:
+                        cmd.append('%s:%s' % (field, task_grading_status_files[field].file.path))
+
+                    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
                     try:
                         result_pack = json.loads(proc.communicate()[0].decode('ascii'))
                         normalized_score = float(result_pack['score'])
-                        #normalized_score = min(1., max(0., normalized_score))
+                        normalized_score = min(1., max(0., normalized_score))
                         grading_task.grading_detail.save(
                                 'description.txt', ContentFile(result_pack['detail']))
                         grading_task.grading_status = TaskGradingStatus.STAT_FINISH
