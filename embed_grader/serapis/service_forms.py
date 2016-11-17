@@ -16,8 +16,8 @@ class ReturnDutOutputForm(forms.Form):
         assignment = task.assignment_task_id.assignment_id
 
         task_files = file_schema.get_task_grading_status_files(assignment, task)
-        for task_file in task_files:
-            field_name = 'file_' + task_file
+        for field in task_files:
+            field_name = 'file_' + field
             self.fields[field_name] = forms.FileField(allow_empty_file=True)
 
         # set up variables to be used
@@ -40,9 +40,10 @@ class ReturnDutOutputForm(forms.Form):
         self.testbed.save()
 
         grading_task_status_files = []
-        for task_file in task_files:
-            field_name = 'file_' + task_file
-            task_file.file = file=self.cleaned_data[field_name]
+        for field in self.task_files:
+            field_name = 'file_' + field
+            task_file = self.task_files[field]
+            task_file.file = self.cleaned_data[field_name]
             task_file.save()
             grading_task_status_files.append(task_file)
 
