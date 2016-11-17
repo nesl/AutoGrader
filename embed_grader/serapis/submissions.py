@@ -79,6 +79,17 @@ def submission(request, submission_id):
 
     submission_n_detail_short_list = zip(gradings, task_symbols, assignment_tasks)
 
+    submission_files = file_schema.get_submission_files(assignment, submission)
+
+    submission_filename_list = []
+    submission_file_path_list = []
+    for s in submission_files:
+        if submission_files[s].file:
+            submission_filename_list.append(s)
+            submission_file_path_list.append(submission_files[s].file)
+
+    submission_file_list = list(zip(submission_filename_list, submission_file_path_list))
+
     template_context = {
         'submission':submission,
         'assignment': assignment,
@@ -88,7 +99,8 @@ def submission(request, submission_id):
         'score':score,
         'total_points':total_points,
         'myuser': request.user,
-        'now':now
+        'now':now,
+        'submission_files':submission_file_list    
     }
     return render(request, 'serapis/submission.html', template_context)
 

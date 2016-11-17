@@ -71,8 +71,10 @@
           <h5>Score: <span class="badge" style="background:green; width:80px;">{{ score }} / {{ total_points }}</span></h5>
         {% endif %}
         <h5>Files:
-          <a href="{{ MEDIA_URL }}{{ submission.file.url }}" class="btn btn-primary">
-            <span class="glyphicon glyphicon-download-alt"></span> Download</a>
+          {% for f in submission_files %}
+            <a href="{{ MEDIA_URL }}{{ f.1.url }}" class="btn btn-primary">
+              <span class="glyphicon glyphicon-download-alt"></span> {{f.0}} </a>
+          {%endfor%}
         <h5>
 
         <hr>

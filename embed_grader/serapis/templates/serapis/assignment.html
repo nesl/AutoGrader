@@ -84,7 +84,6 @@
               {% endif %}
               <th>Points</th>
               <th>Description</th>
-              <th>Test Input</th>
               {% get_obj_perms request.user for course as "course_perms" %}
               {% if "modify_assignment" in course_perms %}
                 <th>Grading Script</th>
@@ -98,18 +97,9 @@
             <!-- for students -->
               {% if task.get_mode_display != "Hidden" or now > assignment.deadline %}
               <tr>
-                  <td style="width:20%;">{{ task.brief_description }}</td>
-                  <td style="width:10%;">{{ task.points }}</td>
-                  <td style="width:45%;text-align:left">{{ task.description }}</td>
-                  {% if task.get_mode_display == "Public" or now > assignment.deadline %}
-                    <td style="width:25%;">
-                      <a href="{{ MEDIA_URL }}{{ task.test_input.url }}" class="btn btn-primary"
-                      style="font-size: 12px; background:white; color:SteelBlue; border-color:SteelBlue">
-                      <span class="glyphicon glyphicon-download-alt"></span>&nbsp;Download
-                    </td>
-                  {% else%}
-                    <td>N/A (Hidden)</td>
-                  {% endif %}
+                  <td style="width:25%;">{{ task.brief_description }}</td>
+                  <td style="width:25%;">{{ task.points }}</td>
+                  <td style="width:50%;text-align:left">{{ task.description }}</td>
               </tr>
               {% endif %}
             {% else %}
@@ -119,11 +109,6 @@
                 <td style="width:10%">{{ task.get_mode_display }}</td>
                 <td style="width:10%;">{{ task.points }}</td>
                 <td style="width:30%; text-align:left">{{ task.description }}</td>
-                <td style="width:10%;">
-                  <a href="{{ MEDIA_URL }}{{ task.test_input.url }}" class="btn btn-primary"
-                  style="font-size: 12px; background:white; color:SteelBlue; border-color:SteelBlue">
-                  <span class="glyphicon glyphicon-download-alt"></span>&nbsp;Download
-                </td>
                 <td style="width:10%;">
                   <a href="{{ MEDIA_URL }}{{ task.grading_script.url }}" class="btn btn-primary"
                   style="font-size: 12px; background:white; color:SteelBlue; border-color:SteelBlue">
