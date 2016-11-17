@@ -70,12 +70,15 @@
           <span class="glyphicon glyphicon-download-alt"></span> &nbsp;DUT Serial Output
         </a>
         {% endif %}
-        <hr>
+        <hr/>
+        <h4>Grading feedback:<h4>
+        <p style="white-space:pre; font-size:13px">{{feedback}}</p>
+
         {% for output in output_log %}
-          <h5>{{output.0}}<h5>
-          <br>
+          <hr/>
+          <h4>File: {{output.0}}<h4>
+          <br/>
           <p style="white-space:pre; font-size:13px">{{output.1}}</p>
-          <hr>
         {% endfor %}
 
 

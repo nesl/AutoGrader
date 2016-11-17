@@ -126,7 +126,8 @@ def task_grading_detail(request, task_grading_id):
     assignment_task = grading.assignment_task_id
     grading.points = round(grading.points, 2)
 
-    task_grading_status = TaskGradingStatus.objects.filter(submission_id=submission, assignment_task_id=assignment_task)
+    task_grading_status = TaskGradingStatus.objects.filter(
+            submission_id=submission, assignment_task_id=assignment_task)
     output_files = file_schema.get_task_grading_status_files(assignment, task_grading_status)
     output_field_list = []
     output_content_list = []
@@ -138,8 +139,8 @@ def task_grading_detail(request, task_grading_id):
 
     output_full_log = list(zip(output_field_list, output_content_list))
 
-    # if grading.grading_detail:
-    #     feedback = open(grading.grading_detail.path, 'r').read()
+    if grading.grading_detail:
+        feedback = open(grading.grading_detail.path, 'r').read()
 
     # if not grading.output_file:
     #     print('Something serious wrong. output file cannot be found in TaskGradingStatus ID=%d' % grading.id)
@@ -227,8 +228,8 @@ def task_grading_detail(request, task_grading_id):
         'author': author,
         'grading': grading,
         'assignment_task': assignment_task,
-        'output_log':output_full_log
-        # 'feedback': feedback,
+        'output_log':output_full_log,
+        'feedback': feedback,
         # 'js_plot_pack_string': js_plot_pack_string,
     }
 
