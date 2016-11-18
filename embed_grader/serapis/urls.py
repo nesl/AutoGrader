@@ -3,10 +3,10 @@ from django.contrib.auth import views as auth_views
 from django.conf import settings
 from django.conf.urls.static import static
 
-from . import views
+from serapis.views import views
+from serapis.views import submissions
 from . import services
 from . import media_controls
-from . import submissions
 
 
 urlpatterns = [
@@ -39,11 +39,11 @@ urlpatterns = [
     url(r'^create-assignment-task/(?P<assignment_id>[0-9]+)/$', views.create_assignment_task, name='create-assignment-task'),
     url(r'^modify-assignment-task/(?P<task_id>[0-9]+)/$', views.modify_assignment_task, name='modify-assignment-task'),
 
+    ## submissions
     url(r'^submission/(?P<submission_id>[0-9]+)/$', submissions.submission, name='submission'),
     url(r'^submissions_full_log/$', submissions.submissions_full_log, name='submissions_full_log'),
     url(r'^student_submission_full_log/$', submissions.student_submission_full_log, name='student_submission_full_log'),
     url(r'^task-grading-detail/(?P<task_grading_id>[0-9]+)/$', submissions.task_grading_detail, name='task-grading-detail'),
-
 
     ## Testbed and Hardware pages
     url(r'^testbed-type-list/$', views.testbed_type_list, name='testbed-type-list'),
