@@ -148,9 +148,9 @@ def course(request, course_id):
 
     if not user.has_perm('modify_course',course):
         for assignment in assignment_list:
-            now = datetime.now(tz=pytz.timezone('UTC'))
+            now = timezone.now()
             if now < assignment.release_time:
-                assignment_list = Assignment.objects.filter(course_id=course_id, release_time__lte = now)
+                assignment_list = Assignment.objects.filter(course_id=course_id, release_time__lte=now)
 
     template_context = {
         'myuser': request.user,
@@ -276,7 +276,7 @@ def assignment(request, assignment_id):
     if not user.has_perm('view_assignment', course):
         return HttpResponse("Not enough privilege")
 
-    now = datetime.now(tz=pytz.timezone('UTC'))
+    now = timezone.now()
     time_remaining = str(assignment.deadline - now)
 
     # Handle POST the request

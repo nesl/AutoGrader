@@ -244,7 +244,8 @@ class Command(BaseCommand):
                         grading_task.grading_status = TaskGradingStatus.STAT_FINISH
                         grading_task.points = assignment_task.points * normalized_score
                     except (ValueError):
-                        grading_task.grading_status = TaskGradingStatus.STAT_INTERNAL_ERROR
+                        #grading_task.grading_status = TaskGradingStatus.STAT_INTERNAL_ERROR
+                        grading_task.grading_status = TaskGradingStatus.STAT_PENDING
                         grading_task.points = 0.0
 
                 grading_task.status_update_time = timezone.now()
