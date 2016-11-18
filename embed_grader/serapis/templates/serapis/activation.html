@@ -43,7 +43,7 @@
       <a class="btn btn-primary" href="{% url 'login' %}">Log in</a>
     {% elif activation_expired %}
       <p>This link has been expired. You may click the following link to request a new activation email:</p>
-      <a class="btn btn-primary" href="/new_activation/{{user.id}}/">Resend activation email</a>
+      <a class="btn btn-primary" href="{% url 'new-activation' user %}/">Resend activation email</a>
     {% else %}
       <p>Activation successful. You may go ahead and log in now.</p>
       <a class="btn btn-primary" href="{% url 'login' %}">Log in</a>

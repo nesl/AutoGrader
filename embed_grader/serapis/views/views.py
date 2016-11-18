@@ -1,14 +1,17 @@
+import hashlib
+import random
+import pytz
 import json
+from datetime import timedelta
+
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User, Group
 
 from django.shortcuts import render, get_object_or_404
 from django.http import *
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth import authenticate, login, logout, context_processors
-from django.contrib.auth.models import Permission
 from django.core.exceptions import PermissionDenied
 
 from django.template import RequestContext
-from django.forms import modelform_factory
 from django import forms
 from django.core.urlresolvers import reverse
 from django.db import IntegrityError
@@ -16,99 +19,18 @@ from django.db import transaction
 from django.db.models import Max
 
 from django.utils import timezone
-from datetime import datetime, timedelta
 
-from serapis.models import *
-from serapis.model_forms import *
-from serapis.utils import grading
+from django.views.generic import TemplateView
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
-from django.contrib.auth.models import User, Group
 from guardian.decorators import permission_required_or_403
 from guardian.compat import get_user_model
 from guardian.shortcuts import assign_perm
 
-import hashlib, random, pytz
+from serapis.models import *
+from serapis.model_forms import *
 
-from django.views.generic import TemplateView
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 #TODO(timestring): recheck whether I should use disabled instead of readonly to enforce data integrity
-
-
-def registration(request):
-    if request.method == 'POST':
-        form = UserCreateForm(request.POST)
-        if form.is_valid():
-            datas = {}
-            datas['uid'] = form.cleaned_data['uid']
-            datas['email'] = form.cleaned_data['email']
-            datas['password1'] = form.cleaned_data['password1']
-            # We will generate a random activation key
-            random_string = str(random.random())
-            salt = hashlib.sha1(random_string.encode('utf-8')).hexdigest()[:5]
-            usernamesalt = datas['uid']
-            activation_string = (salt+usernamesalt).encode('utf-8')
-            datas['activation_key'] = hashlib.sha1(activation_string).hexdigest()
-            datas['email_path'] = "serapis/activation_email.html"
-            datas['email_subject'] = "Account Activation"
-
-            form.sendEmail(datas)  #Send validation email
-            form.save(datas)  #Save the user and his profile
-
-            request.session['registered'] = True  # For display purposes
-            return render(request, 'serapis/registration_done.html', locals())
-    else:
-        form = UserCreateForm()
-    return render(request, 'serapis/registration.html', {'form':form})
-
-
-#View called from activation email. Activate user if link didn't expire (48h default), or offer to
-#send a second link if the first expired.
-def activation(request, key):
-    activation_expired = False
-    already_active = False
-    user_profile = get_object_or_404(UserProfile, activation_key=key)
-    if user_profile.user.is_active == False:
-        if timezone.now() > user_profile.key_expires:
-            activation_expired = True
-            # Display : offer to user to have another activation link (a link in template sending to the view new_activation_link)
-            id_user = user_profile.user.id
-        else:  # Activation successful
-            user_profile.user.is_active = True
-            user_profile.user.save()
-    # If user is already active, simply display error message
-    else:
-        already_active = True  # Display : error message
-    return render(request, 'serapis/activation.html', locals())
-
-
-def new_activation(request, user_id):
-    form = UserCreationForm()
-    datas = {}
-    user = User.objects.get(id=user_id)
-    if user is not None and not user.is_active:
-        datas['uid'] = user.uid
-        datas['email'] = user.email
-        datas['email_path'] = "serapis/activation_email_resend.html"
-        datas['email_subject'] = "Account Activation Resend"
-
-        salt = hashlib.sha1(str(random.random())).hexdigest()[:5]
-        usernamesalt = datas['uid']
-        if isinstance(usernamesalt, unicode):
-            usernamesalt = usernamesalt.encode('utf8')
-        datas['activation_key'] = hashlib.sha1(salt+usernamesalt).hexdigest()
-
-        user_profile = UserProfile.objects.get(user=user)
-        user_profile.activation_key = datas['activation_key']
-        user_profile.key_expires = datetime.strftime(timezone.now() + timedelta(days=2), "%Y-%m-%d %H:%M:%S")
-        user_profile.save()
-        form.sendEmail(datas)
-        request.session['new_link'] = True  # Display : new link send
-
-    return HttpResponse("The new verification link has been sent to your email. Please check.")
-
-
-def logout_view(request):
-    logout(request)
 
 
 @login_required(login_url='/login/')

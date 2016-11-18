@@ -47,10 +47,10 @@
         <br>
         <h2 class="form-signin-heading">Please Log In</h2>
         <label for="id_username" class="sr-only">Email address</label>
-        <input type="text" id="id_username" name="username" class="form-control" placeholder="Email address" required autofocus>
+        <input type="text" id="id_username" name="username" class="form-control" placeholder="User name" required autofocus />
         <br>
         <label for="id_password" class="sr-only">Password</label>
-        <input type="password" id="id_password" name="password" class="form-control" placeholder="Password" required>
+        <input type="password" id="id_password" name="password" class="form-control" placeholder="Password" required />
         <div class="checkbox">
             <!-- <label>
                 <input name="remember_me" type="checkbox"> Remember me
@@ -60,7 +60,7 @@
         </div>
         <br>
         <button class="btn btn-lg btn-primary btn-block" type="submit">Log In</button>
-    		<input type="hidden" name="next" value="{% url 'homepage' %}">
+        <input type="hidden" name="next" value="{% url 'homepage' %}">
         <div>
             <p><center>Not a User? Please <a href="{% url 'registration' %}">register</a>.</center></p>
         </div>

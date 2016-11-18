@@ -7,9 +7,6 @@ from django.forms import modelformset_factory
 from django.forms import formset_factory
 from django.forms import Textarea
 from django.forms.widgets import HiddenInput
-from django.template.loader import get_template
-from django.template import Context
-from django.core.mail import send_mail
 from django.core.exceptions import ValidationError
 
 from django.utils.translation import gettext as _
@@ -19,86 +16,76 @@ from datetimewidget.widgets import DateTimeWidget, DateWidget, TimeWidget
 from serapis.models import *
 from serapis.utils import grading
 
-#TODO: shouldn't use datetime.datetime
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 
-class UserCreateForm(UserCreationForm):
-    MIN_LENGTH = 8
-    error_messages = {
-        'password_mismatch': "The two password fields didn't match.",
-        'email_not_unique': "This email has been registered."
-     }
-    uid = forms.CharField(label="University ID",
-        widget=forms.TextInput)
-    password1 = forms.CharField(label="Password",
-        widget=forms.PasswordInput)
-    password2 = forms.CharField(label="Password confirmation",
-        widget=forms.PasswordInput,
-        help_text="Enter the same password as above, for verification.")
-    # user_role = forms.ChoiceField(widget=forms.RadioSelect(), choices=USER_ROLES)
+class UserRegistrationForm(UserCreationForm):
+    PASSWORD_MIN_LENGTH = 8
+    UID_LENGTH = 9
 
     class Meta:
         model = User
         fields = ['first_name', 'last_name', 'username', 'email']
 
+    error_messages = {
+        'password_mismatch': "The two password fields didn't match.",
+        'email_not_unique': "This email has been registered."
+    }
+    uid = forms.CharField(label="University ID", required=True, max_length=UID_LENGTH,
+            min_length=UID_LENGTH)
+    password1 = forms.CharField(label="Password", widget=forms.PasswordInput,
+            min_length=PASSWORD_MIN_LENGTH)
+    password2 = forms.CharField(label="Password confirmation", widget=forms.PasswordInput,
+            help_text="Enter the same password as above, for verification.")
+
+    def clean_uid(self):
+        uid = self.cleaned_data.get('uid')
+        if not all(c.isdigit() for c in uid):
+            raise forms.ValidationError('UID should only contain digits', code='invalid_uid')
+        if UserProfile.objects.filter(uid=uid).count() > 0:
+            raise forms.ValidationError('UID already exists', code='duplicate_uid')
+        return uid
+        
     def clean_email(self):
         email = self.cleaned_data.get("email")
-        username = self.cleaned_data.get("username")
-        if not email:
-            raise forms.ValidationError("This field is required.")
-        if email and User.objects.filter(email=email).count():
-            raise forms.ValidationError(
-                self.error_messages['email_not_unique'],
+        if User.objects.filter(email=email).count() > 0:
+            raise forms.ValidationError(self.error_messages['email_not_unique'],
                 code='email_not_unique')
         return email
+
+    def clean_password1(self):
+        password1 = self.cleaned_data.get("password1")
+        
+        # At least one letter and one digit
+        first_isalpha = password1[0].isalpha()
+        if not any(c.isalpha() for c in password1):
+            raise forms.ValidationError("The new password must contain at least one letter",
+                    code='no_letter_in_password')
+        if not any(c.isdigit() for c in password1):
+            raise forms.ValidationError("The new password must contain at least one digit",
+                    code='no_digit_in_password')
+        return password1
 
     def clean_password2(self):
         password1 = self.cleaned_data.get("password1")
         password2 = self.cleaned_data.get("password2")
-        if password1 and password2 and password1 != password2:
-            raise forms.ValidationError(
-                self.error_messages['password_mismatch'],
-                code='password_mismatch',
-            )
-        # At least MIN_LENGTH
-        elif len(password1) < self.MIN_LENGTH:
-            raise forms.ValidationError("The new password must be at least %d characters long." % self.MIN_LENGTH)
-
-        # At least one letter and one non-letter
-        first_isalpha = password1[0].isalpha()
-        if all(c.isalpha() == first_isalpha for c in password1):
-            raise forms.ValidationError("The new password must contain at least one letter and at least one digit or" \
-                                        " punctuation character.")
+        if password1 and password1 != password2:
+            raise forms.ValidationError(self.error_messages['password_mismatch'],
+                code='password_mismatch')
         return password2
 
-    def sendEmail(self, datas):
-        link="https://autograder.nesl.ucla.edu/activate/"+datas['activation_key']
-        template = get_template(datas['email_path'])
-        context = Context({'activation_link':link,'uid':datas['uid']})
-        message = template.render(context)
-        #print unicode(message).encode('utf8')
-        send_mail(datas['email_subject'], message, 'NESL Embed AutoGrader', [datas['email']], fail_silently=False)
-
-    def save(self, datas, commit=True):
-        user = super(UserCreateForm, self).save(commit=False)
+    def save_and_commit(self, activation_key):
+        user = super(UserRegistrationForm, self).save(commit=False)
         user.set_password(self.cleaned_data['password1'])
         user.is_active = False
-        if commit:
-            user.save()
-
-        # role = self.cleaned_data['user_role']
-        # role_string = dict(self.USER_ROLES).get(int(role))
-
-        user_profile = UserProfile(user=user,
-                                   uid=self.cleaned_data['uid'],
-                                #    user_role=role,
-                                   activation_key=datas['activation_key'],
-                                   key_expires=datetime.strftime(datetime.now() + timedelta(days=2), "%Y-%m-%d %H:%M:%S")
-                                  )
+        user.save()
+        
+        user_profile = UserProfile(user=user, uid=self.cleaned_data['uid'],
+                activation_key=activation_key,
+                key_expires=(timezone.now() + timedelta(days=2))
+        )
         user_profile.save()
-        # group = Group.objects.get(name=role_string)
-        # group.user_set.add(user)
+
         return user, user_profile
 
 
@@ -116,17 +103,14 @@ class CourseCreationForm(ModelForm):
     class Meta:
         model = Course
         fields = ['course_code', 'name', 'quarter', 'year', 'description']
-        YEAR_CHOICES = []
-        for r in range(2015, (datetime.now().year+2)):
-            YEAR_CHOICES.append((r,r))
+        YEAR_CHOICES = [(timezone.now().year + i, timezone.now().year + i) for i in range(3)]
         QUARTER_CHOICES = ((1, 'Fall'), (2, 'Winter'), (3, 'Spring'), (4, 'Summer'))
         widgets = {
                 'description': forms.Textarea(attrs={'cols': 40, 'rows': 5}),
                 'year': forms.Select(choices=YEAR_CHOICES),
-                'quarter': forms.Select(choices=QUARTER_CHOICES)
+                'quarter': forms.Select(choices=QUARTER_CHOICES),
         }
 
-    #TODO(Meng): Do we really need this constructor?
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
         super(CourseCreationForm, self).__init__(*args, **kwargs)
@@ -134,7 +118,7 @@ class CourseCreationForm(ModelForm):
     def save(self, commit=True):
         course = super(CourseCreationForm, self).save(commit=False)
         if commit:
-          course.save()
+            course.save()
         course_user_list = CourseUserList.objects.create(user_id=self.user, course_id=course)
         return course
 
@@ -142,9 +126,7 @@ class CourseCompleteForm(ModelForm):
     class Meta:
         model = Course
         fields = ['course_code', 'name', 'quarter', 'year', 'description']
-        YEAR_CHOICES = []
-        for r in range(2015, (datetime.now().year+2)):
-            YEAR_CHOICES.append((r,r))
+        YEAR_CHOICES = [(timezone.now().year + i, timezone.now().year + i) for i in range(3)]
         QUARTER_CHOICES = ((1, 'Fall'), (2, 'Winter'), (3, 'Spring'), (4, 'Summer'))
         widgets = {
                 'description': forms.Textarea(attrs={'cols': 40, 'rows': 5}),
@@ -156,7 +138,7 @@ class CourseEnrollmentForm(Form):
     error_messages = {
         'course_already_enrolled': "You have already enrolled in this course.",
     }
-    current_year = datetime.now().year
+    current_year = timezone.now().year
     course_select = forms.ModelChoiceField(queryset=Course.objects.filter(year=current_year))
 
     def __init__(self, *args, **kwargs):

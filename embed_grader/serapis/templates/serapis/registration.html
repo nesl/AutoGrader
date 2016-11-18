@@ -6,87 +6,71 @@
 {% endblock %}
 
 {% block navbar %}
-<nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+  <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
     <div class="container">
-        <!-- Brand and toggle get grouped for better mobile display -->
-        <div class="navbar-header">
-            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
-            <a class="navbar-brand" href="/">Embed Autograder</a>
-        </div>
+      <!-- Brand and toggle get grouped for better mobile display -->
+      <div class="navbar-header">
+        <a class="navbar-brand" href="/">Embed Autograder</a>
+      </div>
     </div>
     <!-- /.container -->
 
     <!-- Sidebar Block -->
     {% block nav %}
     {% endblock %}
-</nav>
+  </nav>
 {% endblock %}
 
 
 {% block content %}
   <div class="container">
-   {% if form.errors %}
-       <!--div class="login-form-main-message"-->
-       <div class="alert alert-danger">
-         <!--p>Your username and password didn't match. Please try again.</p-->
-         {{ form.errors }}
-       </div>
-       <!--/div-->
-    {% endif %}
+  {% if form.errors %}
+    <div class="alert alert-danger">
+      {{ form.errors }}
+    </div>
+  {% endif %}
 
-    <div class="container">
-            <form class="form-register" role="form" action="{% url 'registration' %}" method="post">
-            {% csrf_token %}
-              <h2 class="form-signin-heading">Sign Up</h2>
-                <div class="form-group">
-                    <label for="id_username" class="control-label">Username</label>
-                    <input type="text" id="id_username" name="username" placeholder="Username" class="form-control" autofocus required>
-                    <span class="help-block">The username shown in your home page.</span>
-                </div>
-                <div class="row">
-                <div class="form-group col-xs-6">
-                    <label for="id_first_name" class="control-label">First Name</label>
-                    <input type="text" id="id_first_name" name="first_name" placeholder="First Name" class="form-control" autofocus required>
-                </div>
-                <div class="form-group col-xs-6">
-                    <label for="id_last_name" class="control-label">Last Name</label>
-                    <input type="text" id="id_last_name" name="last_name" placeholder="Last Name" class="form-control" autofocus required>
-                </div>
-                </div>
-                <div class="form-group">
-                    <label for="id_email" class="control-label">Email</label>
-                        <input type="email" id="id_email" name="email" placeholder="Email" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label for="id_password1" class="control-label">Password</label>
-                    <input type="password" id="id_password1" name="password1" placeholder="Password" class="form-control" required>
-                    <span class="help-block">Must be at least 8 characters long and constain at least one letter and one digit</span>
-                </div>
-                <div class="form-group">
-                    <label for="id_password2" class="control-label">Confirm Password</label>
-                    <input type="password" id="id_password2" name="password2" placeholder="Re-enter password" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label for="id_uid" class="control-label">University ID</label>
-                    <input type="text" id="id_uid" name="uid" placeholder="UID" class="form-control" autofocus required>
-                    <span class="help-block">The 9-digit UCLA ID, without hyphens.</span>
-                </div>
-                <div class="form-group">
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox">I accept the <a href="#">Terms and Conditions</a>
-                            </label>
-                        </div>
-                </div> <!-- /.form-group -->
-                <div class="form-group">
-                  <button type="submit" class="btn btn-primary btn-block">Register</button>
-                  <input type="hidden" name="next" value="/registration/">
-                </div>
-            </form> <!-- /form -->
-        </div> <!-- ./container -->
+  <div class="container">
+    <form class="form-register" role="form" action="{% url 'registration' %}" method="post">
+      {% csrf_token %}
+      <h2 class="form-signin-heading">Sign Up</h2>
+      <div class="form-group">
+        <label for="id_username" class="control-label">Username</label>
+        <input type="text" id="id_username" name="username" placeholder="Username" class="form-control" value="{{form.username.value}}" autofocus required />
+        <span class="help-block">The username shown in your home page.</span>
+      </div>
+      <div class="row">
+        <div class="form-group col-xs-6">
+          <label for="id_first_name" class="control-label">First Name</label>
+          <input type="text" id="id_first_name" name="first_name" placeholder="First Name" class="form-control" value="{{form.first_name.value}}" required />
+        </div>
+        <div class="form-group col-xs-6">
+          <label for="id_last_name" class="control-label">Last Name</label>
+          <input type="text" id="id_last_name" name="last_name" placeholder="Last Name" class="form-control" value="{{form.last_name.value}}" required />
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="id_email" class="control-label">Email</label>
+        <input type="email" id="id_email" name="email" placeholder="Email" class="form-control" value="{{form.email.value}}" required />
+      </div>
+      <div class="form-group">
+        <label for="id_password1" class="control-label">Password</label>
+        <input type="password" id="id_password1" name="password1" placeholder="Password" class="form-control" required />
+        <span class="help-block">Must be at least 8 characters long and constain at least one letter and one digit</span>
+      </div>
+      <div class="form-group">
+        <label for="id_password2" class="control-label">Confirm Password</label>
+        <input type="password" id="id_password2" name="password2" placeholder="Re-enter password" class="form-control" required />
+      </div>
+      <div class="form-group">
+        <label for="id_uid" class="control-label">University ID</label>
+        <input type="text" id="id_uid" name="uid" placeholder="UID" class="form-control" value="{{form.uid.value}}" required />
+        <span class="help-block">The 9-digit UCLA ID, without hyphens.</span>
+      </div>
+      <div class="form-group">
+        <button type="submit" class="btn btn-primary btn-block">Register</button>
+        <input type="hidden" name="next" value="/registration/">
+      </div>
+    </form> <!-- /form -->
+  </div> <!-- ./container -->
 {% endblock %}
