@@ -48,7 +48,7 @@ def submission(request, submission_id):
             return HttpResponse("Not enough privilege")
 
     gradings = TaskGradingStatus.objects.filter(submission_id=submission_id).order_by('assignment_task_id')
-    now = datetime.now(tz=pytz.timezone('UTC'))
+    now = timezone.now()
     if user.has_perm('modify_assignment',course) or now > assignment.deadline:
         assignment_tasks = AssignmentTask.objects.filter(assignment_id=assignment).order_by('id')
     else:
@@ -247,7 +247,7 @@ def submissions_full_log(request):
     assignment_list = [];
     score_list = [];
     score_percentage_list = [];
-    now = datetime.now(tz=pytz.timezone('UTC'))
+    now = timezone.now()
     for s in submission_list:
         course = s.assignment_id.course_id
         course_list.append(course)
@@ -280,11 +280,12 @@ def submissions_full_log(request):
 
     submission_full_log_list = list(zip(submission_list, course_list, score_percentage_list))
 
+    #TODO: should only keep either user or myuser
     template_context = {
         'user': user,
-        'submission_full_log':submission_full_log_list,
+        'submission_full_log': submission_full_log_list,
         'myuser': request.user,
-        'now':datetime.now().replace(microsecond=0)
+        'now': timezone.now().replace(microsecond=0)
     }
 
     return render(request, 'serapis/submissions_full_log.html', template_context)
