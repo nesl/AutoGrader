@@ -71,4 +71,5 @@ urlpatterns = [
     url(r'^media/TaskGradingStatus_output_file/.*/$', media_controls.task_grading_status_output_file, name='media-task-grading-status-output-file'),
     url(r'^media/TaskGradingStatus_grading_detail/.*/$', media_controls.task_grading_status_grading_detail, name='media-task-grading-status-grading-detail'),
     url(r'^media/TaskGradingStatus_DUT_serial_output/.*/$', media_controls.task_grading_status_dut_serial_output, name='media-task-grading-status-dut-serial-output'),
+    url(r'^media/SubmissionFile_file/.*/$', media_controls.submission_file2, name='media-submission-file2')
 ]
