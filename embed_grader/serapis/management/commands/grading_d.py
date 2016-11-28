@@ -21,7 +21,7 @@ from serapis.utils import file_schema
 K_TESTBED_INVALIDATION_OFFLINE_SEC = 30
 K_TESTBED_INVALIDATION_REMOVE_SEC = 10 * 60
 
-K_GRADING_GRACE_PERIOD_SEC = 60
+K_GRADING_GRACE_PERIOD_SEC = 600
 
 K_CYCLE_DURATION_SEC = 3
 
@@ -186,7 +186,7 @@ class Command(BaseCommand):
                 # task mode is already in order.
                 task_list = TaskGradingStatus.objects.filter(
                         grading_status=TaskGradingStatus.STAT_PENDING).order_by(
-                                'assignment_task_id__mode')
+                                'assignment_task_id__mode', '-submission_id')
                 chosen_task = None
                 for task in task_list:
                     required_tb_type = task.assignment_task_id.assignment_id.testbed_type_id
