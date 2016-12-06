@@ -247,6 +247,8 @@ class Command(BaseCommand):
                         #grading_task.grading_status = TaskGradingStatus.STAT_INTERNAL_ERROR
                         grading_task.grading_status = TaskGradingStatus.STAT_PENDING
                         grading_task.points = 0.0
+                        exc_type, exc_value, exc_tb = sys.exc_info()
+                        traceback.print_exception(exc_type, exc_value, exc_tb)
 
                 grading_task.status_update_time = timezone.now()
                 grading_task.save()

@@ -40,7 +40,7 @@ def submission(request, submission_id):
     course = assignment.course_id
 
     if not user.has_perm('view_assignment',course):
-    	return HttpResponse("Not enough privilege")
+        return HttpResponse("Not enough privilege")
 
     author = User.objects.get(username=submission.student_id)
     if not user.has_perm('modify_assignment',course):
@@ -65,11 +65,15 @@ def submission(request, submission_id):
             elif task.grading_status == TaskGradingStatus.STAT_OUTPUT_TO_BE_CHECKED:
                 task_symbols.append('Checking')
             elif task.grading_status == TaskGradingStatus.STAT_FINISH:
-                    score += task.points
-                    task.points = round(task.points, 2)
-                    task_symbols.append('Finalized')
+                score += task.points
+                task.points = round(task.points, 2)
+                task_symbols.append('Finalized')
             elif task.grading_status == TaskGradingStatus.STAT_INTERNAL_ERROR:
                 task_symbols.append('Error')
+            elif task.grading_status == TaskGradingStatus.STAT_SKIPPED:
+                task_symbols.append('Skipped')
+            else:
+                raise Exception('Unhandled condition')
 
     total_points = 0
     for a in assignment_tasks:
@@ -116,7 +120,7 @@ def task_grading_detail(request, task_grading_id):
     assignment = submission.assignment_id
     course = assignment.course_id
     if not user.has_perm('view_assignment', course):
-    	return HttpResponse("Not enough privilege")
+        return HttpResponse("Not enough privilege")
 
     author = submission.student_id
     if not user.has_perm('modify_assignment', course):
@@ -132,9 +136,13 @@ def task_grading_detail(request, task_grading_id):
     output_field_list = []
     output_content_list = []
     for f in output_files:
-        content = open(output_files[f].file.path, 'r').read()
-        if content != '':
+        raw_content = open(output_files[f].file.path, 'rb').read()
+        if len(raw_content) > 0:
             output_field_list.append(f)
+            try:
+                content = raw_content.decode('ascii')
+            except:
+                content = '(The file includes non-ascii characters)'
             output_content_list.append(content)
 
     output_full_log = list(zip(output_field_list, output_content_list))

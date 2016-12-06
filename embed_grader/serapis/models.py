@@ -283,6 +283,7 @@ class TaskGradingStatus(models.Model):
     STAT_OUTPUT_TO_BE_CHECKED = 100
     STAT_FINISH = 110
     STAT_INTERNAL_ERROR = -1
+    STAT_SKIPPED = -2
 
     EXEC_UNKNOWN = -1
     EXEC_OK = 0
@@ -294,6 +295,7 @@ class TaskGradingStatus(models.Model):
             (STAT_OUTPUT_TO_BE_CHECKED, 'Checking output'),
             (STAT_FINISH, 'Finished'),
             (STAT_INTERNAL_ERROR, 'Please contact PI'),
+            (STAT_SKIPPED, 'Skipped'),
     )
     EXECUTION_STATUS = (
             (EXEC_UNKNOWN, 'Haven\'t executed yet'),

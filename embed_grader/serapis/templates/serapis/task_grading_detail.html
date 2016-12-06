@@ -72,13 +72,13 @@
         {% endif %}
         <hr/>
         <h4>Grading feedback:<h4>
-        <p style="white-space:pre; font-size:13px">{{feedback}}</p>
+        <p style="white-space:pre; font-size:13px; font-family:monospace">{{feedback}}</p>
 
         {% for output in output_log %}
           <hr/>
           <h4>File: {{output.0}}<h4>
           <br/>
-          <p style="white-space:pre; font-size:13px">{{output.1}}</p>
+          <p style="white-space:pre; font-size:13px; font-family:monospace">{{output.1}}</p>
         {% endfor %}
 
 
