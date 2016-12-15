@@ -3,7 +3,7 @@ from django.contrib.auth import views as auth_views
 from django.conf import settings
 from django.conf.urls.static import static
 
-from serapis.views import views, courses, assignments, submissions, registrations, testbeds, hardware
+from serapis.views import views, courses, assignments, tasks, submissions, registrations, testbeds, hardware
 from . import services
 from . import media_controls
 
@@ -35,9 +35,9 @@ urlpatterns = [
     url(r'^assignment/(?P<assignment_id>[0-9]+)/$', assignments.assignment, name='assignment'),
     url(r'^create-assignment/(?P<course_id>[0-9]+)/$', assignments.create_assignment, name='create-assignment'),
     url(r'^modify-assignment/(?P<assignment_id>[0-9]+)/$', assignments.modify_assignment, name='modify-assignment'),
-    url(r'^create-assignment-task/(?P<assignment_id>[0-9]+)/$', assignments.create_assignment_task, name='create-assignment-task'),
-    url(r'^modify-assignment-task/(?P<task_id>[0-9]+)/$', assignments.modify_assignment_task, name='modify-assignment-task'),
-    url(r'^debug-task-grading-status/$', assignments.debug_task_grading_status, name='debug-task-grading-status'),
+    url(r'^create-assignment-task/(?P<assignment_id>[0-9]+)/$', tasks.create_assignment_task, name='create-assignment-task'),
+    url(r'^modify-assignment-task/(?P<task_id>[0-9]+)/$', tasks.modify_assignment_task, name='modify-assignment-task'),
+    url(r'^debug-task-grading-status/$', tasks.debug_task_grading_status, name='debug-task-grading-status'),
 
     ## submissions
     url(r'^submission/(?P<submission_id>[0-9]+)/$', submissions.submission, name='submission'),

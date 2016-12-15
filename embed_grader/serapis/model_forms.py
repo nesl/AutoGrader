@@ -45,7 +45,7 @@ class UserRegistrationForm(UserCreationForm):
         if UserProfile.objects.filter(uid=uid).count() > 0:
             raise forms.ValidationError('UID already exists', code='duplicate_uid')
         return uid
-        
+
     def clean_email(self):
         email = self.cleaned_data.get("email")
         if User.objects.filter(email=email).count() > 0:
@@ -55,7 +55,7 @@ class UserRegistrationForm(UserCreationForm):
 
     def clean_password1(self):
         password1 = self.cleaned_data.get("password1")
-        
+
         # At least one letter and one digit
         first_isalpha = password1[0].isalpha()
         if not any(c.isalpha() for c in password1):
@@ -79,7 +79,7 @@ class UserRegistrationForm(UserCreationForm):
         user.set_password(self.cleaned_data['password1'])
         user.is_active = False
         user.save()
-        
+
         user_profile = UserProfile(user=user, uid=self.cleaned_data['uid'],
                 activation_key=activation_key,
                 key_expires=(timezone.now() + timedelta(days=2))
@@ -186,7 +186,7 @@ class AssignmentBasicForm(ModelForm):
 class AssignmentCompleteForm(ModelForm):
     class Meta:
         model = Assignment
-        fields = ['course_id', 'name', 'release_time', 'deadline', 'problem_statement', 
+        fields = ['course_id', 'name', 'release_time', 'deadline', 'problem_statement',
                 'input_statement', 'output_statement', 'testbed_type_id', 'num_testbeds']
         date_time_options = {
                 'format': 'mm/dd/yyyy hh:ii',
@@ -200,13 +200,11 @@ class AssignmentCompleteForm(ModelForm):
 
 
 class AssignmentTaskForm(ModelForm):
-    #TODO: now only support create objects, should also consider update objects
-
     class Meta:
         model = AssignmentTask
         fields = ['brief_description', 'mode', 'points', 'description', 'grading_script',
                 'execution_duration']
-    
+
     def __init__(self, *args, **kwargs):
         assignment = kwargs.pop('assignment')
         super(AssignmentTaskForm, self).__init__(*args, **kwargs)
@@ -217,14 +215,14 @@ class AssignmentTaskForm(ModelForm):
             field_name = "file_" + field.field  # put 'file_' as a prefix of field names
             file_fields.append(field_name)
             self.fields[field_name] = forms.FileField()
-        
+
         # set up variables to be used
         self.assignment = assignment
         self.file_fields = file_fields
-    
+
     def clean(self):
         super(AssignmentTaskForm, self).clean()
-        
+
         for field_name in self.file_fields:
             #TODO: assume all files are (input) waveform files, which may not be true in the future
             file_field = self.cleaned_data.get(field_name)
@@ -264,6 +262,44 @@ class AssignmentTaskForm(ModelForm):
             print(assignment_task_file.file.path)
 
         return (assignment_task, assignment_task_files)
+
+class AssignmentTaskUpdateForm(ModelForm):
+    class Meta:
+        model = AssignmentTask
+        fields = ['brief_description', 'mode', 'points', 'description', 'grading_script',
+                'execution_duration']
+
+    # def save_and_commit(self):
+    #     assignment_task = AssignmentTask(
+    #             assignment_id=self.assignment,
+    #             brief_description=self.cleaned_data['brief_description'],
+    #             mode=self.cleaned_data['mode'],
+    #             points=self.cleaned_data['points'],
+    #             description=self.cleaned_data['description'],
+    #             grading_script=self.cleaned_data['grading_script'],
+    #             execution_duration=self.cleaned_data['execution_duration'],
+    #     )
+    #     assignment_task.save()
+    #
+    #     assignment_task_files = []
+    #     for field_name in self.file_fields:
+    #         field = field_name[5:]  # remove the prefix 'file_'
+    #         print(field_name, field)
+    #         schema = AssignmentTaskFileSchema.objects.get(
+    #                 assignment_id=self.assignment,
+    #                 field=field,
+    #         )
+    #         assignment_task_file = AssignmentTaskFile(
+    #                 assignment_task_id=assignment_task,
+    #                 file_schema_id=schema,
+    #                 file=self.cleaned_data[field_name],
+    #         )
+    #         assignment_task_file.save()
+    #         assignment_task_files.append(assignment_task_file)
+    #         print(assignment_task_file.file.path)
+    #
+    #     return (assignment_task, assignment_task_files)
+
 
 
 class TestbedTypeForm(ModelForm):
@@ -376,7 +412,7 @@ class AssignmentSubmissionForm(Form):
         schema = SubmissionFileSchema.objects.filter(assignment_id=assignment).order_by('id')
         for field in schema:
             self.fields[field.field] = forms.FileField()
-        
+
         # set up variables to be used
         self.assignment = assignment
 
@@ -413,5 +449,3 @@ class TaskGradingStatusDebugForm(ModelForm):
         model = TaskGradingStatus
         fields = ['id', 'grading_status', 'execution_status']
         #TODO: wire output files
-
-
