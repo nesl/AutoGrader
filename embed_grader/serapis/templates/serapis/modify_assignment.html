@@ -61,7 +61,7 @@
         {% csrf_token %}
         {% bootstrap_form form%}
         <p>Cannot find the testbed you want? Just <a href="{% url 'create-testbed-type' %}">create one!</a></p>
-        <input class="btn btn-primary" type="submit" value="Submit"/>
+
         {% if tasks is not None %}
             <hr/>
             <h3>Assignment tasks</h3>
@@ -93,10 +93,10 @@
             {% endif %}
             <p><a class="btn btn-primary" href="{% url 'create-assignment-task' assignment.id %}">Create an assignment task</a></p>
         {% endif %}
+        <hr>
+        <input class="btn btn-primary" type="submit" value="Submit" style="width:100px;" />
+        <a class="btn btn-danger" href="{% url 'course' course.id %}" style="width:100px; float:right">Cancel</a>
     </form>
-
-    <hr/>
-    <a class="btn btn-danger" href="{% url 'course' course.id %}" style="width:100px;">Cancel</a>
   </div>
 
 {% endblock %}
