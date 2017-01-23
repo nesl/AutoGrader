@@ -10,9 +10,9 @@ import datetime
 
 class UserProfile(models.Model):
     #Connect to built-in User model, which already has firstname, lastname, email and password
-    user = models.OneToOneField(User, on_delete = models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
 
-    uid = models.CharField(max_length=20, unique=True, verbose_name = "University ID")
+    uid = models.CharField(max_length=20, unique=True, verbose_name="University ID")
 
     #for activation of user. One time use
     activation_key = models.CharField(max_length=40, null=True, blank=True)
@@ -30,9 +30,9 @@ class HardwareType(models.Model):
         (HARDWARE_ENGINE, 'Hardware Engine'),
         (DEVICE_UNDER_TEST, 'Device Under Test'),
     )
-    name = models.CharField(max_length=50)
+    name = models.CharField(max_length=50, unique=True)
     pinout = models.FileField(upload_to='HardwareType_pinout')
-    link_to_manual = models.URLField()
+    link_to_manual = models.URLField(null=True)
     hardware_role = models.IntegerField(choices=HARDWARE_ROLES)
 
     def __str__(self):
@@ -45,7 +45,7 @@ class HardwareType(models.Model):
 
 
 class HardwareTypePin(models.Model):
-    hardware_type = models.ForeignKey(HardwareType, on_delete = models.CASCADE)
+    hardware_type = models.ForeignKey(HardwareType, on_delete=models.CASCADE)
     pin_name = models.CharField(max_length=10)
 
     def __str__(self):
@@ -62,13 +62,13 @@ class TestbedType(models.Model):
 
 # Model that links the TestbedType to it's list of hardware types
 class TestbedHardwareList(models.Model):
-    testbed_type = models.ForeignKey(TestbedType, on_delete = models.CASCADE)
-    hardware_type = models.ForeignKey(HardwareType, on_delete = models.CASCADE)
+    testbed_type = models.ForeignKey(TestbedType, on_delete=models.CASCADE)
+    hardware_type = models.ForeignKey(HardwareType, on_delete=models.CASCADE)
     hardware_index = models.IntegerField()
     firmware = models.FileField(null=True, blank=True, upload_to='TestbedHardwareList_firmware')
 
     def __str__(self):
-        return self.testbed_type.name + ", " + self.hardware_type.name + ", " + str(self.hardware_index)
+        return '%s, %s, %d' % (self.testbed_type.name, self.hardware_type.name, self.hardware_index)
 
 
 # Wiring for the TestbedType
@@ -76,10 +76,10 @@ class TestbedTypeWiring(models.Model):
     testbed_type = models.ForeignKey(TestbedType, on_delete = models.CASCADE)
     #The device index should match the index in TestbedHardwareList model
     dev_1_index = models.IntegerField()
-    dev_1_pin = models.ForeignKey(HardwareTypePin, related_name = 'dev_1_pin', on_delete = models.CASCADE)
+    dev_1_pin = models.ForeignKey(HardwareTypePin, related_name='dev_1_pin', on_delete=models.CASCADE)
     #The device index should match the index in TestbedHardwareList model
     dev_2_index = models.IntegerField()
-    dev_2_pin = models.ForeignKey(HardwareTypePin, related_name = 'dev_2_pin', on_delete = models.CASCADE)
+    dev_2_pin = models.ForeignKey(HardwareTypePin, related_name='dev_2_pin', on_delete=models.CASCADE)
 
 
 class Course(models.Model):
@@ -100,7 +100,7 @@ class Course(models.Model):
         YEAR_CHOICES.append((r,r))
 
     course_code = models.CharField(max_length = 10, default = '')
-    name = models.CharField(max_length = 100, default = '')
+    name = models.CharField(max_length=100, default='')
     description = models.TextField(default='', null=True, blank=True)
     quarter = models.IntegerField(choices=QUARTER_TYPES, default=FALL)
     year = models.IntegerField(choices=YEAR_CHOICES, default=datetime.datetime.now().year)
@@ -158,9 +158,6 @@ class Assignment(models.Model):
     testbed_type_id = models.ForeignKey(TestbedType, on_delete=models.CASCADE, default=None, null=True)
     # Testbenches are reserved using AssignmentTestBenches table
     num_testbeds = models.IntegerField(default=None, null=True)
-
-    # internal
-    # TODO: status (completition of problem statement, is it ready to submit)
 
     def __str__(self):
         return self.name
@@ -230,11 +227,17 @@ class AssignmentTask(models.Model):
 
 
 class AssignmentTaskFileSchema(models.Model):
+    class Meta:
+        unique_together = ('assignment_id', 'field')
+
     assignment_id = models.ForeignKey(Assignment, on_delete=models.CASCADE)
     field = models.CharField(max_length=100)
 
 
 class AssignmentTaskFile(models.Model):
+    class Meta:
+        unique_together = ('assignment_task_id', 'file_schema_id')
+
     assignment_task_id = models.ForeignKey(AssignmentTask, on_delete=models.CASCADE)
     file_schema_id = models.ForeignKey(AssignmentTaskFileSchema, on_delete=models.CASCADE)
     file = models.FileField(upload_to='AssignmentTaskFile_file')
@@ -252,11 +255,11 @@ class Submission(models.Model):
             (STAT_GRADED, "Result is ready"),
     )
 
-    student_id = models.ForeignKey(User, on_delete = models.CASCADE)
-    assignment_id = models.ForeignKey(Assignment, on_delete = models.CASCADE)
+    student_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    assignment_id = models.ForeignKey(Assignment, on_delete=models.CASCADE)
     submission_time = models.DateTimeField()
     grading_result = models.FloatField()
-    status = models.IntegerField(choices = SUBMISSION_STATES, default = STAT_RECEIVED)
+    status = models.IntegerField(choices = SUBMISSION_STATES, default=STAT_RECEIVED)
 
     def __str__(self):
         return self.student_id.first_name + " " + self.student_id.last_name + ", " + str(self.id)
@@ -267,11 +270,17 @@ class Submission(models.Model):
 
 
 class SubmissionFileSchema(models.Model):
+    class Meta:
+        unique_together = ('assignment_id', 'field')
+
     assignment_id = models.ForeignKey(Assignment, on_delete=models.CASCADE)
     field = models.CharField(max_length=100)
 
 
 class SubmissionFile(models.Model):
+    class Meta:
+        unique_together = ('submission_id', 'file_schema_id')
+
     submission_id = models.ForeignKey(Submission, on_delete=models.CASCADE)
     file_schema_id = models.ForeignKey(SubmissionFileSchema, on_delete=models.CASCADE)
     file = models.FileField(upload_to='SubmissionFile_file')
@@ -330,11 +339,17 @@ class TaskGradingStatus(models.Model):
 
 
 class TaskGradingStatusFileSchema(models.Model):
+    class Meta:
+        unique_together = ('assignment_id', 'field')
+
     assignment_id = models.ForeignKey(Assignment, on_delete=models.CASCADE)
     field = models.CharField(max_length=100)
 
 
 class TaskGradingStatusFile(models.Model):
+    class Meta:
+        unique_together = ('task_grading_status_id', 'file_schema_id')
+
     task_grading_status_id = models.ForeignKey(TaskGradingStatus, on_delete=models.CASCADE)
     file_schema_id = models.ForeignKey(TaskGradingStatusFileSchema, on_delete=models.CASCADE)
     file = models.FileField(upload_to='TaskGradingStatusFile_file', null=True, blank=True)
