@@ -70,8 +70,7 @@ class Command(BaseCommand):
         try:
             # upload assignment specific files (program DUTs)
             submission = task.submission_id
-            assignment = submission.assignment_id
-            submission_files = file_schema.get_submission_files(assignment, submission)
+            submission_files = file_schema.get_submission_files(submission)
             url = 'http://' + testbed.ip_address + '/dut/program/'
             files = {}
             for field in submission_files:
@@ -81,8 +80,7 @@ class Command(BaseCommand):
 
             # upload input waveform command
             assignment_task = task.assignment_task_id
-            assignment_task_files = file_schema.get_assignment_task_files(
-                    assignment, assignment_task)
+            assignment_task_files = file_schema.get_assignment_task_files(assignment_task)
             url = 'http://' + testbed.ip_address + '/tb/upload_input_waveform/'
             files = {}
             for field in assignment_task_files:
@@ -230,7 +228,7 @@ class Command(BaseCommand):
                     grading_script_path = assignment_task.grading_script.path
                     cmd = ['python3', grading_script_path]
                     task_grading_status_files = file_schema.get_task_grading_status_files(
-                            assignment_task.assignment_id, grading_task)
+                            grading_task)
                     for field in task_grading_status_files:
                         cmd.append('%s:%s' % (field, task_grading_status_files[field].file.path))
 

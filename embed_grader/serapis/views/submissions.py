@@ -83,7 +83,7 @@ def submission(request, submission_id):
 
     submission_n_detail_short_list = zip(gradings, task_symbols, assignment_tasks)
 
-    submission_files = file_schema.get_submission_files(assignment, submission)
+    submission_files = file_schema.get_submission_files(submission)
 
     submission_filename_list = []
     submission_file_path_list = []
@@ -132,7 +132,7 @@ def task_grading_detail(request, task_grading_id):
 
     task_grading_status = TaskGradingStatus.objects.filter(
             submission_id=submission, assignment_task_id=assignment_task)
-    output_files = file_schema.get_task_grading_status_files(assignment, task_grading_status)
+    output_files = file_schema.get_task_grading_status_files(task_grading_status)
     output_field_list = []
     output_content_list = []
     for f in output_files:
