@@ -70,29 +70,14 @@ def activation(request, key):
 
 
 def new_activation(request, user_id):
-    form = UserRegistrationForm()
-    datas = {}
-    user = User.objects.get(id=user_id)
-    if not user.is_active:
-        datas['uid'] = user.uid
-        datas['email'] = user.email
-        datas['email_path'] = "serapis/activation_email_resend.html"
-        datas['email_subject'] = "Account Activation Resend"
-
-        salt = hashlib.sha1(str(random.random())).hexdigest()[:5]
-        usernamesalt = datas['uid']
-        if isinstance(usernamesalt, unicode):
-            usernamesalt = usernamesalt.encode('utf8')
-        datas['activation_key'] = hashlib.sha1(salt+usernamesalt).hexdigest()
-
-        user_profile = UserProfile.objects.get(user=user)
-        user_profile.activation_key = datas['activation_key']
-        user_profile.key_expires = datetime.strftime(timezone.now() + timedelta(days=2), "%Y-%m-%d %H:%M:%S")
-        user_profile.save()
-        form.sendEmail(datas)
-        request.session['new_link'] = True  # Display : new link send
-
-    return HttpResponse("The new verification link has been sent to your email. Please check.")
+    user = User.objects.get_object_or_404(id=user_id)
+    user_profile = UserProfile.objects.get_object_or_404(user=user)
+    if user.is_active:
+        return HttpResponse("The user has been activated")
+    else:
+        activation_key = _generate_activation_key(user_profile.uid)
+        _send_email(activation_key, user.email)
+        return HttpResponse("The new verification link has been sent to your email. Please check.")
 
 
 def logout_view(request):
