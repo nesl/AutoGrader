@@ -9,7 +9,8 @@ def get_assignment_task_file_schema(assignment):
 When strict is set to be True, all the corresponding records has to be found
 in AssignmentTaskFileSchema.
 """
-def get_assignment_task_files(assignment, assignment_task, strict=True):
+def get_assignment_task_files(assignment_task, strict=True):
+    assignment = assignment_task.assignment_id
     schema_list = AssignmentTaskFileSchema.objects.filter(assignment_id=assignment)
     assignment_task_files = {}
     for schema in schema_list:
@@ -35,7 +36,8 @@ def get_submission_file_schema(assignment):
 When strict is set to be True, all the corresponding records has to be found
 in SubmissionFileSchema.
 """
-def get_submission_files(assignment, submission, strict=True):
+def get_submission_files(submission, strict=True):
+    assignment = submission.assignment_id
     schema_list = SubmissionFileSchema.objects.filter(assignment_id=assignment)
     submission_files = {}
     for schema in schema_list:
@@ -60,7 +62,8 @@ def get_task_grading_status_file_schema(assignment):
 When strict is set to be True, all the corresponding records has to be found
 in TaskGradingStatusFileSchema.
 """
-def get_task_grading_status_files(assignment, task_grading_status, strict=True):
+def get_task_grading_status_files(task_grading_status, strict=True):
+    assignment = task_grading_status.submission_id.assignment_id
     schema_list = TaskGradingStatusFileSchema.objects.filter(assignment_id=assignment)
     grading_files = {}
     for schema in schema_list:

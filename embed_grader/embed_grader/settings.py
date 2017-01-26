@@ -159,3 +159,5 @@ AUTHENTICATION_BACKENDS = {
     'django.contrib.auth.backends.ModelBackend', # this is default
     'guardian.backends.ObjectPermissionBackend'
 }
+
+SITE_NAME = "NESL Embed AutoGrader"

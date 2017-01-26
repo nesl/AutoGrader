@@ -172,7 +172,6 @@
                 <th>Score</th>
                 <th>Submission Time</th>
                 <th>Detail</th>
-                <th>Code</th>
               </thead>
             </tr>
             {% for s in submission_n_detail_short_list %}
@@ -190,14 +189,10 @@
                       style="font-size:12px; background:white; width:90px; color:SteelBlue; border-color:SteelBlue">
                       <span class="glyphicon glyphicon-file"></span>&nbsp;Detail
                     </td>
-                    <td><a href="{{ MEDIA_URL }}{{ s.0.file.url }}" class="btn btn-primary"
-                      style="font-size: 12px; background:white; color:SteelBlue; border-color:SteelBlue">
-                      <span class="glyphicon glyphicon-download-alt"></span>&nbsp;Download
-                    </td>
                 </tr>
             {% endfor %}
         </table>
-
+        <br>
         <a class="btn btn-primary" href="{% url 'course' course.id %}" style="width:100px;">Back</a>
       {% else %}
         <table class="table table-striped table-hover table-sm">
@@ -207,7 +202,6 @@
                 <th>Score</th>
                 <th>Submission Time</th>
                 <th>Detail</th>
-                <th>Code</th>
               </thead>
             </tr>
             {% for s in submission_n_detail_short_list %}
@@ -224,14 +218,10 @@
                       style="font-size:12px; background:white; width:90px; color:SteelBlue; border-color:SteelBlue">
                       <span class="glyphicon glyphicon-file"></span>&nbsp;Detail
                     </td>
-                    <td style="width:20%">
-                      <a href="{{ MEDIA_URL }}{{ s.0.file.url }}" class="btn btn-primary" style="font-size:12px; background:white; color:SteelBlue; border-color:SteelBlue">
-                      <span class="glyphicon glyphicon-download-alt"></span>&nbsp;Download
-                    </td>
                 </tr>
             {% endfor %}
         </table>
-
+        <br>
         <a class="btn btn-primary" href="{% url 'modify-assignment' assignment.id %}" style="width:100px;">
           <span class="glyphicon glyphicon-edit"></span>&nbsp; Edit </a>
         <a class="btn btn-primary" href="{% url 'course' course.id %}" style="width:100px; float:right;">Back</a>

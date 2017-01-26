@@ -3,9 +3,7 @@ from django.contrib.auth import views as auth_views
 from django.conf import settings
 from django.conf.urls.static import static
 
-from serapis.views import views
-from serapis.views import submissions
-from serapis.views import registrations
+from serapis.views import views, courses, assignments, tasks, submissions, registrations, testbeds, hardware
 from . import services
 from . import media_controls
 
@@ -27,18 +25,19 @@ urlpatterns = [
     url(r'^new_activation/(?P<user_id>\d+)/$', registrations.new_activation, name='new_activation'),
 
     ## Course pages
-    url(r'^course/(?P<course_id>[0-9]+)/$', views.course, name='course'),
-    url(r'^course/(?P<course_id>[0-9]+)/membership/$', views.membership, name='membership'),
-    url(r'^create-course/$', views.create_course, name='create-course'),
-    url(r'^modify-course/(?P<course_id>[0-9]+)/$', views.modify_course, name='modify-course'),
-    url(r'^enroll-course/$', views.enroll_course, name='enroll-course'),
+    url(r'^course/(?P<course_id>[0-9]+)/$', courses.course, name='course'),
+    url(r'^course/(?P<course_id>[0-9]+)/membership/$', courses.membership, name='membership'),
+    url(r'^create-course/$', courses.create_course, name='create-course'),
+    url(r'^modify-course/(?P<course_id>[0-9]+)/$', courses.modify_course, name='modify-course'),
+    url(r'^enroll-course/$', courses.enroll_course, name='enroll-course'),
 
     ## Assignment pages
-    url(r'^assignment/(?P<assignment_id>[0-9]+)/$', views.assignment, name='assignment'),
-    url(r'^create-assignment/(?P<course_id>[0-9]+)/$', views.create_assignment, name='create-assignment'),
-    url(r'^modify-assignment/(?P<assignment_id>[0-9]+)/$', views.modify_assignment, name='modify-assignment'),
-    url(r'^create-assignment-task/(?P<assignment_id>[0-9]+)/$', views.create_assignment_task, name='create-assignment-task'),
-    url(r'^modify-assignment-task/(?P<task_id>[0-9]+)/$', views.modify_assignment_task, name='modify-assignment-task'),
+    url(r'^assignment/(?P<assignment_id>[0-9]+)/$', assignments.assignment, name='assignment'),
+    url(r'^create-assignment/(?P<course_id>[0-9]+)/$', assignments.create_assignment, name='create-assignment'),
+    url(r'^modify-assignment/(?P<assignment_id>[0-9]+)/$', assignments.modify_assignment, name='modify-assignment'),
+    url(r'^create-assignment-task/(?P<assignment_id>[0-9]+)/$', tasks.create_assignment_task, name='create-assignment-task'),
+    url(r'^modify-assignment-task/(?P<task_id>[0-9]+)/$', tasks.modify_assignment_task, name='modify-assignment-task'),
+    url(r'^debug-task-grading-status/$', tasks.debug_task_grading_status, name='debug-task-grading-status'),
 
     ## submissions
     url(r'^submission/(?P<submission_id>[0-9]+)/$', submissions.submission, name='submission'),
@@ -47,15 +46,13 @@ urlpatterns = [
     url(r'^task-grading-detail/(?P<task_grading_id>[0-9]+)/$', submissions.task_grading_detail, name='task-grading-detail'),
 
     ## Testbed and Hardware pages
-    url(r'^testbed-type-list/$', views.testbed_type_list, name='testbed-type-list'),
-    url(r'^testbed-type/(?P<testbed_type_id>[0-9]+)/$', views.testbed_type, name='testbed-type'),
-    url(r'^create-testbed-type/$', views.create_testbed_type, name='create-testbed-type'),
-    url(r'^hardware-type-list/$', views.hardware_type_list, name='hardware-type-list'),
-    url(r'^hardware-type/(?P<hardware_type_id>[0-9]+)/$', views.hardware_type, name='hardware-type'),
-    url(r'^create-hardware-type/$', views.create_hardware_type, name='create-hardware-type'),
-    url(r'^modify-hardware-type/(?P<hardware_type_id>[0-9]+)/$', views.modify_hardware_type, name='modify-hardware-type'),
-
-    url(r'^debug-task-grading-status/$', views.debug_task_grading_status, name='debug-task-grading-status'),
+    url(r'^testbed-type-list/$', testbeds.testbed_type_list, name='testbed-type-list'),
+    url(r'^testbed-type/(?P<testbed_type_id>[0-9]+)/$', testbeds.testbed_type, name='testbed-type'),
+    url(r'^create-testbed-type/$', testbeds.create_testbed_type, name='create-testbed-type'),
+    url(r'^hardware-type-list/$', hardware.hardware_type_list, name='hardware-type-list'),
+    url(r'^hardware-type/(?P<hardware_type_id>[0-9]+)/$', hardware.hardware_type, name='hardware-type'),
+    url(r'^create-hardware-type/$', hardware.create_hardware_type, name='create-hardware-type'),
+    url(r'^modify-hardware-type/(?P<hardware_type_id>[0-9]+)/$', hardware.modify_hardware_type, name='modify-hardware-type'),
 
     ## Report from testbeds
     url(r'^tb/send-summary/$', services.testbed_show_summary_report, name='tb-show-summary'),
@@ -71,4 +68,5 @@ urlpatterns = [
     url(r'^media/TaskGradingStatus_output_file/.*/$', media_controls.task_grading_status_output_file, name='media-task-grading-status-output-file'),
     url(r'^media/TaskGradingStatus_grading_detail/.*/$', media_controls.task_grading_status_grading_detail, name='media-task-grading-status-grading-detail'),
     url(r'^media/TaskGradingStatus_DUT_serial_output/.*/$', media_controls.task_grading_status_dut_serial_output, name='media-task-grading-status-dut-serial-output'),
+    url(r'^media/SubmissionFile_file/.*/$', media_controls.submission_file2, name='media-submission-file2')
 ]

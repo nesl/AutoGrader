@@ -8,6 +8,8 @@ from django.contrib.auth.models import Permission
 
 from django.utils import timezone
 
+from django.conf import settings
+
 from django.core.urlresolvers import reverse
 from django.http import *
 from django.shortcuts import render, get_object_or_404
@@ -25,10 +27,12 @@ def _generate_activation_key(uid):
     salt = hashlib.sha1(random_string.encode('utf-8')).hexdigest()[:5] + uid
     return hashlib.sha1(salt.encode('utf-8')).hexdigest()
 
-def _send_email(activation_key, email):
-    link = reverse('activation', kwargs={'key': '123'})
+def _send_email(activation_link, email):
     template = get_template("serapis/activation_email.html")
-    context = Context({'activation_link': link})
+    context = Context({
+        'activation_link': activation_link,
+        'site_name': settings.SITE_NAME,
+    })
     message = template.render(context)
     send_mail(subject='Account Activation',
             message=message,
@@ -43,7 +47,8 @@ def registration(request):
         if form.is_valid():
             activation_key = _generate_activation_key(form.cleaned_data['uid'])
             form.save_and_commit(activation_key)  # Save the user and her profile
-            _send_email(activation_key, form.cleaned_data['email'])
+            activation_link = request.build_absolute_uri(reverse('activation', kwargs={'key': activation_key}))
+            _send_email(activation_link, form.cleaned_data['email'])
 
             request.session['registered'] = True  # For display purposes
             return render(request, 'serapis/registration_done.html', locals())

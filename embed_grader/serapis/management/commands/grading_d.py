@@ -21,7 +21,7 @@ from serapis.utils import file_schema
 K_TESTBED_INVALIDATION_OFFLINE_SEC = 30
 K_TESTBED_INVALIDATION_REMOVE_SEC = 10 * 60
 
-K_GRADING_GRACE_PERIOD_SEC = 60
+K_GRADING_GRACE_PERIOD_SEC = 600
 
 K_CYCLE_DURATION_SEC = 3
 
@@ -70,8 +70,7 @@ class Command(BaseCommand):
         try:
             # upload assignment specific files (program DUTs)
             submission = task.submission_id
-            assignment = submission.assignment_id
-            submission_files = file_schema.get_submission_files(assignment, submission)
+            submission_files = file_schema.get_submission_files(submission)
             url = 'http://' + testbed.ip_address + '/dut/program/'
             files = {}
             for field in submission_files:
@@ -81,8 +80,7 @@ class Command(BaseCommand):
 
             # upload input waveform command
             assignment_task = task.assignment_task_id
-            assignment_task_files = file_schema.get_assignment_task_files(
-                    assignment, assignment_task)
+            assignment_task_files = file_schema.get_assignment_task_files(assignment_task)
             url = 'http://' + testbed.ip_address + '/tb/upload_input_waveform/'
             files = {}
             for field in assignment_task_files:
@@ -186,7 +184,7 @@ class Command(BaseCommand):
                 # task mode is already in order.
                 task_list = TaskGradingStatus.objects.filter(
                         grading_status=TaskGradingStatus.STAT_PENDING).order_by(
-                                'assignment_task_id__mode')
+                                'assignment_task_id__mode', '-submission_id')
                 chosen_task = None
                 for task in task_list:
                     required_tb_type = task.assignment_task_id.assignment_id.testbed_type_id
@@ -230,7 +228,7 @@ class Command(BaseCommand):
                     grading_script_path = assignment_task.grading_script.path
                     cmd = ['python3', grading_script_path]
                     task_grading_status_files = file_schema.get_task_grading_status_files(
-                            assignment_task.assignment_id, grading_task)
+                            grading_task)
                     for field in task_grading_status_files:
                         cmd.append('%s:%s' % (field, task_grading_status_files[field].file.path))
 
@@ -244,8 +242,11 @@ class Command(BaseCommand):
                         grading_task.grading_status = TaskGradingStatus.STAT_FINISH
                         grading_task.points = assignment_task.points * normalized_score
                     except (ValueError):
-                        grading_task.grading_status = TaskGradingStatus.STAT_INTERNAL_ERROR
+                        #grading_task.grading_status = TaskGradingStatus.STAT_INTERNAL_ERROR
+                        grading_task.grading_status = TaskGradingStatus.STAT_PENDING
                         grading_task.points = 0.0
+                        exc_type, exc_value, exc_tb = sys.exc_info()
+                        traceback.print_exception(exc_type, exc_value, exc_tb)
 
                 grading_task.status_update_time = timezone.now()
                 grading_task.save()

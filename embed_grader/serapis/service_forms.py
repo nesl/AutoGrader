@@ -13,9 +13,8 @@ class ReturnDutOutputForm(forms.Form):
 
         # services.py has checked the graded task is valid
         task = testbed.task_being_graded
-        assignment = task.assignment_task_id.assignment_id
 
-        task_files = file_schema.get_task_grading_status_files(assignment, task)
+        task_files = file_schema.get_task_grading_status_files(task)
         for field in task_files:
             field_name = 'file_' + field
             self.fields[field_name] = forms.FileField(allow_empty_file=True)

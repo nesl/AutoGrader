@@ -40,7 +40,7 @@ def submission(request, submission_id):
     course = assignment.course_id
 
     if not user.has_perm('view_assignment',course):
-    	return HttpResponse("Not enough privilege")
+        return HttpResponse("Not enough privilege")
 
     author = User.objects.get(username=submission.student_id)
     if not user.has_perm('modify_assignment',course):
@@ -48,7 +48,7 @@ def submission(request, submission_id):
             return HttpResponse("Not enough privilege")
 
     gradings = TaskGradingStatus.objects.filter(submission_id=submission_id).order_by('assignment_task_id')
-    now = datetime.now(tz=pytz.timezone('UTC'))
+    now = timezone.now()
     if user.has_perm('modify_assignment',course) or now > assignment.deadline:
         assignment_tasks = AssignmentTask.objects.filter(assignment_id=assignment).order_by('id')
     else:
@@ -65,11 +65,15 @@ def submission(request, submission_id):
             elif task.grading_status == TaskGradingStatus.STAT_OUTPUT_TO_BE_CHECKED:
                 task_symbols.append('Checking')
             elif task.grading_status == TaskGradingStatus.STAT_FINISH:
-                    score += task.points
-                    task.points = round(task.points, 2)
-                    task_symbols.append('Finalized')
+                score += task.points
+                task.points = round(task.points, 2)
+                task_symbols.append('Finalized')
             elif task.grading_status == TaskGradingStatus.STAT_INTERNAL_ERROR:
                 task_symbols.append('Error')
+            elif task.grading_status == TaskGradingStatus.STAT_SKIPPED:
+                task_symbols.append('Skipped')
+            else:
+                raise Exception('Unhandled condition')
 
     total_points = 0
     for a in assignment_tasks:
@@ -79,7 +83,7 @@ def submission(request, submission_id):
 
     submission_n_detail_short_list = zip(gradings, task_symbols, assignment_tasks)
 
-    submission_files = file_schema.get_submission_files(assignment, submission)
+    submission_files = file_schema.get_submission_files(submission)
 
     submission_filename_list = []
     submission_file_path_list = []
@@ -116,7 +120,7 @@ def task_grading_detail(request, task_grading_id):
     assignment = submission.assignment_id
     course = assignment.course_id
     if not user.has_perm('view_assignment', course):
-    	return HttpResponse("Not enough privilege")
+        return HttpResponse("Not enough privilege")
 
     author = submission.student_id
     if not user.has_perm('modify_assignment', course):
@@ -128,13 +132,17 @@ def task_grading_detail(request, task_grading_id):
 
     task_grading_status = TaskGradingStatus.objects.filter(
             submission_id=submission, assignment_task_id=assignment_task)
-    output_files = file_schema.get_task_grading_status_files(assignment, task_grading_status)
+    output_files = file_schema.get_task_grading_status_files(task_grading_status)
     output_field_list = []
     output_content_list = []
     for f in output_files:
-        content = open(output_files[f].file.path, 'r').read()
-        if content != '':
+        raw_content = open(output_files[f].file.path, 'rb').read()
+        if len(raw_content) > 0:
             output_field_list.append(f)
+            try:
+                content = raw_content.decode('ascii')
+            except:
+                content = '(The file includes non-ascii characters)'
             output_content_list.append(content)
 
     output_full_log = list(zip(output_field_list, output_content_list))
@@ -247,7 +255,7 @@ def submissions_full_log(request):
     assignment_list = [];
     score_list = [];
     score_percentage_list = [];
-    now = datetime.now(tz=pytz.timezone('UTC'))
+    now = timezone.now()
     for s in submission_list:
         course = s.assignment_id.course_id
         course_list.append(course)
@@ -280,11 +288,12 @@ def submissions_full_log(request):
 
     submission_full_log_list = list(zip(submission_list, course_list, score_percentage_list))
 
+    #TODO: should only keep either user or myuser
     template_context = {
         'user': user,
-        'submission_full_log':submission_full_log_list,
+        'submission_full_log': submission_full_log_list,
         'myuser': request.user,
-        'now':datetime.now().replace(microsecond=0)
+        'now': timezone.now().replace(microsecond=0)
     }
 
     return render(request, 'serapis/submissions_full_log.html', template_context)
