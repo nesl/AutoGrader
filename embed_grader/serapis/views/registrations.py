@@ -47,7 +47,8 @@ def registration(request):
         if form.is_valid():
             activation_key = _generate_activation_key(form.cleaned_data['uid'])
             form.save_and_commit(activation_key)  # Save the user and her profile
-            activation_link = request.build_absolute_uri(reverse('activation', kwargs={'key': activation_key}))
+            activation_link = request.build_absolute_uri(
+                    reverse('activation', kwargs={'key': activation_key}))
             _send_email(activation_link, form.cleaned_data['email'])
 
             request.session['registered'] = True  # For display purposes
@@ -81,7 +82,9 @@ def new_activation(request, user_id):
         return HttpResponse("The user has been activated")
     else:
         activation_key = _generate_activation_key(user_profile.uid)
-        _send_email(activation_key, user.email)
+        activation_link = request.build_absolute_uri(
+                reverse('activation', kwargs={'key': activation_key}))
+        _send_email(activation_link, user.email)
         return HttpResponse("The new verification link has been sent to your email. Please check.")
 
 
