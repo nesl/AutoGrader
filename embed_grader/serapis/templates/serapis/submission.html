@@ -3,124 +3,120 @@
 {% load guardian_tags %}
 
 {% block sidebar-content %}
-    <!-- SIDEBAR USER TITLE -->
-    <div class="profile-usertitle">
-        <div class="profile-usertitle-name">
-            Submission
-        </div>
-        <div class="profile-usertitle-job">
-            {{ assignment.name }}
-        </div>
+  <!-- SIDEBAR USER TITLE -->
+  <div class="profile-usertitle">
+    <div class="profile-usertitle-name">
+      Submission
     </div>
-    <!-- END SIDEBAR USER TITLE -->
-    <!-- SIDEBAR MENU -->
-    <div class="profile-usermenu">
-        <ul class="nav nav-bar">
-            <li>
-                <a href="{% url 'homepage' %}">Courses</a>
-            </li>
-            {% get_obj_perms request.user for course as "course_perms" %}
-            {% if "view_membership" in course_perms %}
-            <li>
-                <a href="{% url 'membership' course.id %}">Students</a>
-            </li>
-            {% endif %}
-            {% if perms.serapis.view_hardware_type %}
-            <li>
-                <a data-toggle="collapse"
-                data-target="#submenu1" aria-expanded="false">Submissions</a>
-                <ul class="nav collapse" id="submenu1" role="menu" aria-labelledby="btn-1">
-                  <li><a href="{% url 'submissions_full_log' %}">My Submissions</a></li>
-                  <li><a href="{% url 'student_submission_full_log' %}">Student Submissions</a></li>
-                </ul>
-            </li>
-            <li>
-                <a href="{% url 'testbed-type-list' %}">Testbed Types</a>
-            </li>
-            <li>
-                <a href="{% url 'hardware-type-list' %}">Hardware Types</a>
-            </li>
-            {% else %}
-            <li class="active">
-                <a href="{% url 'submissions_full_log' %}">Submissions</a>
-            </li>
-            {% endif %}
+    <div class="profile-usertitle-job">
+      {{ assignment.name }}
+    </div>
+  </div>
+  <!-- END SIDEBAR USER TITLE -->
+  <!-- SIDEBAR MENU -->
+  <div class="profile-usermenu">
+    <ul class="nav nav-bar">
+      <li>
+        <a href="{% url 'homepage' %}">Courses</a>
+      </li>
+      {% get_obj_perms request.user for course as "course_perms" %}
+      {% if "view_membership" in course_perms %}
+      <li>
+        <a href="{% url 'membership' course.id %}">Students</a>
+      </li>
+      {% endif %}
+      {% if perms.serapis.view_hardware_type %}
+      <li>
+        <a data-toggle="collapse"
+        data-target="#submenu1" aria-expanded="false">Submissions</a>
+        <ul class="nav collapse" id="submenu1" role="menu" aria-labelledby="btn-1">
+          <li><a href="{% url 'submissions_full_log' %}">My Submissions</a></li>
+          <li><a href="{% url 'student_submission_full_log' %}">Student Submissions</a></li>
         </ul>
-    </div>
-    <!-- END MENU -->
+      </li>
+      <li><a href="{% url 'testbed-type-list' %}">Testbed Types</a></li>
+      <li><a href="{% url 'hardware-type-list' %}">Hardware Types</a></li>
+      {% else %}
+      <li class="active"><a href="{% url 'submissions_full_log' %}">Submissions</a></li>
+      {% endif %}
+    </ul>
+  </div>
+  <!-- END MENU -->
 {% endblock %}
 
 {% block main-content %}
-    <div class="main-content">
-        <div class="top-buffer">
-          <ol class="breadcrumb">
-              <li><a href="{% url 'homepage' %}">Courses</a></li>
-              <li><a href="{% url 'course' course.id %}">{{ course.course_code }}</a></li>
-              <li><a href="{% url 'assignment' assignment.id %}">{{ assignment.name }}</a></li>
-              <li>submission detail ({{submission.id}})</li>
-          </ol>
-        </div>
-
-        <h3 class="page-header">Submission Detail</h3>
-        <h5>Student: {{ author.first_name }} {{ author.last_name }}</h5>
-        <h5>Submission time: {{ submission.submission_time }}</h5>
-        <h5>Submission ID: {{ submission.id }}</h5>
-        {% if score < total_points %}
-          <h5>Score: <span class="badge" style="background:darkred; width:80px;">{{ score }} / {{ total_points }}</span></h5>
-        {% else %}
-          <h5>Score: <span class="badge" style="background:green; width:80px;">{{ score }} / {{ total_points }}</span></h5>
-        {% endif %}
-        <h5>Files:
-          {% for f in submission_files %}
-            <a href="{{ MEDIA_URL }}{{ f.1.url }}" class="btn btn-primary">
-              <span class="glyphicon glyphicon-download-alt"></span> {{f.0}} </a>
-          {%endfor%}
-        <h5>
-
-        <hr>
-        <br>
-        <h5>Grading Results</h5>
-        <table class="table table-hover table-sm" style="width:60%">
-            <tr>
-              <thead class="thead-default">
-                <th>Task</th>
-                <th>Status</th>
-                <th>Score</th>
-                <th>Task Grading Detail</th>
-              <thead class="thead-default">
-            </tr>
-            {% for s in submission_n_detail_short_list %}
-                <tr>
-                    <td>{{ s.2.brief_description }}</td>
-                    <td>{{ s.1 }}</td>
-                    {% if s.0.points < s.2.points %}
-                      <td><span class="badge" style="background:darkred; width:80px">{{ s.0.points }} / {{ s.2.points }}</span></td>
-                    {% else %}
-                      <td><span class="badge" style="background:green; width:80px">{{ s.0.points }} / {{ s.2.points }}</span></td>
-                    {% endif %}
-                    {% get_obj_perms request.user for course as "course_perms" %}
-                    {% if "modify_course" in course_perms or s.0.assignment_task_id.mode == 0 or now > assignment.deadline%}
-                      <td>
-                        {% if s.0.grading_detail %}
-                        <a href="{% url 'task-grading-detail' s.0.id %}" class="btn btn-primary" style="font-size: 12px;
-                        background:white; color:SteelBlue; border-color:SteelBlue; width:100px">
-                        {% else %}
-                        <a class="btn btn-primary" style="font-size: 12px; background:white; color:grey; border-color:grey; width:100px">
-                        {% endif %}
-                          <span class="glyphicon glyphicon-file"></span> Detail </a>
-                      </td>
-                    {% else %}
-                      <td>N/A</td>
-                      <td>N/A</td>
-                      <td>N/A</td>
-                      <td>N/A</td>
-                    {% endif %}
-                </tr>
-            {% endfor %}
-        </table>
-
-        <br>
-        <br>
-        <a class="btn btn-primary" href="javascript:history.back()" style="width:80px">Back</a>
+  <div class="main-content">
+    <div class="top-buffer">
+      <ol class="breadcrumb">
+        <li><a href="{% url 'homepage' %}">Courses</a></li>
+        <li><a href="{% url 'course' course.id %}">{{ course.course_code }}</a></li>
+        <li><a href="{% url 'assignment' assignment.id %}">{{ assignment.name }}</a></li>
+        <li>submission detail ({{submission.id}})</li>
+      </ol>
     </div>
+
+    <h3 class="page-header">Submission Detail</h3>
+    <h5>Student: {{ author.first_name }} {{ author.last_name }}</h5>
+    <h5>Submission time: {{ submission.submission_time }}</h5>
+    <h5>Submission ID: {{ submission.id }}</h5>
+    {% if student_score < total_score %}
+      <h5>Score: <span class="badge" style="background:darkred; width:80px;">{{ student_score }} / {{ total_score }}</span></h5>
+    {% else %}
+      <h5>Score: <span class="badge" style="background:green; width:80px;">{{ student_score }} / {{ total_score }}</span></h5>
+    {% endif %}
+    <h5>Files:
+      {% for f in submission_files %}
+      <a href="{{ MEDIA_URL }}{{ f.file_field.url }}" class="btn btn-primary">
+        <span class="glyphicon glyphicon-download-alt"></span>{{f.filename}}</a>
+      {%endfor%}
+    <h5>
+
+    <hr/>
+    <br/>
+    <h5>Grading Results</h5>
+    <table class="table table-hover table-sm" style="width:60%">
+      <tr>
+        <thead class="thead-default">
+        <th>Task</th>
+        <th>Status</th>
+        <th>Score</th>
+        <th>Task Grading Detail</th>
+        <thead class="thead-default">
+      </tr>
+      {% for t in task_grading_status_list %}
+        <tr>
+          <td>{{ t.assignment_task_id.brief_description }}</td>
+          <td>{{ t.get_grading_status_display }}</td>
+          {% if t.points < t.assignment_task_id.points %}
+            <td><span class="badge" style="background:darkred; width:80px">{{ t.points }} / {{ t.assignment_task_id.points }}</span></td>
+          {% else %}
+            <td><span class="badge" style="background:green; width:80px">{{ t.points }} / {{ t.assignment_task_id.points }}</span></td>
+          {% endif %}
+					
+					{% get_obj_perms request.user for course as "course_perms" %}
+          {% if "modify_course" in course_perms or t.assignment_task_id.mode == 0 or now > assignment.deadline %}
+            <td>
+            {% if t.grading_detail %}
+              <a href="{% url 'task-grading-detail' t.id %}" class="btn btn-primary" style="font-size: 12px;
+              background:white; color:SteelBlue; border-color:SteelBlue; width:100px">
+            {% else %}
+              <a class="btn btn-primary" style="font-size: 12px; background:white; color:grey; border-color:grey; width:100px">
+            {% endif %}
+              <span class="glyphicon glyphicon-file"></span>Detail</a>
+            </td>
+          {% else %}
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+          {% endif %}
+        </tr>
+      {% endfor %}
+    </table>
+
+
+    <br>
+    <br>
+    <a class="btn btn-primary" href="javascript:history.back()" style="width:80px">Back</a>
+  </div>
 {% endblock %}

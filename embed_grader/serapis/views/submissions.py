@@ -47,76 +47,64 @@ def submission(request, submission_id):
         if author.username != user.username:
             return HttpResponse("Not enough privilege")
 
-    gradings = TaskGradingStatus.objects.filter(submission_id=submission_id).order_by('assignment_task_id')
+    task_grading_status_list = TaskGradingStatus.objects.filter(
+            submission_id=submission_id).order_by('assignment_task_id')
     now = timezone.now()
-    if user.has_perm('modify_assignment',course) or now > assignment.deadline:
-        assignment_tasks = AssignmentTask.objects.filter(assignment_id=assignment).order_by('id')
-    else:
-        assignment_tasks = AssignmentTask.objects.filter(assignment_id=assignment).exclude(mode=AssignmentTask.MODE_HIDDEN).order_by('id')
+    can_see_hidden_cases = user.has_perm('modify_assignment', course) or now > assignment.deadline
+    
+    if not can_see_hidden_cases:
+        task_grading_status_list = [t for t in task_grading_status_list
+                if t.assignment_task_id.mode != ASSIGNMENT_TASK_HIDDEN]
 
     task_symbols = []
-    score = 0;
-    for task in gradings:
-        if user.has_perm('modify_assignment', course) or task.assignment_task_id.mode != AssignmentTask.MODE_HIDDEN or now > assignment.deadline:
-            if task.grading_status == TaskGradingStatus.STAT_PENDING:
-                task_symbols.append('Pending')
-            elif task.grading_status == TaskGradingStatus.STAT_EXECUTING:
-                task_symbols.append('Executing')
-            elif task.grading_status == TaskGradingStatus.STAT_OUTPUT_TO_BE_CHECKED:
-                task_symbols.append('Checking')
-            elif task.grading_status == TaskGradingStatus.STAT_FINISH:
-                score += task.points
-                task.points = round(task.points, 2)
-                task_symbols.append('Finalized')
-            elif task.grading_status == TaskGradingStatus.STAT_INTERNAL_ERROR:
-                task_symbols.append('Error')
-            elif task.grading_status == TaskGradingStatus.STAT_SKIPPED:
-                task_symbols.append('Skipped')
-            else:
-                raise Exception('Unhandled condition')
+    student_score = 0.
+    total_score = 0.
 
-    total_points = 0
-    for a in assignment_tasks:
-        total_points += a.points
+    for grading_status in task_grading_status_list:
+        total_score += grading_status.assignment_task_id.points
+        student_score += grading_status.points
+        tmp = grading_status.points
+        grading_status.points = round(tmp, 2)
+        tmp = grading_status.assignment_task_id.points
+        grading_status.assignment_task_id.points = round(tmp, 2)
 
-    score = round(score, 2)
+    student_score = round(student_score, 2)
+    total_score = round(total_score, 2)
 
-    submission_n_detail_short_list = zip(gradings, task_symbols, assignment_tasks)
+    submission_file_dict = file_schema.get_submission_files(submission)
+    submission_file_list = []  # a list of {filename, file_field}
 
-    submission_files = file_schema.get_submission_files(submission)
-
-    submission_filename_list = []
-    submission_file_path_list = []
-    for s in submission_files:
-        if submission_files[s].file:
-            submission_filename_list.append(s)
-            submission_file_path_list.append(submission_files[s].file)
-
-    submission_file_list = list(zip(submission_filename_list, submission_file_path_list))
+    for s in submission_file_dict:
+        if submission_file_dict[s].file:
+            submission_file_list.append({
+                'filename': s,
+                'file_field': submission_file_dict[s].file,
+            })
 
     template_context = {
-        'submission':submission,
+        'myuser': request.user,
+        'now': now,
+        'submission': submission,
         'assignment': assignment,
         'course': course,
-        'author':author,
-        'submission_n_detail_short_list':submission_n_detail_short_list,
-        'score':score,
-        'total_points':total_points,
-        'myuser': request.user,
-        'now':now,
-        'submission_files':submission_file_list    
+        'author': author,
+        'student_score': student_score,
+        'total_score': total_score,
+        'submission_file_list': submission_file_list,
+        'task_grading_status_list': task_grading_status_list,
     }
     return render(request, 'serapis/submission.html', template_context)
+
 
 @login_required(login_url='/login/')
 def task_grading_detail(request, task_grading_id):
     try:
-        grading = TaskGradingStatus.objects.get(id=task_grading_id)
+        task_grading_status = TaskGradingStatus.objects.get(id=task_grading_id)
     except Submission.DoesNotExist:
         return HttpResponse("Task grading detail cannot be found")
 
     user = User.objects.get(username=request.user)
-    submission = grading.submission_id
+    submission = task_grading_status.submission_id
     assignment = submission.assignment_id
     course = assignment.course_id
     if not user.has_perm('view_assignment', course):
@@ -127,28 +115,30 @@ def task_grading_detail(request, task_grading_id):
         if author != user:
             return HttpResponse("Not enough privilege")
 
-    assignment_task = grading.assignment_task_id
-    grading.points = round(grading.points, 2)
+    assignment_task = task_grading_status.assignment_task_id
+    task_grading_status.points = round(task_grading_status.points, 2)
 
-    task_grading_status = TaskGradingStatus.objects.filter(
-            submission_id=submission, assignment_task_id=assignment_task)
     output_files = file_schema.get_task_grading_status_files(task_grading_status)
-    output_field_list = []
-    output_content_list = []
+    output_full_log = []  # A list of {field_name, content}
+
     for f in output_files:
-        raw_content = open(output_files[f].file.path, 'rb').read()
-        if len(raw_content) > 0:
-            output_field_list.append(f)
+        raw_content = output_files[f].file.read()
+        if len(raw_content) == 0:
+            content = '(Empty file)'
+        else:
             try:
                 content = raw_content.decode('ascii')
             except:
                 content = '(The file includes non-ascii characters)'
-            output_content_list.append(content)
+        output_full_log.append({
+            'field_name': f,
+            'content': content,
+        })
 
-    output_full_log = list(zip(output_field_list, output_content_list))
-
-    if grading.grading_detail:
-        feedback = open(grading.grading_detail.path, 'r').read()
+    if task_grading_status.grading_detail:
+        feedback = task_grading_status.grading_detail.read()
+    else:
+        feedback = '(feedback unavailable...)'
 
     # if not grading.output_file:
     #     print('Something serious wrong. output file cannot be found in TaskGradingStatus ID=%d' % grading.id)
@@ -234,9 +224,9 @@ def task_grading_detail(request, task_grading_id):
         'assignment': assignment,
         'submission': submission,
         'author': author,
-        'grading': grading,
+        'grading': task_grading_status,
         'assignment_task': assignment_task,
-        'output_log':output_full_log,
+        'output_log': output_full_log,
         'feedback': feedback,
         # 'js_plot_pack_string': js_plot_pack_string,
     }
