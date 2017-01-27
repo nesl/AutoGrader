@@ -287,6 +287,9 @@ class SubmissionFile(models.Model):
 
 
 class TaskGradingStatus(models.Model):
+    class Meta:
+        unique_together = ('submission_id', 'assignment_task_id')
+
     STAT_PENDING = 0
     STAT_EXECUTING = 10
     STAT_OUTPUT_TO_BE_CHECKED = 100
