@@ -61,6 +61,8 @@ def submission(request, submission_id):
     total_score = 0.
 
     for grading_status in task_grading_status_list:
+        if grading_status.graing_status != TaskGradingStatus.STAT_FINISH:
+            grading_status.points = 0.
         total_score += grading_status.assignment_task_id.points
         student_score += grading_status.points
         tmp = grading_status.points
@@ -254,7 +256,7 @@ def submissions_full_log(request):
         assignment_list.append(assignment)
 
         gradings = TaskGradingStatus.objects.filter(submission_id=s.id).order_by('assignment_task_id')
-        score = 0;
+        score = 0
         for task in gradings:
             if user.has_perm('modify_assignment', course) or task.assignment_task_id.mode != AssignmentTask.MODE_HIDDEN or now > assignment.deadline:
                 if task.grading_status == TaskGradingStatus.STAT_FINISH:
@@ -334,8 +336,8 @@ def student_submission_full_log(request):
     submission_full_log_list = list(zip(students_submission_log, course_list, score_percentage_list, name_list))
 
     template_context = {
-        'user':user,
-        'myuser':request.user,
-        'submission_full_log':submission_full_log_list
+        'user': user,
+        'myuser': request.user,
+        'submission_full_log': submission_full_log_list
     }
     return render(request, 'serapis/student_submission_full_log.html', template_context)
