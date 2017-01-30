@@ -61,7 +61,7 @@ def submission(request, submission_id):
     total_score = 0.
 
     for grading_status in task_grading_status_list:
-        if grading_status.graing_status != TaskGradingStatus.STAT_FINISH:
+        if grading_status.grading_status != TaskGradingStatus.STAT_FINISH:
             grading_status.points = 0.
         total_score += grading_status.assignment_task_id.points
         student_score += grading_status.points
