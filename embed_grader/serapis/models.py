@@ -5,8 +5,10 @@ from guardian.compat import get_user_model
 from guardian.shortcuts import assign_perm
 
 from django.utils import timezone
-
 import datetime
+
+# from ckeditor.fields import RichTextField
+from ckeditor_uploader.fields import RichTextUploadingField
 
 class UserProfile(models.Model):
     #Connect to built-in User model, which already has firstname, lastname, email and password
@@ -153,6 +155,7 @@ class Assignment(models.Model):
     problem_statement = models.TextField()
     input_statement = models.TextField()
     output_statement = models.TextField()
+    problem_statement = RichTextUploadingField()
 
     # testbed related
     testbed_type_id = models.ForeignKey(TestbedType, on_delete=models.CASCADE, default=None, null=True)

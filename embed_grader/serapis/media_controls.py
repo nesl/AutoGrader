@@ -211,3 +211,9 @@ def task_grading_status_dut_serial_output(request):
         return _make_http_response_for_file_download(status.DUT_serial_output.path)
     else:
         return HttpResponseForbidden()
+
+
+
+def content_images(request):
+    query_file_name = _get_query_file_name(request.get_full_path())
+    return _make_http_response_for_file_download(settings.MEDIA_ROOT + query_file_name)
