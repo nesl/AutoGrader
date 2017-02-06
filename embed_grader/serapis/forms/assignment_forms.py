@@ -25,7 +25,7 @@ class AssignmentBasicForm(ModelForm):
 
     class Meta:
         model = Assignment
-        fields = ['course_id', 'name', 'release_time', 'deadline', 'problem_statement']
+        fields = ['course_id', 'name', 'release_time', 'deadline', 'problem_statement', 'testbed_type_id', 'num_testbeds']
         date_time_options = {
                 'format': 'mm/dd/yyyy hh:ii',
                 'autoclose': True,

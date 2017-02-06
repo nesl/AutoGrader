@@ -159,6 +159,14 @@
     <h3>Recent Submissions</h3>
     {% if not submission_n_detail_short_list %}
       <p>No submissions to this question yet.</p>
+      {% get_obj_perms request.user for course as "course_perms" %}
+      {% if "modify_assignment" in course_perms %}
+        <hr/>
+        <br/>
+        <a class="btn btn-primary" href="{% url 'modify-assignment' assignment.id %}" style="width:100px;">
+          <span class="glyphicon glyphicon-edit"></span>&nbsp; Edit </a>
+        <a class="btn btn-primary" href="{% url 'course' course.id %}" style="width:100px; float:right;">Back</a>
+      {%endif%}
     {% else %}
       {% get_obj_perms request.user for course as "course_perms" %}
       {% if "modify_assignment" not in course_perms %}
@@ -211,7 +219,9 @@
             </tr>
           {% endfor %}
         </table>
-        <a class="btn btn-primary" href="{% url 'regrade' assignment.id %}">Regrade interface</a>
+        <div>
+          <a class="btn btn-primary" href="{% url 'regrade' assignment.id %}">Regrade interface</a>
+        </div>
 
         <hr/>
         <br/>
