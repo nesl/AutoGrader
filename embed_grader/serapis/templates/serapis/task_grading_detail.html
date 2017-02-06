@@ -1,6 +1,7 @@
 {% extends 'serapis/base_sidebar.html' %}
 {% load staticfiles %}
 {% load guardian_tags %}
+{% load submission_tags %}
 
 {% block sidebar-content %}
   <!-- SIDEBAR USER TITLE -->
@@ -58,12 +59,8 @@
     <h5>Student: {{ author.first_name }} {{ author.last_name }}</h5>
     <h5>Submission time: {{ submission.submission_time }}</h5>
     <h5>Submission ID: {{ submission.id }}</h5>
-    <h5>Task case: {{ assignment_task.brief_description }}</h5>
-    {% if grading.points == assignment_task.points %}
-      <h5>Score: <span class="badge" style="background:green; width:80px;">{{ grading.points }} / {{ assignment_task.points }}</span></h5>
-    {% else %}
-      <h5>Score: <span class="badge" style="background:darkred; width:80px;">{{ grading.points }} / {{ assignment_task.points }}</span></h5>
-    {% endif %}
+		<h5>Task case: {{ assignment_task.brief_description }}</h5>
+		<h5>Score: {% show_score grading.points assignment_task.points %}</h5>
 		
 		<hr/>
     <h4>Grading feedback:<h4>

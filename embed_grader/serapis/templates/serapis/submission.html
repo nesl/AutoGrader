@@ -1,6 +1,7 @@
 {% extends 'serapis/base_sidebar.html' %}
 {% load staticfiles %}
 {% load guardian_tags %}
+{% load submission_tags %}
 
 {% block sidebar-content %}
   <!-- SIDEBAR USER TITLE -->
@@ -58,12 +59,8 @@
     <h3 class="page-header">Submission Detail</h3>
     <h5>Student: {{ author.first_name }} {{ author.last_name }}</h5>
     <h5>Submission time: {{ submission.submission_time }}</h5>
-    <h5>Submission ID: {{ submission.id }}</h5>
-    {% if student_score < total_score %}
-      <h5>Score: <span class="badge" style="background:darkred; width:80px;">{{ student_score }} / {{ total_score }}</span></h5>
-    {% else %}
-      <h5>Score: <span class="badge" style="background:green; width:80px;">{{ student_score }} / {{ total_score }}</span></h5>
-    {% endif %}
+		<h5>Submission ID: {{ submission.id }}</h5>
+		<h5>Score: {% show_score student_score total_score %}</h5>
     <h5>Files:
       {% for f in submission_files %}
       <a href="{{ MEDIA_URL }}{{ f.file_field.url }}" class="btn btn-primary">
@@ -86,12 +83,8 @@
       {% for t in task_grading_status_list %}
         <tr>
           <td>{{ t.assignment_task_id.brief_description }}</td>
-          <td>{{ t.get_grading_status_display }}</td>
-          {% if t.points < t.assignment_task_id.points %}
-            <td><span class="badge" style="background:darkred; width:80px">{{ t.points }} / {{ t.assignment_task_id.points }}</span></td>
-          {% else %}
-            <td><span class="badge" style="background:green; width:80px">{{ t.points }} / {{ t.assignment_task_id.points }}</span></td>
-          {% endif %}
+					<td>{{ t.get_grading_status_display }}</td>
+					<td>{% show_score t.points t.assignment_task_id.points %}</td>
           
           {% get_obj_perms request.user for course as "course_perms" %}
           {% if "modify_course" in course_perms or t.assignment_task_id.mode == 0 or now > assignment.deadline %}
