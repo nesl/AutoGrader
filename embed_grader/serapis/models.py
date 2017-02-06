@@ -7,8 +7,9 @@ from guardian.shortcuts import assign_perm
 from django.utils import timezone
 import datetime
 
-# from ckeditor.fields import RichTextField
 from ckeditor_uploader.fields import RichTextUploadingField
+
+from django.core.validators import MinValueValidator
 
 class UserProfile(models.Model):
     #Connect to built-in User model, which already has firstname, lastname, email and password
@@ -202,10 +203,13 @@ class AssignmentTask(models.Model):
     assignment_id = models.ForeignKey(Assignment, on_delete = models.CASCADE)
     brief_description = models.CharField(max_length=100, null=True, blank=True)
     mode = models.IntegerField(choices=EVAL_MODES)
-    points = models.FloatField()
-    description = models.TextField(null=True)
+    points = models.FloatField(validators=[MinValueValidator(0.0)])
+    description = models.TextField(null=True, blank=True)
 
-    execution_duration = models.FloatField()
+    execution_duration = models.FloatField(validators=[MinValueValidator(0.0)])
+    #TODO: try to find a way that skip the file not selected check when the file is already in
+    #      the database
+    #      (http://stackoverflow.com/questions/42063074/how-should-i-allow-a-filefield-not-need-to-upload-a-new-file-when-the-existed-in)
     grading_script = models.FileField(upload_to='AssignmentTask_grading_script')
 
     def __str__(self):
