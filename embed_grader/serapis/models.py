@@ -152,9 +152,6 @@ class Assignment(models.Model):
     name = models.CharField(max_length=50)
     release_time = models.DateTimeField()
     deadline = models.DateTimeField()
-    problem_statement = models.TextField()
-    input_statement = models.TextField()
-    output_statement = models.TextField()
     problem_statement = RichTextUploadingField()
 
     # testbed related
