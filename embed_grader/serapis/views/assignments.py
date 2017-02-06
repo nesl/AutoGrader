@@ -43,7 +43,24 @@ def create_assignment(request, course_id):
     if request.method == 'POST':
         form = AssignmentBasicForm(request.POST)
         if form.is_valid():
-            form.save()
+            assignment = form.save()
+
+            # create schema object accordingly
+            assignmentTaskFileSchema = get_schema_list(assignment.assignent_task_file_schema)
+            for s in assignmentTaskFileSchema:
+                if s != '' and len(s) > 0:
+                    AssignmentTaskFileSchema.objects.create(assignment_id=assignment, field=s)
+
+            submissionFileSchema = get_schema_list(assignment.task_grading_schema)
+            for s in submissionFileSchema:
+                if s != '' and len(s) > 0:
+                    SubmissionFileSchema.objects.create(assignment_id=assignment, field=s)
+            
+            taskGradingStatusFileSchema = get_schema_list(assignment.submission_file_schema)
+            for s in taskGradingStatusFileSchema:
+                if s != '' and len(s) > 0:
+                    TaskGradingStatusFileSchema.objects.create(assignment_id=assignment, field=s)
+
             return HttpResponseRedirect(reverse('course', args=(course_id)))
     else:
         form = AssignmentBasicForm(initial={'course_id': course_id})
@@ -182,12 +199,12 @@ def modify_assignment(request, assignment_id):
         return HttpResponse("Not enough privilege")
 
     if request.method == 'POST':
-        form = AssignmentCompleteForm(request.POST, instance=assignment)
+        form = AssignmentBasicForm(request.POST, instance=assignment)
         if form.is_valid():
             assignment = form.save()
             return HttpResponseRedirect('/assignment/' + assignment_id)
     else:
-        form = AssignmentCompleteForm(instance=assignment)
+        form = AssignmentBasicForm(instance=assignment)
 
     tasks = None
     if assignment.testbed_type_id:
@@ -205,3 +222,9 @@ def modify_assignment(request, assignment_id):
             'course': course
     }
     return render(request, 'serapis/modify_assignment.html', template_context)
+
+
+def get_schema_list(schemaString):
+    schema_list = [s.strip() for s in schemaString.split(';')]
+    # print(schema_list)
+    return schema_list
