@@ -1,6 +1,3 @@
-import hashlib
-import random
-import pytz
 import json
 
 from django import forms
@@ -21,7 +18,8 @@ from guardian.compat import get_user_model
 from guardian.shortcuts import assign_perm
 
 from serapis.models import *
-from serapis.model_forms import *
+from serapis.forms.testbed_forms import *
+
 
 @login_required(login_url='/login/')
 def create_testbed_type(request):

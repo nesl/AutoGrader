@@ -15,7 +15,6 @@ from django.views.generic import TemplateView
 from guardian.decorators import permission_required_or_403
 from serapis.models import *
 
-#TODO(timestring): recheck whether I should use disabled instead of readonly to enforce data integrity
 
 @login_required(login_url='/login/')
 def homepage(request):

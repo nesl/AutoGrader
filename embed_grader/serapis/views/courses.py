@@ -1,9 +1,3 @@
-import hashlib
-import random
-import pytz
-import json
-from datetime import timedelta
-
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User, Group
 
@@ -19,6 +13,7 @@ from django.db import transaction
 from django.db.models import Max
 
 from django.utils import timezone
+from datetime import timedelta
 
 from django.views.generic import TemplateView
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -28,8 +23,7 @@ from guardian.compat import get_user_model
 from guardian.shortcuts import assign_perm
 
 from serapis.models import *
-from serapis.model_forms import *
-
+from serapis.forms.course_forms import *
 
 
 @login_required(login_url='/login/')
@@ -109,6 +103,7 @@ def course(request, course_id):
     }
     return render(request, 'serapis/course.html', template_context)
 
+
 @login_required(login_url='/login/')
 def modify_course(request, course_id):
     user = User.objects.get(username=request.user)
@@ -138,6 +133,7 @@ def modify_course(request, course_id):
     }
 
     return render(request, 'serapis/modify_course.html', template_context)
+
 
 @login_required(login_url='/login/')
 def enroll_course(request):

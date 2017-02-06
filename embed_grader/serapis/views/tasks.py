@@ -1,9 +1,3 @@
-import hashlib
-import random
-import pytz
-import json
-from datetime import timedelta
-
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User, Group
 
@@ -19,6 +13,7 @@ from django.db import transaction
 from django.db.models import Max
 
 from django.utils import timezone
+from datetime import timedelta
 
 from django.views.generic import TemplateView
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -28,7 +23,7 @@ from guardian.compat import get_user_model
 from guardian.shortcuts import assign_perm
 
 from serapis.models import *
-from serapis.model_forms import *
+from serapis.forms.task_forms import *
 
 
 @login_required(login_url='/login/')
@@ -111,30 +106,3 @@ def modify_assignment_task(request, task_id):
             'assignment': assignment,
     }
     return render(request, 'serapis/modify_assignment_task.html', template_context)
-
-
-@login_required(login_url='/login/')
-def debug_task_grading_status(request):
-    username = request.user
-    user = User.objects.get(username=username)
-    user_profile = UserProfile.objects.get(user=user)
-
-    if request.method == 'POST':
-        form = TaskGradingStatusDebugForm(request.POST, request.FILES)
-        if form.is_valid():
-            #task = form.save(commit=False)
-            task = TaskGradingStatus.objects.get(id=request.POST['id'])
-            task.grading_status = form.cleaned_data['grading_status']
-            task.execution_status = form.cleaned_data['execution_status']
-            task.output_file = form.cleaned_data['output_file']
-            task.status_update_time = timezone.now()
-            task.save()
-
-    form = TaskGradingStatusDebugForm()
-
-    template_context = {
-            'myuser': request.user,
-            'user_profile': user_profile,
-            'form': form,
-    }
-    return render(request, 'serapis/debug_task_grading_status.html', template_context)

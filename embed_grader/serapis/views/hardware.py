@@ -1,8 +1,3 @@
-import hashlib
-import random
-import pytz
-import json
-
 from django import forms
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User, Group
@@ -21,7 +16,8 @@ from guardian.compat import get_user_model
 from guardian.shortcuts import assign_perm
 
 from serapis.models import *
-from serapis.model_forms import *
+from serapis.forms.hardware_forms import *
+
 
 @login_required(login_url='/login/')
 def create_hardware_type(request):
@@ -62,6 +58,7 @@ def create_hardware_type(request):
     }
     return render(request, 'serapis/create_hardware_type.html', template_context)
 
+
 @login_required(login_url='/login/')
 def hardware_type(request, hardware_type_id):
     username = request.user
@@ -89,6 +86,7 @@ def hardware_type(request, hardware_type_id):
 @login_required(login_url='/login/')
 def modify_hardware_type(request, hardware_id):
     return HttpResponse("under construction")
+
 
 @login_required(login_url='/login/')
 def hardware_type_list(request):

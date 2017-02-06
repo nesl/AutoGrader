@@ -13,15 +13,13 @@ from django import forms
 from django.core.urlresolvers import reverse
 
 from serapis.models import *
-from serapis.model_forms import *
+from serapis.forms.submission_forms import *
 from serapis.utils import grading
 
 from django.contrib.auth.models import User, Group
 from guardian.decorators import permission_required_or_403
 from guardian.compat import get_user_model
 from guardian.shortcuts import assign_perm
-
-import hashlib, random, pytz
 
 from django.views.generic import TemplateView
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger

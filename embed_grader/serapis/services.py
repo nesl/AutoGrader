@@ -7,10 +7,9 @@ from django.http import *
 from django.utils.datastructures import MultiValueDictKeyError
 from django.utils import timezone
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 from serapis.models import *
-from serapis.model_forms import *
-from serapis.service_forms import *
+from serapis.forms.service_forms import *
 
 from ipware.ip import get_ip
 

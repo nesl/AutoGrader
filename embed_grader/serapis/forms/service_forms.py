@@ -6,7 +6,6 @@ from serapis.utils import file_schema
 
 
 class ReturnDutOutputForm(forms.Form):
-    
     def __init__(self, *args, **kwargs):
         testbed = kwargs.pop('testbed')
         super(ReturnDutOutputForm, self).__init__(*args, **kwargs)

@@ -1,12 +1,11 @@
 import hashlib
 import random
-import pytz
-from datetime import timedelta
 
 from django.contrib.auth import authenticate, login, logout, context_processors
 from django.contrib.auth.models import Permission
 
 from django.utils import timezone
+from datetime import timedelta
 
 from django.conf import settings
 
@@ -19,7 +18,7 @@ from django.template import Context
 from django.core.mail import send_mail
 
 from serapis.models import *
-from serapis.model_forms import *
+from serapis.forms.registration_forms import *
 
 
 def _generate_activation_key(uid):

@@ -3,17 +3,26 @@ from django.contrib.auth import views as auth_views
 from django.conf import settings
 from django.conf.urls.static import static
 
-from serapis.views import views, courses, assignments, tasks, submissions, registrations, testbeds, hardware
+from serapis.views import homepages
+from serapis.views import registrations
+from serapis.views import courses
+from serapis.views import assignments
+from serapis.views import tasks
+from serapis.views import submissions
+from serapis.views import testbeds
+from serapis.views import hardware
 from . import services
 from . import media_controls
 
 
 urlpatterns = [
-    url(r'^$', views.homepage, name='homepage'),
+    ## Log in / log out
     url(r'^login/$', auth_views.login, {'template_name': 'serapis/login.html'}, name= 'login'),
     url(r'^logout/$', auth_views.logout, {'next_page': '/login/'}, name='logout'),
 
-    url(r'^about/$', views.about, name='about'),
+    ## Homepage related
+    url(r'^$', homepages.homepage, name='homepage'),
+    url(r'^about/$', homepages.about, name='about'),
 
     ## Registration and Password related pages
     url(r'^registration/$', registrations.registration, name='registration'),

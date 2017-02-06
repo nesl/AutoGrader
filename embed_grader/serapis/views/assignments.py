@@ -1,9 +1,3 @@
-import hashlib
-import random
-import pytz
-import json
-from datetime import timedelta
-
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User, Group
 
@@ -19,6 +13,7 @@ from django.db import transaction
 from django.db.models import Max
 
 from django.utils import timezone
+from datetime import timedelta
 
 from django.views.generic import TemplateView
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -28,7 +23,8 @@ from guardian.compat import get_user_model
 from guardian.shortcuts import assign_perm
 
 from serapis.models import *
-from serapis.model_forms import *
+from serapis.forms.assignment_forms import *
+
 
 @login_required(login_url='/login/')
 #Only super user has access to create a course
@@ -181,7 +177,8 @@ def modify_assignment(request, assignment_id):
     user = User.objects.get(username=request.user)
     user_profile = UserProfile.objects.get(user=user)
 
-    if not user.has_perm('modify_assignment',course):
+    course = assignment.course_id
+    if not user.has_perm('modify_assignment', course):
         return HttpResponse("Not enough privilege")
 
     if request.method == 'POST':
