@@ -39,7 +39,10 @@ INSTALLED_APPS = [
     'widget_tweaks',
     'bootstrap3',
     'guardian',
-    'sslserver'
+    'sslserver',
+    # 'django_wysiwyg',
+    'ckeditor',
+    'ckeditor_uploader'
 ]
 
 MIDDLEWARE_CLASSES = [
@@ -161,3 +164,9 @@ AUTHENTICATION_BACKENDS = {
 }
 
 SITE_NAME = "NESL Embed AutoGrader"
+
+# DJANGO_WYSIWYG_FLAVOR = "ckeditor"
+# CKEDITOR_JQUERY_URL = '//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js'
+# DJANGO_WYSIWYG_MEDIA_URL = STATIC_URL + "ckeditor/"
+CKEDITOR_UPLOAD_PATH = "Content_images/"
+CKEDITOR_IMAGE_BACKEND = 'pillow'
