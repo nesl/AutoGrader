@@ -178,10 +178,6 @@ def modify_assignment(request, assignment_id):
     except Assignment.DoesNotExist:
         return HttpResponse("Assignment cannot be found")
 
-    course = assignment.course_id
-    if not course:
-        return HttpResponse("Course cannot be found")
-
     user = User.objects.get(username=request.user)
     user_profile = UserProfile.objects.get(user=user)
 

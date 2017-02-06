@@ -341,3 +341,41 @@ def student_submission_full_log(request):
         'submission_full_log': submission_full_log_list
     }
     return render(request, 'serapis/student_submission_full_log.html', template_context)
+
+
+@login_required(login_url='/login/')
+def regrade(request, assignment_id):
+    try:
+        assignment = Assignment.objects.get(id=assignment_id)
+    except Assignment.DoesNotExist:
+        return HttpResponse("Assignment cannot be found")
+
+    user = User.objects.get(username=request.user)
+    user_profile = UserProfile.objects.get(user=user)
+
+    course = assignment.course_id
+    if not user.has_perm('modify_assignment', course):
+        return HttpResponse("Not enough privilege")
+
+    previous_commit_result = None
+    if request.method == 'POST':
+        form = RegradeForm(request.POST, request.FILES, assignment=assignment)
+        if form.is_valid():
+            t_sub, t_grading = form.save_and_commit()
+            previous_commit_result = {
+                    'num_successful_submissions': t_sub, 
+                    'num_successful_task_grading_status': t_grading,
+            }
+            form = RegradeForm(assignment=assignment)  # start a new empty form
+    else:
+        form = RegradeForm(assignment=assignment)
+
+    template_context = {
+            'myuser': request.user,
+            'user_profile': user_profile,
+            'previous_commit_result': previous_commit_result,
+            'form': form,
+            'course': assignment.course_id,
+            'assignment': assignment,
+    }
+    return render(request, 'serapis/regrade.html', template_context)

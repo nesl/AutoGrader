@@ -37,13 +37,13 @@ urlpatterns = [
     url(r'^modify-assignment/(?P<assignment_id>[0-9]+)/$', assignments.modify_assignment, name='modify-assignment'),
     url(r'^create-assignment-task/(?P<assignment_id>[0-9]+)/$', tasks.create_assignment_task, name='create-assignment-task'),
     url(r'^modify-assignment-task/(?P<task_id>[0-9]+)/$', tasks.modify_assignment_task, name='modify-assignment-task'),
-    url(r'^debug-task-grading-status/$', tasks.debug_task_grading_status, name='debug-task-grading-status'),
 
-    ## submissions
+    ## Submissions
     url(r'^submission/(?P<submission_id>[0-9]+)/$', submissions.submission, name='submission'),
     url(r'^submissions_full_log/$', submissions.submissions_full_log, name='submissions_full_log'),
     url(r'^student_submission_full_log/$', submissions.student_submission_full_log, name='student_submission_full_log'),
     url(r'^task-grading-detail/(?P<task_grading_id>[0-9]+)/$', submissions.task_grading_detail, name='task-grading-detail'),
+    url(r'^regrade/(?P<assignment_id>[0-9]+)/$', submissions.regrade, name='regrade'),
 
     ## Testbed and Hardware pages
     url(r'^testbed-type-list/$', testbeds.testbed_type_list, name='testbed-type-list'),

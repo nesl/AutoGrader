@@ -92,8 +92,8 @@
           {% else %}
             <td><span class="badge" style="background:green; width:80px">{{ t.points }} / {{ t.assignment_task_id.points }}</span></td>
           {% endif %}
-					
-					{% get_obj_perms request.user for course as "course_perms" %}
+          
+          {% get_obj_perms request.user for course as "course_perms" %}
           {% if "modify_course" in course_perms or t.assignment_task_id.mode == 0 or now > assignment.deadline %}
             <td>
             {% if t.grading_detail %}
