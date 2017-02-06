@@ -162,3 +162,42 @@ class AssignmentTaskUpdateForm(ModelForm):
     #         print(assignment_task_file.file.path)
     #
     #     return (assignment_task, assignment_task_files)
+
+
+class AssignmentSubmissionForm(Form):
+    def __init__(self, *args, **kwargs):
+        assignment = kwargs.pop('assignment')
+        super(AssignmentSubmissionForm, self).__init__(*args, **kwargs)
+
+        schema = SubmissionFileSchema.objects.filter(assignment_id=assignment).order_by('id')
+        for field in schema:
+            self.fields[field.field] = forms.FileField()
+
+        # set up variables to be used
+        self.assignment = assignment
+
+    def save_and_commit(self, student):
+        submission = Submission(
+                student_id=student,
+                assignment_id=self.assignment,
+                submission_time=timezone.now(),
+                grading_result=0.,
+                status=Submission.STAT_GRADING
+        )
+        submission.save()
+
+        submission_files = []
+        for field in self.fields:
+            schema = SubmissionFileSchema.objects.get(
+                    assignment_id=self.assignment,
+                    field=field,
+            )
+            submission_file = SubmissionFile(
+                    submission_id=submission,
+                    file_schema_id=schema,
+                    file=self.cleaned_data[field],
+            )
+            submission_file.save()
+            submission_files.append(submission_file)
+
+        return (submission, submission_files)
