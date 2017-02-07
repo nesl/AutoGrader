@@ -88,31 +88,3 @@ def modify_assignment_task(request, task_id):
             assignment_id=task.assignment_id.id,
             assignment_task=task,
     )
-
-    if request.method == 'POST':
-        form = AssignmentTaskUpdateForm(request.POST, request.FILES, instance=task)
-        if form.is_valid():
-            assignment_task = form.save(commit=False)
-            assignment_task.assignment_id = assignment
-            binary = assignment_task.grading_script.read()
-            # res, msg = grading.check_format(binary)
-            res = True
-            if res:
-                # assignment_task.execution_duration = float(grading.get_length(binary)) / 5000.0
-                assignment_task.save()
-                return HttpResponseRedirect('/assignment/' + str(assignment.id))
-            else:
-                #TODO(timestring): display why failed
-                print("modify assignment task failed")
-                pass
-    else:
-        form = AssignmentTaskUpdateForm(instance=task)
-
-    template_context = {
-            'myuser': request.user,
-            'user_profile': user_profile,
-            'form': form,
-            'course': course,
-            'assignment': assignment,
-    }
-    return render(request, 'serapis/modify_assignment_task.html', template_context)
