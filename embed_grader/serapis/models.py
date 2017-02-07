@@ -272,6 +272,29 @@ class Submission(models.Model):
         return (user.has_perm('modify_assignment', self.assignment_id.course_id)
                 or user == self.student_id)
 
+    def retrieve_task_grading_status_and_score_sum(self, include_hidden):
+        """
+        Paremeter:
+          - include_hidden: boolean, set true if to include task grading status of hidden test
+                cases.
+        Return:
+          (task_grading_status_list, sum_student_score, sum_total_score)
+        """
+        task_grading_status_list = TaskGradingStatus.objects.filter(
+                submission_id=self).order_by('assignment_task_id')
+        if not include_hidden:
+            task_grading_status_list = [t for t in task_grading_status_list
+                    if t.assignment_task_id.mode != ASSIGNMENT_TASK_HIDDEN]
+
+        sum_student_score = 0.
+        sum_total_score = 0.
+        for grading_status in task_grading_status_list:
+            if grading_status.grading_status != TaskGradingStatus.STAT_FINISH:
+                grading_status.points = 0.
+            sum_total_score += grading_status.assignment_task_id.points
+            sum_student_score += grading_status.points
+        return (task_grading_status_list, sum_student_score, sum_total_score)
+
 
 class SubmissionFileSchema(models.Model):
     class Meta:

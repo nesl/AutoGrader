@@ -48,28 +48,12 @@ def submission(request, submission_id):
     task_grading_status_list = TaskGradingStatus.objects.filter(
             submission_id=submission_id).order_by('assignment_task_id')
     now = timezone.now()
-    can_see_hidden_cases = user.has_perm('modify_assignment', course) or now > assignment.deadline
-    
-    if not can_see_hidden_cases:
-        task_grading_status_list = [t for t in task_grading_status_list
-                if t.assignment_task_id.mode != ASSIGNMENT_TASK_HIDDEN]
-
-    task_symbols = []
-    student_score = 0.
-    total_score = 0.
-
-    for grading_status in task_grading_status_list:
-        if grading_status.grading_status != TaskGradingStatus.STAT_FINISH:
-            grading_status.points = 0.
-        total_score += grading_status.assignment_task_id.points
-        student_score += grading_status.points
-        tmp = grading_status.points
-        grading_status.points = round(tmp, 2)
-        tmp = grading_status.assignment_task_id.points
-        grading_status.assignment_task_id.points = round(tmp, 2)
-
-    student_score = round(student_score, 2)
-    total_score = round(total_score, 2)
+    can_see_hidden_cases_and_feedback_details = (
+            user.has_perm('modify_assignment', course) or now > assignment.deadline)
+   
+    task_grading_status_list, sum_student_score, sum_total_score = (
+            submission.retrieve_task_grading_status_and_score_sum(
+                can_see_hidden_cases_and_feedback_details))
 
     submission_file_dict = file_schema.get_submission_files(submission)
     submission_file_list = []  # a list of {filename, file_field}
@@ -82,16 +66,18 @@ def submission(request, submission_id):
             })
 
     template_context = {
-        'myuser': request.user,
+        'myuser': user,
         'now': now,
         'submission': submission,
         'assignment': assignment,
         'course': course,
         'author': author,
-        'student_score': student_score,
-        'total_score': total_score,
+        'student_score': sum_student_score,
+        'total_score': sum_total_score,
         'submission_file_list': submission_file_list,
         'task_grading_status_list': task_grading_status_list,
+        'can_see_feedback_details': can_see_hidden_cases_and_feedback_details,
+        'AssignmentTask': AssignmentTask,
     }
     return render(request, 'serapis/submission.html', template_context)
 
