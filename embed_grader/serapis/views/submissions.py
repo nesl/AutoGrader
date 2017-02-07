@@ -49,7 +49,7 @@ def submission(request, submission_id):
             submission_id=submission_id).order_by('assignment_task_id')
     now = timezone.now()
     can_see_hidden_cases_and_feedback_details = (
-            user.has_perm('modify_assignment', course) or now > assignment.deadline)
+            assignment.viewing_scope_by_user(user) == Assignment.VIEWING_SCOPE_FULL)
    
     task_grading_status_list, sum_student_score, sum_total_score = (
             submission.retrieve_task_grading_status_and_score_sum(
@@ -101,8 +101,14 @@ def task_grading_detail(request, task_grading_id):
         if author != user:
             return HttpResponse("Not enough privilege")
 
+    if not task_grading_status.can_detail_be_viewed_by_user(user):
+        return HttpResponse("Not enough privilege")
+
+    if task_grading_status.grading_status != TaskGradingStatus.STAT_FINISH:
+        return HttpResponse("Detail is not ready")
+
+    now = timezone.now()
     assignment_task = task_grading_status.assignment_task_id
-    task_grading_status.points = round(task_grading_status.points, 2)
 
     output_files = file_schema.get_task_grading_status_files(task_grading_status)
     output_full_log = []  # A list of {field_name, content}

@@ -367,6 +367,10 @@ class TaskGradingStatus(models.Model):
         # same task should be the same. We can simply ask the permission of the input file.
         return self.assignment_task_id.can_access_test_input_by_user(user)
 
+    def can_detail_be_viewed_by_user(self, user):
+        assignment = self.assignment_task_id.assignment_id
+        return assignment.viewing_scope_by_user(user) == Assignment.VIEWING_SCOPE_FULL
+
 
 class TaskGradingStatusFileSchema(models.Model):
     class Meta:

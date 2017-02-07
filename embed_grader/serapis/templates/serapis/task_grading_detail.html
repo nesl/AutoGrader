@@ -17,25 +17,15 @@
   <!-- SIDEBAR MENU -->
   <div class="profile-usermenu">
     <ul class="nav nav-bar">
-      <li>
-        <a href="{% url 'homepage' %}">Courses</a>
-      </li>
-      <li class="active">
-        <a href="{% url 'submissions_full_log' %}">Submissions</a>
-      </li>
+      <li><a href="{% url 'homepage' %}">Courses</a></li>
+      <li class="active"><a href="{% url 'submissions_full_log' %}">Submissions</a></li>
       {% get_obj_perms request.user for course as "course_perms" %}
       {% if "view_membership" in course_perms %}
-      <li>
-        <a href="{% url 'membership' course.id %}">Students</a>
-      </li>
+        <li><a href="{% url 'membership' course.id %}">Students</a></li>
       {% endif %}
       {% if perms.serapis.view_hardware_type %}
-      <li>
-        <a href="{% url 'testbed-type-list' %}">Testbed Types</a>
-      </li>
-      <li>
-        <a href="{% url 'hardware-type-list' %}">Hardware Types</a>
-      </li>
+        <li><a href="{% url 'testbed-type-list' %}">Testbed Types</a></li>
+        <li><a href="{% url 'hardware-type-list' %}">Hardware Types</a></li>
       {% endif %}
     </ul>
   </div>
@@ -59,10 +49,10 @@
     <h5>Student: {{ author.first_name }} {{ author.last_name }}</h5>
     <h5>Submission time: {{ submission.submission_time }}</h5>
     <h5>Submission ID: {{ submission.id }}</h5>
-		<h5>Task case: {{ assignment_task.brief_description }}</h5>
-		<h5>Score: {% show_score grading.points assignment_task.points %}</h5>
-		
-		<hr/>
+    <h5>Task case: {{ assignment_task.brief_description }}</h5>
+    <h5>Score: {% show_score grading.points assignment_task.points %}</h5>
+    
+    <hr/>
     <h4>Grading feedback:<h4>
     <p style="white-space:pre; font-size:13px; font-family:monospace">{{feedback}}</p>
 
@@ -148,5 +138,5 @@
       }
       </script> -->
   </div>
-		
+    
 {% endblock %}
