@@ -21,8 +21,7 @@ from datetime import timedelta
 class AssignmentTaskForm(ModelForm):
     class Meta:
         model = AssignmentTask
-        fields = ['brief_description', 'mode', 'points', 'description', 'grading_script',
-                'execution_duration']
+        fields = ['brief_description', 'mode', 'points', 'description', 'execution_duration', 'grading_script']
 
     def __init__(self, *args, **kwargs):
         assignment = kwargs.pop('assignment')
@@ -83,11 +82,67 @@ class AssignmentTaskForm(ModelForm):
         return (assignment_task, assignment_task_files)
 
 
-class AssignmentTaskUpdateForm(ModelForm):
-    class Meta:
-        model = AssignmentTask
-        fields = ['brief_description', 'mode', 'points', 'description', 'grading_script',
-                'execution_duration']
+class AssignmentTaskUpdateForm(Form):
+    # class Meta:
+    #     model = AssignmentTask
+    #     fields = ['brief_description', 'mode', 'points', 'description', 'grading_script','execution_duration']
+    MODE_PUBLIC = 0
+    MODE_FEEDBACK = 1
+    MODE_HIDDEN = 2
+    EVAL_MODES = (
+        (MODE_PUBLIC, 'Public'),
+        (MODE_FEEDBACK, 'Feedback'),
+        (MODE_HIDDEN, 'Hidden'),
+    )
+
+    def __init__(self, *args, **kwargs):
+        task = kwargs.pop('instance')
+        super(AssignmentTaskUpdateForm, self).__init__(*args, **kwargs)
+
+        self.fields['brief_description'] = forms.CharField(
+            required=True,
+            widget=forms.TextInput,
+            initial=task.brief_description
+        )
+
+        self.fields['mode'] = forms.ChoiceField(
+            required=True,
+            choices=self.EVAL_MODES,
+            initial=task.mode
+        )
+
+        self.fields['points'] = forms.FloatField(
+            required=True,
+            initial=task.points
+        )
+
+        self.fields['description'] = forms.CharField(
+            initial = task.description
+        )
+
+        self.fields['execution_duration'] = forms.FloatField(
+            initial=task.execution_duration
+        )
+
+        self.fields['grading_script'] = forms.FileField(
+            # upload_to='AssignmentTask_grading_script',
+            initial=task.grading_script
+
+        )
+
+        assignment = task.assignment_id
+        schema = AssignmentTaskFileSchema.objects.filter(assignment_id=assignment).order_by('id')
+        file_fields = []
+        for field in schema:
+            field_name = "file_" + field.field  # put 'file_' as a prefix of field names
+            file_fields.append(field_name)
+            self.fields[field_name] = forms.FileField(
+                 # initial=getattr(task, field.field)
+            )
+
+        # set up variables to be used
+        # self.assignment = assignment
+        # self.file_fields = file_fields
 
     # def save_and_commit(self):
     #     assignment_task = AssignmentTask(
@@ -100,7 +155,7 @@ class AssignmentTaskUpdateForm(ModelForm):
     #             execution_duration=self.cleaned_data['execution_duration'],
     #     )
     #     assignment_task.save()
-    #
+    
     #     assignment_task_files = []
     #     for field_name in self.file_fields:
     #         field = field_name[5:]  # remove the prefix 'file_'
@@ -117,7 +172,7 @@ class AssignmentTaskUpdateForm(ModelForm):
     #         assignment_task_file.save()
     #         assignment_task_files.append(assignment_task_file)
     #         print(assignment_task_file.file.path)
-    #
+    
     #     return (assignment_task, assignment_task_files)
 
 

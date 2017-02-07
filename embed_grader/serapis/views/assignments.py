@@ -201,7 +201,10 @@ def modify_assignment(request, assignment_id):
     if request.method == 'POST':
         form = AssignmentBasicForm(request.POST, instance=assignment)
         if form.is_valid():
-            assignment = form.save()
+            # update schema info
+            updated_assignment = form.save()
+            update_schema_lists(assignment, updated_assignment)
+
             return HttpResponseRedirect('/assignment/' + assignment_id)
     else:
         form = AssignmentBasicForm(instance=assignment)
@@ -226,5 +229,64 @@ def modify_assignment(request, assignment_id):
 
 def get_schema_list(schemaString):
     schema_list = [s.strip() for s in schemaString.split(';')]
-    # print(schema_list)
     return schema_list
+
+def update_schema_lists(assignment, updated_assignment):
+    # Update AssignmentTaskFileSchema
+    assignmentTaskFileSchema = AssignmentTaskFileSchema.objects.filter(assignment_id=assignment)
+    updated_assignmentTaskFileSchema = get_schema_list(updated_assignment.assignent_task_file_schema)
+
+    # detele out-of-date schema
+    field_list1 = []
+    for schema in assignmentTaskFileSchema:
+        if schema.field not in updated_assignmentTaskFileSchema:
+            schema.delete()
+            print("[AssignmentTaskFileSchema deleted]: " + schema.field)
+        else:
+            field_list1.append(schema.field)
+
+    # add new schema
+    for schema in updated_assignmentTaskFileSchema:
+        if schema not in field_list1 and schema != '' and len(schema) > 0:
+            AssignmentTaskFileSchema.objects.create(assignment_id=updated_assignment, field=schema)
+            print("[AssignmentTaskFileSchema created]: " + schema)
+    
+    # Update SubmissionFileSchema
+    submissionFileSchema = SubmissionFileSchema.objects.filter(assignment_id=assignment)
+    updated_submissionFileSchema = get_schema_list(updated_assignment.submission_file_schema)
+
+    # detele out-of-date schema
+    field_list2 = []
+    for schema in submissionFileSchema:
+        if schema.field not in updated_submissionFileSchema:
+            schema.delete()
+            print("[SubmissionFileSchema deleted]: " + schema.field)
+        else:
+            field_list2.append(schema.field)
+
+    # add new schema
+    for schema in updated_submissionFileSchema:
+        if schema not in field_list2 and schema != '' and len(schema) > 0:
+            SubmissionFileSchema.objects.create(assignment_id=updated_assignment, field=schema)
+            print("[SubmissionFileSchema created]: " + schema)
+
+
+    # Update TaskGradingStatusFileSchema
+    taskGradingStatusFileSchema = TaskGradingStatusFileSchema.objects.filter(assignment_id=assignment)
+    updated_taskGradingStatusFileSchema = get_schema_list(updated_assignment.task_grading_schema)
+ 
+    # detele out-of-date schema
+    field_list3 = []
+    for schema in taskGradingStatusFileSchema:
+        if schema.field not in updated_taskGradingStatusFileSchema:
+            schema.delete()
+            print("[TaskGradingStatusFileSchema deleted]: " + schema.field)
+        else:
+            field_list3.append(schema.field)
+
+    # add new schema
+    for schema in updated_taskGradingStatusFileSchema:
+        if schema not in field_list3 and schema != '' and len(schema) > 0:
+            TaskGradingStatusFileSchema.objects.create(assignment_id=updated_assignment, field=schema)
+            print("[TaskGradingStatusFileSchema create]: " + schema)
+
