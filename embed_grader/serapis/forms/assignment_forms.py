@@ -25,7 +25,9 @@ class AssignmentBasicForm(ModelForm):
 
     class Meta:
         model = Assignment
-        fields = ['course_id', 'name', 'release_time', 'deadline', 'problem_statement']
+        fields = ['course_id', 'name', 'release_time', 'deadline', 'problem_statement', 
+        'assignent_task_file_schema', 'task_grading_schema','submission_file_schema', 
+        'testbed_type_id', 'num_testbeds']
         date_time_options = {
                 'format': 'mm/dd/yyyy hh:ii',
                 'autoclose': True,
@@ -45,20 +47,20 @@ class AssignmentBasicForm(ModelForm):
         return self.cleaned_data
 
 
-class AssignmentCompleteForm(ModelForm):
-    class Meta:
-        model = Assignment
-        fields = ['course_id', 'name', 'release_time', 'deadline', 'problem_statement',
-                 'testbed_type_id', 'num_testbeds']
-        date_time_options = {
-                'format': 'mm/dd/yyyy hh:ii',
-                'autoclose': True,
-                'showMeridian' : False,
-        }
-        widgets = {
-            'release_time': DateTimeWidget(bootstrap_version=3, options=date_time_options),
-            'deadline': DateTimeWidget(bootstrap_version=3, options=date_time_options),
-        }
+# class AssignmentCompleteForm(ModelForm):
+#     class Meta:
+#         model = Assignment
+#         fields = ['course_id', 'name', 'release_time', 'deadline', 'problem_statement',
+#                  'testbed_type_id', 'num_testbeds']
+#         date_time_options = {
+#                 'format': 'mm/dd/yyyy hh:ii',
+#                 'autoclose': True,
+#                 'showMeridian' : False,
+#         }
+#         widgets = {
+#             'release_time': DateTimeWidget(bootstrap_version=3, options=date_time_options),
+#             'deadline': DateTimeWidget(bootstrap_version=3, options=date_time_options),
+#         }
 
 
 class AssignmentSubmissionForm(Form):

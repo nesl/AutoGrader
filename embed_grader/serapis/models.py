@@ -160,6 +160,10 @@ class Assignment(models.Model):
     # Testbenches are reserved using AssignmentTestBenches table
     num_testbeds = models.IntegerField(default=None, null=True)
 
+    assignent_task_file_schema = models.CharField(default=None, null=True, max_length=500, help_text="Use ; to separate multiple schema names.")
+    task_grading_schema = models.CharField(default=None, null=True, max_length=500, help_text="Use ; to separate multiple schema names.")
+    submission_file_schema = models.CharField(default=None, null=True, max_length=500, help_text="Use ; to separate multiple schema names.")
+
     def __str__(self):
         return self.name
 
