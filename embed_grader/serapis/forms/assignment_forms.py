@@ -52,16 +52,19 @@ class AssignmentForm(ModelForm):
         self.fields['assignment_task_file_schema'] = forms.CharField(
                 required=False,
                 max_length=500,
+                label='Input file schema',
                 help_text="Use ; to separate multiple schema names.",
         )
         self.fields['submission_file_schema'] = forms.CharField(
                 required=False,
                 max_length=500,
+                label='Submission file schema',
                 help_text="Use ; to separate multiple schema names.",
         )
         self.fields['task_grading_status_file_schema'] = forms.CharField(
                 required=False,
                 max_length=500,
+                label='Output file schema',
                 help_text="Use ; to separate multiple schema names.",
         )
 
