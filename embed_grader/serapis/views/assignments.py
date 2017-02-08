@@ -27,56 +27,6 @@ from serapis.forms.assignment_forms import *
 
 
 @login_required(login_url='/login/')
-#Only super user has access to create a course
-def create_assignment(request, course_id):
-    try:
-        course = Course.objects.get(id=course_id)
-    except Course.DoesNotExist:
-        return HttpResponse("Course cannot be found.")
-
-    user = User.objects.get(username=request.user)
-    user_profile = UserProfile.objects.get(user=user)
-
-    if not user.has_perm('create_assignment', course):
-    	return HttpResponse("Not enough privilege")
-
-    if request.method == 'POST':
-        form = AssignmentBasicForm(request.POST)
-        if form.is_valid():
-            assignment = form.save()
-
-            # create schema object accordingly
-            assignmentTaskFileSchema = get_schema_list(assignment.assignent_task_file_schema)
-            for s in assignmentTaskFileSchema:
-                if s != '' and len(s) > 0:
-                    AssignmentTaskFileSchema.objects.create(assignment_id=assignment, field=s)
-
-            submissionFileSchema = get_schema_list(assignment.task_grading_schema)
-            for s in submissionFileSchema:
-                if s != '' and len(s) > 0:
-                    SubmissionFileSchema.objects.create(assignment_id=assignment, field=s)
-            
-            taskGradingStatusFileSchema = get_schema_list(assignment.submission_file_schema)
-            for s in taskGradingStatusFileSchema:
-                if s != '' and len(s) > 0:
-                    TaskGradingStatusFileSchema.objects.create(assignment_id=assignment, field=s)
-
-            return HttpResponseRedirect(reverse('course', args=(course_id)))
-    else:
-        form = AssignmentBasicForm(initial={'course_id': course_id})
-
-    form.fields['course_id'].widget = forms.NumberInput(attrs={'readonly':'readonly'})
-
-    template_context = {
-            'myuser': request.user,
-            'user_profile': user_profile,
-            'course':course,
-            'form': form,
-    }
-    return render(request, 'serapis/create_assignment.html', template_context)
-
-
-@login_required(login_url='/login/')
 def assignment(request, assignment_id):
     user = User.objects.get(username=request.user)
     user_profile = UserProfile.objects.get(user=user)
@@ -184,109 +134,56 @@ def assignment(request, assignment_id):
     return render(request, 'serapis/assignment.html', template_context)
 
 
+def _create_or_modify_assignment(request, course_id, assignment):
+    """
+    if assignment is None, it is in creating mode, otherwise it is in updating mode
+    """
+    try:
+        course = Course.objects.get(id=course_id)
+    except Course.DoesNotExist:
+        return HttpResponse("Cannot find the course.")
+
+    user = User.objects.get(username=request.user)
+    user_profile = UserProfile.objects.get(user=user)
+
+    # Only super user has access to create a course
+    if not user.has_perm('create_assignment', course):
+        return HttpResponse("Not enough privilege")
+    
+    mode = 'modify' if assignment else 'create'
+
+    if request.method == 'POST':
+        form = AssignmentBasicForm(request.POST, course=course, instance=assignment)
+        if form.is_valid():
+            assignment = form.save()
+            return HttpResponseRedirect(reverse('assignment',
+                kwargs={'assignment_id': assignment.id}))
+    else:
+        form = AssignmentBasicForm(course=course, instance=assignment)
+    
+    template_context = {
+            'myuser': request.user,
+            'user_profile': user_profile,
+            'mode': mode,
+            'course': course,
+            'assignment': assignment,
+            'form': form,
+    }
+    return render(request, 'serapis/create_or_modify_assignment.html', template_context)
+
+
+@login_required(login_url='/login/')
+def create_assignment(request, course_id):
+    return _create_or_modify_assignment(
+            request=request, course_id=course_id, assignment=None)
+
+
 @login_required(login_url='/login/')
 def modify_assignment(request, assignment_id):
     try:
         assignment = Assignment.objects.get(id=assignment_id)
     except Assignment.DoesNotExist:
-        return HttpResponse("Assignment cannot be found")
+        return HttpResponse("Cannot find the assignment.")
 
-    user = User.objects.get(username=request.user)
-    user_profile = UserProfile.objects.get(user=user)
-
-    course = assignment.course_id
-    if not user.has_perm('modify_assignment', course):
-        return HttpResponse("Not enough privilege")
-
-    if request.method == 'POST':
-        form = AssignmentBasicForm(request.POST, instance=assignment)
-        if form.is_valid():
-            # update schema info
-            updated_assignment = form.save()
-            update_schema_lists(assignment, updated_assignment)
-
-            return HttpResponseRedirect('/assignment/' + assignment_id)
-    else:
-        form = AssignmentBasicForm(instance=assignment)
-
-    tasks = None
-    if assignment.testbed_type_id:
-        form.fields['testbed_type_id'].widget = forms.NumberInput(attrs={'readonly':'readonly'})
-        tasks = AssignmentTask.objects.filter(assignment_id=assignment).order_by('id')
-
-    form.fields['course_id'].widget = forms.NumberInput(attrs={'readonly':'readonly'})
-
-    template_context = {
-            'myuser': request.user,
-            'user_profile': user_profile,
-            'assignment': assignment,
-            'form': form,
-            'tasks': tasks,
-            'course': course
-    }
-    return render(request, 'serapis/modify_assignment.html', template_context)
-
-
-def get_schema_list(schemaString):
-    schema_list = [s.strip() for s in schemaString.split(';')]
-    return schema_list
-
-def update_schema_lists(assignment, updated_assignment):
-    # Update AssignmentTaskFileSchema
-    assignmentTaskFileSchema = AssignmentTaskFileSchema.objects.filter(assignment_id=assignment)
-    updated_assignmentTaskFileSchema = get_schema_list(updated_assignment.assignent_task_file_schema)
-
-    # detele out-of-date schema
-    field_list1 = []
-    for schema in assignmentTaskFileSchema:
-        if schema.field not in updated_assignmentTaskFileSchema:
-            schema.delete()
-            print("[AssignmentTaskFileSchema deleted]: " + schema.field)
-        else:
-            field_list1.append(schema.field)
-
-    # add new schema
-    for schema in updated_assignmentTaskFileSchema:
-        if schema not in field_list1 and schema != '' and len(schema) > 0:
-            AssignmentTaskFileSchema.objects.create(assignment_id=updated_assignment, field=schema)
-            print("[AssignmentTaskFileSchema created]: " + schema)
-    
-    # Update SubmissionFileSchema
-    submissionFileSchema = SubmissionFileSchema.objects.filter(assignment_id=assignment)
-    updated_submissionFileSchema = get_schema_list(updated_assignment.submission_file_schema)
-
-    # detele out-of-date schema
-    field_list2 = []
-    for schema in submissionFileSchema:
-        if schema.field not in updated_submissionFileSchema:
-            schema.delete()
-            print("[SubmissionFileSchema deleted]: " + schema.field)
-        else:
-            field_list2.append(schema.field)
-
-    # add new schema
-    for schema in updated_submissionFileSchema:
-        if schema not in field_list2 and schema != '' and len(schema) > 0:
-            SubmissionFileSchema.objects.create(assignment_id=updated_assignment, field=schema)
-            print("[SubmissionFileSchema created]: " + schema)
-
-
-    # Update TaskGradingStatusFileSchema
-    taskGradingStatusFileSchema = TaskGradingStatusFileSchema.objects.filter(assignment_id=assignment)
-    updated_taskGradingStatusFileSchema = get_schema_list(updated_assignment.task_grading_schema)
- 
-    # detele out-of-date schema
-    field_list3 = []
-    for schema in taskGradingStatusFileSchema:
-        if schema.field not in updated_taskGradingStatusFileSchema:
-            schema.delete()
-            print("[TaskGradingStatusFileSchema deleted]: " + schema.field)
-        else:
-            field_list3.append(schema.field)
-
-    # add new schema
-    for schema in updated_taskGradingStatusFileSchema:
-        if schema not in field_list3 and schema != '' and len(schema) > 0:
-            TaskGradingStatusFileSchema.objects.create(assignment_id=updated_assignment, field=schema)
-            print("[TaskGradingStatusFileSchema create]: " + schema)
-
+    return _create_or_modify_assignment(
+            request=request, course_id=assignment.course_id.id, assignment=assignment)

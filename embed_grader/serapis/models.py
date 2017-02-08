@@ -153,16 +153,11 @@ class Assignment(models.Model):
     name = models.CharField(max_length=50)
     release_time = models.DateTimeField()
     deadline = models.DateTimeField()
-    problem_statement = RichTextUploadingField()
+    problem_statement = RichTextUploadingField(blank=True)
 
     # testbed related
-    testbed_type_id = models.ForeignKey(TestbedType, on_delete=models.CASCADE, default=None, null=True)
-    # Testbenches are reserved using AssignmentTestBenches table
-    num_testbeds = models.IntegerField(default=None, null=True)
-
-    assignent_task_file_schema = models.CharField(default=None, null=True, max_length=500, help_text="Use ; to separate multiple schema names.")
-    task_grading_schema = models.CharField(default=None, null=True, max_length=500, help_text="Use ; to separate multiple schema names.")
-    submission_file_schema = models.CharField(default=None, null=True, max_length=500, help_text="Use ; to separate multiple schema names.")
+    testbed_type_id = models.ForeignKey(TestbedType, on_delete=models.CASCADE, null=True, blank=True)
+    num_testbeds = models.IntegerField(default=0, null=True, blank=True)
 
     def __str__(self):
         return self.name
