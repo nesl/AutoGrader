@@ -20,7 +20,7 @@ from serapis.utils import grading
 from datetime import timedelta
 
 
-class AssignmentBasicForm(ModelForm):
+class AssignmentForm(ModelForm):
     error_messages = {
         'time_conflict': 'Release time must be earlier than deadline.',
         'invalid_schema': 'Schema can only contain 0-9, a-z, and \'_\'.',
@@ -46,7 +46,7 @@ class AssignmentBasicForm(ModelForm):
           - course: the course object this assignment belongs to
         """
         self.course = kwargs.pop('course')
-        super(AssignmentBasicForm, self).__init__(*args, **kwargs)
+        super(AssignmentForm, self).__init__(*args, **kwargs)
 
         # add three more input boxes for schema
         self.fields['assignment_task_file_schema'] = forms.CharField(
@@ -117,7 +117,7 @@ class AssignmentBasicForm(ModelForm):
         return schema_name_list
 
     def save(self, commit=True):
-        assignment = super(AssignmentBasicForm, self).save(commit=False)
+        assignment = super(AssignmentForm, self).save(commit=False)
         assignment.course_id = self.course
         if commit:
             assignment.save()
