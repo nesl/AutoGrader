@@ -39,7 +39,7 @@
         <li><a href="{% url 'homepage' %}">Courses</a></li>
         <li><a href="{% url 'course' course.id %}">{{ course.course_code }}</a></li>
         <li><a href="{% url 'assignment' assignment.id %}">{{ assignment.name }}</a></li>
-        <li>{% if mode == 'create' %}Create task{% else %}Modify task{% endif %}</li>
+        <li class="active">{% if mode == 'create' %}Create task{% else %}Modify task{% endif %}</li>
       </ol>
     </div>
 

@@ -34,6 +34,13 @@
 
 {% block main-content %}
   <div class="main-content">
+    <div class="top-buffer">
+      <ol class="breadcrumb">
+        <li><a href="{% url 'homepage' %}">Courses</a></li>
+        <li><a href="{% url 'course' course.id %}">{{course.course_code}}</a></li>
+        <li class="active">{% if mode == 'create' %}Create assignment{% else %}Modify assignment{% endif %}</li>
+      </ol>
+    </div>
     <h1 class="page-header">{% if mode is 'create' %}Create assignment{% else %}Modify assignment{% endif %}</h1>
 
     <form action="." method="post" class="form">
