@@ -94,43 +94,101 @@ def do_submission_table_schema(parser, token):
     return SubmissionTableSchemaNode(schema_list, attr_list, var_name)
 
 
-
-def _get_submission_content_assignment(submission, _):
-    return 'not support'
-
-def _get_submission_content_status(submission, include_hidden):
-    return 'not support'
-
-def _get_submission_content_score(submission, include_hidden):
-    (_, s_stu, s_all) = submission.retrieve_task_grading_status_and_score_sum(include_hidden)
-    return show_score(s_stu, s_all)
-
-def _get_submission_content_submission_time(submission, _):
-    return submission.submission_time.astimezone(
-            pytz.timezone('US/Pacific')).strftime("%Y-%m-%d %H:%M:%S")
-
-def _get_submission_content_detail_button(submission, _):
-    url_str = reverse('submission', kwargs={'submission_id': submission.id})
-    return ('<a class="btn btn-primary" href="%s" style="font-size:12px; background:white; '
-            + 'width:90px; color:SteelBlue; border-color:SteelBlue">'
-            + '<span class="glyphicon glyphicon-file"></span>&nbsp;Detail</a>') % url_str
-
-def _get_submission_content_author_name(submission, _):
-    return user_info_helper.get_first_last_name(submission.student_id)
-
-
 @register.simple_tag
 def submission_table_row(table_schema, submission, user):
-    schema_to_function = {
-            SubmissionTableSchemaNode.SCHEMA_ASSIGNMENT: _get_submission_content_assignment,
-            SubmissionTableSchemaNode.SCHEMA_STATUS: _get_submission_content_status,
-            SubmissionTableSchemaNode.SCHEMA_SCORE: _get_submission_content_score,
-            SubmissionTableSchemaNode.SCHEMA_SUBMISSION_TIME: _get_submission_content_submission_time,
-            SubmissionTableSchemaNode.SCHEMA_DETAIL_BUTTON: _get_submission_content_detail_button,
-            SubmissionTableSchemaNode.SCHEMA_AUTHOR_NAME: _get_submission_content_author_name,
-    }
-    include_hidden = (
-            submission.assignment_id.viewing_scope_by_user(user) == Assignment.VIEWING_SCOPE_FULL)
+    return RenderSubmissionTableRow(table_schema, submission, user).render()
 
-    return format_html(''.join(['<td>' + schema_to_function[sch](submission, include_hidden) + '</td>'
-            for sch in table_schema]))
+
+class RenderSubmissionTableRow:
+    def __init__(self, table_schema, submission, user):
+        schema_to_function = {
+                SubmissionTableSchemaNode.SCHEMA_ASSIGNMENT: self._get_content_assignment,
+                SubmissionTableSchemaNode.SCHEMA_STATUS: self._get_content_status,
+                SubmissionTableSchemaNode.SCHEMA_SCORE: self._get_content_score,
+                SubmissionTableSchemaNode.SCHEMA_SUBMISSION_TIME: self._get_content_submission_time,
+                SubmissionTableSchemaNode.SCHEMA_DETAIL_BUTTON: self._get_content_detail_button,
+                SubmissionTableSchemaNode.SCHEMA_AUTHOR_NAME: self._get_content_author_name,
+        }
+        self.submission = submission
+        self.user = user
+        self.include_hidden = (submission.assignment_id.viewing_scope_by_user(user)
+                == Assignment.VIEWING_SCOPE_FULL)
+        self.result = format_html(
+                ''.join(['<td>' + schema_to_function[sch]() + '</td>'
+                    for sch in table_schema]))
+
+    def render(self):
+        return self.result
+
+    def _get_content_assignment(self):
+        assignment = self.submission.assignment_id
+        return '<a href="%s">%s</a>' % (
+                reverse('assignment', kwargs={'assignment_id': assignment.id}), assignment.name)
+
+    def _get_content_status(self):
+        (all_assignment_tasks, _) = (self.submission.assignment_id
+                .retrieve_assignment_tasks_and_score_sum(include_hidden=True))
+        (task_grading_status_list, _, _) = (
+                self.submission.retrieve_task_grading_status_and_score_sum(self.include_hidden))
+        
+        atid_2_task_grading_status = {}
+        for task_grading_stataus in task_grading_status_list:
+            atid = task_grading_status.assignment_id.id
+            atid_2_task_grading_status[atid] = task_grading_status
+
+
+        status_2_text = {
+                TaskGradingStatus.STAT_PENDING: 'P',
+                TaskGradingStatus.STAT_EXECUTING: 'E',
+                TaskGradingStatus.STAT_OUTPUT_TO_BE_CHECKED: 'C',
+                TaskGradingStatus.STAT_FINISH: 'F',
+                TaskGradingStatus.STAT_INTERNAL_ERROR: '!',
+                TaskGradingStatus.STAT_SKIPPED: 'S',
+        }
+        status_2_style = {
+                TaskGradingStatus.STAT_PENDING: 'color:#378',
+                TaskGradingStatus.STAT_EXECUTING: 'color:#373',
+                TaskGradingStatus.STAT_OUTPUT_TO_BE_CHECKED: 'color:#373',
+                TaskGradingStatus.STAT_FINISH: 'color:#863',
+                TaskGradingStatus.STAT_INTERNAL_ERROR: 'color:red',
+                TaskGradingStatus.STAT_SKIPPED: 'color:#aaa',
+        }
+        htmls = []
+        for assignment_task in all_assignment_tasks:
+            atid = assignment_task.id
+            if atid not in atid_2_task_grading_status:
+                htmls.append(self._render_task_status(' ', 'color:#aaa', None))
+            else:
+                task = atid_2_task_grading_status[atid]
+                status = task.grading_status
+                task_id_for_url = task.id if task.can_detail_be_viewed_by_user(self.user) else None
+                htmls.append(self._render_task_status(status_2_text[status],
+                    status_2_style[status], task_id_for_url))
+        return ''.join(htmls)
+
+    def _get_content_score(self):
+        (_, student_score, total_score) = (
+                self.submission.retrieve_task_grading_status_and_score_sum(self.include_hidden))
+        return show_score(student_score, total_score)
+
+    def _get_content_submission_time(self):
+        return self.submission.submission_time.astimezone(
+                pytz.timezone('US/Pacific')).strftime("%Y-%m-%d %H:%M:%S")
+
+    def _get_content_detail_button(self):
+        url_str = reverse('submission', kwargs={'submission_id': self.submission.id})
+        return ('<a class="btn btn-primary" href="%s" style="font-size:12px; background:white; '
+                + 'width:90px; color:SteelBlue; border-color:SteelBlue">'
+                + '<span class="glyphicon glyphicon-file"></span>&nbsp;Detail</a>') % url_str
+
+    def _get_content_author_name(self):
+        return user_info_helper.get_first_last_name(self.submission.student_id)
+
+    def _render_task_status(self, text, style, task_id_for_url):
+        if not task_id_for_url:
+            a_tag_prefix, a_tag_postfix = '', ''
+        else:
+            a_tag_prefix = '<a href="%s">' % reverse(
+                    'task-grading-detail', kwargs={'task_grading_id': task_id_for_url})
+            a_tag_postfix = '</a>'
+        return '%s<span style="%s">[%s]</span>%s' % (a_tag_prefix, style, text, a_tag_postfix)

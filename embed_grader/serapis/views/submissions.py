@@ -12,10 +12,6 @@ from django.forms import modelform_factory
 from django import forms
 from django.core.urlresolvers import reverse
 
-from serapis.models import *
-from serapis.forms.submission_forms import *
-from serapis.utils import grading
-
 from django.contrib.auth.models import User, Group
 from guardian.decorators import permission_required_or_403
 from guardian.compat import get_user_model
@@ -23,7 +19,12 @@ from guardian.shortcuts import assign_perm
 
 from django.views.generic import TemplateView
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+
+from serapis.models import *
+from serapis.forms.submission_forms import *
+from serapis.utils import grading
 from serapis.utils import file_schema
+from serapis.utils import user_info_helper
 
 
 @login_required(login_url='/login/')
@@ -247,50 +248,23 @@ def student_submission_full_log(request):
     user = User.objects.get(username=request.user)
     if not user.has_perm('serapis.view_hardware_type'):
         return HttpResponse("Not enough privilege")
-    courses_as_instructor = CourseUserList.objects.filter(user_id=user).exclude(role=ROLE_STUDENT)
+    courses_as_instructor = [o.course_id for o in 
+            CourseUserList.objects.filter(user_id=user).exclude(role=ROLE_STUDENT)]
 
     assignment_list = []
     for course in courses_as_instructor:
-        course_assignments = Assignment.objects.filter(course_id=course.course_id)
-        for assign in course_assignments:
-            assignment_list.append(assign)
+        course_assignments = Assignment.objects.filter(course_id=course)
+        assignment_list.extend(course_assignments)
 
-    students_submission_log = []
-    course_list = []
-    score_percentage_list = []
-    name_list = []
+    submission_list = []
     for assign in assignment_list:
+        #TODO: why do we want to exclude the instructor herself?
         assign_submissions = Submission.objects.filter(assignment_id=assign).exclude(student_id=user)
-        for s in assign_submissions:
-            course_list.append(s.assignment_id.course_id)
-            students_submission_log.append(s)
-
-            student = User.objects.get(username = s.student_id)
-            name_list.append(student.first_name + " " + student.last_name)
-
-            gradings = TaskGradingStatus.objects.filter(submission_id=s.id).order_by('assignment_task_id')
-            score = 0;
-            for task in gradings:
-                if task.grading_status == TaskGradingStatus.STAT_FINISH:
-                    score += task.points
-            score=round(score, 2)
-
-            assignment_tasks = AssignmentTask.objects.filter(assignment_id=s.assignment_id).order_by('id')
-            total_points = 0
-            for a in assignment_tasks:
-                total_points += a.points
-            if total_points == 0:
-                score_percentage = 100
-            else:
-                score_percentage = (score/total_points)*100
-            score_percentage_list.append(round(score_percentage,2))
-
-    submission_full_log_list = list(zip(students_submission_log, course_list, score_percentage_list, name_list))
+        submission_list.extend(assign_submissions)
 
     template_context = {
-        'user': user,
-        'myuser': request.user,
-        'submission_full_log': submission_full_log_list
+        'myuser': user,
+        'submission_list': submission_list
     }
     return render(request, 'serapis/student_submission_full_log.html', template_context)
 
