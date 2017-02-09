@@ -75,38 +75,35 @@
       <table class="table table-striped table-hover table-sm">
         <tr>
           <thead class="thead-default">
-            <th>Task</th>
-            {% if "modify_assignment" in course_perms %}
-              <th>Status</th>
-            {% endif %}
-            <th>Points</th>
-            <th>Description</th>
-            {% if "modify_assignment" in course_perms %}
-              <th>Grading Script</th>
-              <th>Edit</th>
+            {% if "modify_assignment" not in course_perms %}
+              <th style="width:25%">Task</th>
+              <th style="width:15%">Mode</th>
+              <th style="width:10%">Points</th>
+              <th style="width:50%">Description</th>
+            {% else %}
+              <th style="width:25%">Task</th>
+              <th style="width:15%">Mode</th>
+              <th style="width:10%">Points</th>
+              <th style="width:35%">Description</th>
+              <th style="width:15%">Edit</th>
             {% endif %}
           <thead>
         </tr>
-        {% for task in tasks %}
+        {% for task in assignment_tasks %}
           {% if "modify_assignment" not in course_perms %}
             <tr>
-              <td style="width:25%;">{{ task.brief_description }}</td>
-              <td style="width:25%;">{{ task.points }}</td>
-              <td style="width:50%;text-align:left">{{ task.description }}</td>
+              <td>{{ task.brief_description }}</td>
+              <td>{{ task.get_mode_display }}</td>
+              <td>{{ task.points }}</td>
+              <td>{{ task.description }}</td>
             </tr>
           {% else %}
             <tr>
-              <td style="width:20%">{{ task.brief_description }}</td>
-              <td style="width:10%">{{ task.get_mode_display }}</td>
-              <td style="width:10%">{{ task.points }}</td>
-              <td style="width:30%; text-align:left">{{ task.description }}</td>
-              <td style="width:10%">
-                <a href="{{ MEDIA_URL }}{{ task.grading_script.url }}" class="btn btn-primary"
-                    style="font-size: 12px; background:white; color:SteelBlue; border-color:SteelBlue">
-                  <span class="glyphicon glyphicon-download-alt"></span>&nbsp;Download
-                </a>
-              </td>
-              <td style="width:10%">
+              <td>{{ task.brief_description }}</td>
+              <td>{{ task.get_mode_display }}</td>
+              <td>{{ task.points }}</td>
+              <td>{{ task.description }}</td>
+              <td>
                 <a href="{% url 'modify-assignment-task' task.id %}" class="btn btn-primary"
                     style="font-size: 12px; background:white; color:SteelBlue; border-color:SteelBlue;width:80px">
                   <span class="glyphicon glyphicon-edit"></span>&nbsp;Edit
