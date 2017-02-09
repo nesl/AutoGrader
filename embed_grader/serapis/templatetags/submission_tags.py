@@ -1,4 +1,5 @@
 import re
+import pytz
 
 from django.core.urlresolvers import reverse
 
@@ -105,7 +106,8 @@ def _get_submission_content_score(submission, include_hidden):
     return show_score(s_stu, s_all)
 
 def _get_submission_content_submission_time(submission, _):
-    return submission.submission_time.strftime("%Y-%m-%d %H:%M:%S")
+    return submission.submission_time.astimezone(
+            pytz.timezone('US/Pacific')).strftime("%Y-%m-%d %H:%M:%S")
 
 def _get_submission_content_detail_button(submission, _):
     url_str = reverse('submission', kwargs={'submission_id': submission.id})
@@ -118,7 +120,7 @@ def _get_submission_content_author_name(submission, _):
 
 
 @register.simple_tag
-def submission_table_row(table_schema, submission, include_hidden):
+def submission_table_row(table_schema, submission, user):
     schema_to_function = {
             SubmissionTableSchemaNode.SCHEMA_ASSIGNMENT: _get_submission_content_assignment,
             SubmissionTableSchemaNode.SCHEMA_STATUS: _get_submission_content_status,
@@ -127,6 +129,8 @@ def submission_table_row(table_schema, submission, include_hidden):
             SubmissionTableSchemaNode.SCHEMA_DETAIL_BUTTON: _get_submission_content_detail_button,
             SubmissionTableSchemaNode.SCHEMA_AUTHOR_NAME: _get_submission_content_author_name,
     }
+    include_hidden = (
+            submission.assignment_id.viewing_scope_by_user(user) == Assignment.VIEWING_SCOPE_FULL)
 
     return format_html(''.join(['<td>' + schema_to_function[sch](submission, include_hidden) + '</td>'
             for sch in table_schema]))

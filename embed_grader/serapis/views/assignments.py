@@ -108,7 +108,6 @@ def assignment(request, assignment_id):
             'assignment': assignment,
             'submission_form': submission_form,
             'reason_of_cannot_submit': reason_of_cannot_submit,
-            'can_see_hidden_cases': can_see_hidden_cases,
             'submission_list': submission_list,
             'assignment_tasks': assignment_tasks,
             'public_points': public_points,

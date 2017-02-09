@@ -1,116 +1,90 @@
 {% extends 'serapis/base_sidebar.html' %}
 {% load staticfiles %}
+{% load submission_tags %}
 
 {% block sidebar-content %}
   <!-- SIDEBAR USER TITLE -->
 
   <div class="profile-usertitle">
-      <div class="profile-usertitle-name">
-          Submissions
-      </div>
-      <div class="profile-usertitle-job">
-          {{user.first_name}} {{user.last_name}}
-      </div>
+    <div class="profile-usertitle-name">
+      Submissions
+    </div>
+    <div class="profile-usertitle-job">
+      {{ myuser_name }}
+    </div>
   </div>
   <!-- END SIDEBAR USER TITLE -->
   <!-- SIDEBAR MENU -->
   <div class="profile-usermenu">
-      <ul class="nav nav-bar">
-          <li>
-              <a href="{% url 'homepage' %}">Courses</a>
-          </li>
-          {% if perms.serapis.view_hardware_type %}
-          <li>
-              <a data-toggle="collapse"
-              data-target="#submenu1" aria-expanded="false">Submissions</a>
-              <ul class="nav collapse" id="submenu1" role="menu" aria-labelledby="btn-1">
-                <li class="active"><a href="{% url 'submissions_full_log' %}">My Submissions</a></li>
-                <li><a href="{% url 'student_submission_full_log' %}">Student Submissions</a></li>
-              </ul>
-          </li>
-          <li>
-              <a href="{% url 'testbed-type-list' %}">Testbed Types</a>
-          </li>
-          <li>
-              <a href="{% url 'hardware-type-list' %}">Hardware Types</a>
-          </li>
-          {% else %}
-          <li class="active">
-              <a href="{% url 'submissions_full_log' %}">Submissions</a>
-          </li>
-          {% endif %}
-      </ul>
+    <ul class="nav nav-bar">
+      <li><a href="{% url 'homepage' %}">Courses</a></li>
+      {% if perms.serapis.view_hardware_type %}
+        <li>
+          <a data-toggle="collapse"
+          data-target="#submenu1" aria-expanded="false">Submissions</a>
+          <ul class="nav collapse" id="submenu1" role="menu" aria-labelledby="btn-1">
+            <li class="active"><a href="{% url 'submissions_full_log' %}">My Submissions</a></li>
+            <li><a href="{% url 'student_submission_full_log' %}">Student Submissions</a></li>
+          </ul>
+        </li>
+        <li><a href="{% url 'testbed-type-list' %}">Testbed Types</a></li>
+        <li><a href="{% url 'hardware-type-list' %}">Hardware Types</a></li>
+      {% else %}
+        <li class="active"><a href="{% url 'submissions_full_log' %}">Submissions</a></li>
+      {% endif %}
+    </ul>
   </div>
   <!-- END MENU -->
 {% endblock %}
 
-
 {% block main-content %}
-    <div class="main-content">
-      <h3>Submission History for {{user.first_name}} {{user.last_name}}</h3>
-      <!-- <hr> -->
-      {% if submissions_count == 0 %}
-        <p>No submission history found.</p>
-      {% else %}
-        <hr>
-        <table class="table table-striped table-hover" id="data-table" cellspacing="0">
-              <thead class="thead-default">
-                <tr>
-                  <th>Assignment</th>
-                  <th>Score</th>
-                  <th>Submission Time</th>
-                  <th>Detail</th>
-                </tr>
-              </thead>
-              <tfoot style="display: table-header-group;">
-                <tr>
-                  <th>Assignment</th>
-                  <th>Score</th>
-                  <th>Submission Time</th>
-                  <th style="display:none">Detail</th>
-                </tr>
-              </tfoot>
+  <div class="main-content">
+    <h3>Submission History for {{myuser_name}}</h3>
+    <!-- <hr> -->
+    {% if not submission_list %}
+      <p>No submission history found.</p>
+    {% else %}
+      <hr/>
+      <table class="table table-striped table-hover" id="data-table" cellspacing="0">
+        <thead class="thead-default">
+          <tr>
+            {% submission_table_schema  assignment 35%  score 20%  submission_time 30%  detail_button 15% as table_schema %}
+          </tr>
+        </thead>
+        <tfoot style="display: table-header-group;">
+          <tr>
+            <th>Assignment</th>
+            <th>Score</th>
+            <th>Submission time</th>
+            <th style="display:none">Detail</th>
+          </tr>
+        </tfoot>
 
-            {% for s in submission_full_log %}
-                <tr>
-                    <td><a href="{% url 'assignment' s.0.assignment_id.id %}">{{ s.1.course_code }}_{{ s.0.assignment_id }}</td>
-                    {% if s.2 < 100 %}
-                      <td><span class="badge" style="background:darkred; width:80px;"> {{ s.2 }}%</span></td>
-                    {% else %}
-                      <td><span class="badge" style="background:green; width:80px;"> {{ s.2 }}%</span></td>
-                    {% endif %}
-                    <td>{{ s.0.submission_time | date:'Y-m-d H:i'}} </td>
-                    <td>
-                      <a class="btn btn-primary" href="{% url 'submission' s.0.id %}"
-                      style="font-size:12px; background:white; width:90px; color:SteelBlue; border-color:SteelBlue">
-                      <span class="glyphicon glyphicon-file"></span>&nbsp;Detail
-                    </td>
-                </tr>
-            {% endfor %}
+        {% for submission in submission_list %}
+          <tr>{% submission_table_row table_schema submission myuser %}</tr>
+        {% endfor %}
+      </table>
+      
+      <script type="text/javascript">
+        $(document).ready(function() {
+          $('#data-table tfoot th').each( function () {
+             var title = $(this).text();
+             $(this).html( '<input type="text" placeholder="Search '+title+'" />' );
+           });
 
-        </table>
-        <script type="text/javascript">
-          $(document).ready(function() {
-            $('#data-table tfoot th').each( function () {
-               var title = $(this).text();
-               $(this).html( '<input type="text" placeholder="Search '+title+'" />' );
+           var table = $('#data-table').DataTable({"order":[[2, "desc"]]});
+
+           table.columns().every( function() {
+             var that = this;
+
+             $('input', this.footer() ).on('keyup change', function() {
+               if ( that.search() !== this.value ) {
+                   that.search( this.value ).draw();
+               }
              });
-
-             var table = $('#data-table').DataTable({"order":[[2, "desc"]]});
-
-             table.columns().every( function () {
-                 var that = this;
-
-                 $('input', this.footer() ).on( 'keyup change', function () {
-                     if ( that.search() !== this.value ) {
-                         that
-                             .search( this.value )
-                             .draw();
-                     }
-                 });
-             });
-          });
-        </script>
-      {% endif %}
-    </div>
+           });
+        });
+      </script>
+    {% endif %}
+  </div>
 {% endblock %}

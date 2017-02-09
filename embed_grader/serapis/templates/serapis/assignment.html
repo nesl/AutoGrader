@@ -150,7 +150,7 @@
           {% endif %}
         </thead></tr>
         {% for submission in submission_list %}
-          <tr>{% submission_table_row table_schema submission can_see_hidden_cases %}</tr>
+          <tr>{% submission_table_row table_schema submission myuser %}</tr>
         {% endfor %}
       </table>
 
