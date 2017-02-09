@@ -23,6 +23,7 @@ from guardian.compat import get_user_model
 from guardian.shortcuts import assign_perm
 
 from serapis.models import *
+from serapis.utils import grading
 from serapis.forms.assignment_forms import *
 
 
@@ -85,14 +86,15 @@ def assignment(request, assignment_id):
     submission_form = AssignmentSubmissionForm(assignment=assignment)
     submission_short_list = []
     if user.has_perm('modify_assignment', course):
-        submission_list = Submission.objects.filter(assignment_id=assignment).values('student_id').annotate(submission_time=Max('submission_time'))
-        for s in submission_list:
-            submission_short_list.append(Submission.objects.get(student_id = s['student_id'], submission_time=s['submission_time']))
-        submission_short_list.sort(key=lambda x:x.submission_time, reverse=True)
+        students = CourseUserList.objects.filter(course_id=course)
+        submission_short_list = []
+        for student in students:
+            sub = grading.get_last_fully_graded_submission(student, assignment)
+            if sub:
+                submission_short_list.append(sub)
     else:
-        submission_list = Submission.objects.filter(student_id=user, assignment_id=assignment).order_by('-submission_time')
-        num_display = min(10, len(submission_list))
-        submission_short_list = submission_list[:num_display]
+        submission_short_list = Submission.objects.filter(
+                student_id=user, assignment_id=assignment).order_by('-id')[:10]
 
     submission_grading_detail = []
     student_list = []

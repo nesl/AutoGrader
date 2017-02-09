@@ -101,6 +101,15 @@ def get_length_by_filename(filename):
     with open(filename, 'rb') as f:
         return get_length(f.read())
 
-#testing
-#print(check_format_by_filename('sample.txt'))
-    
+   
+def get_last_fully_graded_submission(author, assignment):
+    """
+    Return:
+      a Submission object which is the last fully graded submission
+    """
+    submission_list = Submission.objects.filter(
+            student_id=author, assignment_id=assignment).order_by('-id')
+    for s in submission_list:
+        if s.is_fully_graded():
+            return s
+    return None

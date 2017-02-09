@@ -294,6 +294,18 @@ class Submission(models.Model):
             sum_student_score += grading_status.points
         return (task_grading_status_list, sum_student_score, sum_total_score)
 
+    def is_fully_graded(self, include_hidden):
+        """
+        Paremeter:
+          - include_hidden: boolean, set true if to include task grading status of hidden test
+                cases.
+        Return:
+          True if all tasks are graded (task_grading_status shows okay)
+        """
+        (task_grading_status_list, _, _) = self.retrieve_task_grading_status_and_score_sum(
+                include_hidden)
+        return all([t.grading_status.is_grading_done() for t in task_grading_status_list])
+
 
 class SubmissionFileSchema(models.Model):
     class Meta:
@@ -350,6 +362,10 @@ class TaskGradingStatus(models.Model):
     points = models.FloatField(default=0.0)
     grading_detail = models.FileField(upload_to='TaskGradingStatus_grading_detail',
             null=True, blank=True)
+
+    def is_grading_done(self, user):
+        return self.grading_status in [
+                TaskGradingStatus.STAT_FINISH, TaskGradingStatus.STAT_INTERRNAL_ERROR]
 
     def can_access_output_file_by_user(self, user):
         # If the user is an instructor, she can see the output file
