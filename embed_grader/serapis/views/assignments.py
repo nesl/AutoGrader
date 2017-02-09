@@ -28,6 +28,25 @@ from serapis.utils import user_info_helper
 from serapis.forms.assignment_forms import *
 
 
+def _plural(n, s):
+    return '%d %s%s' % (n, s, 's' if n == 1 else '')
+
+
+def _display_remaining_time(tdelta):
+    if tdelta < datetime.timedelta(0):
+        return 'Deadline passed'
+    
+    days = tdelta.days
+    hours, rem = divmod(tdelta.seconds, 3600)
+    mins, secs = divmod(rem, 60)
+    if days:
+        return '%s %s' % (_plural(days, 'day'), _plural(hours, 'hour'))
+    elif hours:
+        return '%s %s' % (_plural(hours, 'hour'), _plural(mins, 'minute'))
+    else:
+        return '%s %s' % (_plural(mins, 'minute'), _plural(secs, 'second'))
+
+
 @login_required(login_url='/login/')
 def assignment(request, assignment_id):
     user = User.objects.get(username=request.user)
@@ -43,48 +62,35 @@ def assignment(request, assignment_id):
         return HttpResponse("Not enough privilege")
 
     now = timezone.now()
-    time_remaining = str(assignment.deadline - now)
+    time_remaining = _display_remaining_time(assignment.deadline - now)
 
     # Handle POST the request
     if request.method == 'POST':
-        form = AssignmentSubmissionForm(request.POST, request.FILES, assignment=assignment)
+        form = AssignmentSubmissionForm(
+                request.POST, request.FILES, user=user, assignment=assignment)
         if form.is_valid():
-            if assignment.is_deadline_passed() and not user.has_perm('modify_assignment', course):
-                #TODO: Show error message: deadline is passed
-                print('Silent error msg: deadline is passed')
-            else:
-                submission, _ = form.save_and_commit(student=user)
-
-                # dispatch grading tasks
-                for assignment_task in assignment_tasks:
-                    grading_task = TaskGradingStatus.objects.create(
-                        submission_id=submission,
-                        assignment_task_id=assignment_task,
-                        grading_status=TaskGradingStatus.STAT_PENDING,
-                        execution_status=TaskGradingStatus.EXEC_UNKNOWN,
-                        status_update_time=timezone.now()
-                    )
-
-                    # create file records for each task
-                    schema_list = TaskGradingStatusFileSchema.objects.filter(
-                            assignment_id=assignment)
-                    for sch in schema_list:
-                        TaskGradingStatusFile.objects.create(
-                            task_grading_status_id=grading_task,
-                            file_schema_id=sch,
-                            file=None,
-                        )
+            form.save_and_commit()
 
     can_see_hidden_cases = (
             assignment.viewing_scope_by_user(user) == Assignment.VIEWING_SCOPE_FULL)
-    mode = 'instructor' if user.has_perm('modify_assignment', course) else 'student'
 
     (assignment_tasks, _) = assignment.retrieve_assignment_tasks_and_score_sum(can_see_hidden_cases)
     (public_points, total_points) = assignment.get_assignment_task_total_scores()
 
-    submission_form = AssignmentSubmissionForm(assignment=assignment)
+    if user.has_perm('modify_assignment', course):
+        can_submit, reason_of_cannot_submit = True, None
+    elif assignment.is_deadline_passed():
+        can_submit, reason_of_cannot_submit = False, 'Deadline has passed'
+    elif user_info_helper.all_submission_graded_on_assignment(user, assignment):
+        can_submit, reason_of_cannot_submit = (
+                False, 'Please wait until current submission if fully graded')
+    else:
+        can_submit, reason_of_cannot_submit = True, None
 
-    if mode == 'instructor':
+    submission_form = (AssignmentSubmissionForm(user=user, assignment=assignment)
+            if can_submit else None)
+
+    if user.has_perm('modify_assignment', course):
         students = [o.user_id for o in CourseUserList.objects.filter(course_id=course)]
         submission_list = []
         for student in students:
@@ -101,6 +107,7 @@ def assignment(request, assignment_id):
             'course': course,
             'assignment': assignment,
             'submission_form': submission_form,
+            'reason_of_cannot_submit': reason_of_cannot_submit,
             'can_see_hidden_cases': can_see_hidden_cases,
             'submission_list': submission_list,
             'assignment_tasks': assignment_tasks,

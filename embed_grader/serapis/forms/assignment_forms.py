@@ -16,7 +16,9 @@ from datetimewidget.widgets import DateTimeWidget, DateWidget, TimeWidget
 
 from serapis.models import *
 from serapis.utils import grading
+from serapis.utils import user_info_helper
 
+from django.utils import timezone
 from datetime import timedelta
 
 
@@ -147,35 +149,44 @@ class AssignmentForm(ModelForm):
         return assignment
 
 
-# class AssignmentCompleteForm(ModelForm):
-#     class Meta:
-#         model = Assignment
-#         fields = ['course_id', 'name', 'release_time', 'deadline', 'problem_statement',
-#                  'testbed_type_id', 'num_testbeds']
-#         date_time_options = {
-#                 'format': 'mm/dd/yyyy hh:ii',
-#                 'autoclose': True,
-#                 'showMeridian' : False,
-#         }
-#         widgets = {
-#             'release_time': DateTimeWidget(bootstrap_version=3, options=date_time_options),
-#             'deadline': DateTimeWidget(bootstrap_version=3, options=date_time_options),
-#         }
-
-
 class AssignmentSubmissionForm(Form):
+    error_messages = {
+        'pass_deadline': 'Assignment deadline has already passed.',
+        'submission_in_queue': 'Previous submission is still grading.'
+    }
+
     def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user')
         assignment = kwargs.pop('assignment')
         super(AssignmentSubmissionForm, self).__init__(*args, **kwargs)
 
-        schema = SubmissionFileSchema.objects.filter(assignment_id=assignment).order_by('id')
-        for field in schema:
-            self.fields[field.field] = forms.FileField()
+        schema_list = SubmissionFileSchema.objects.filter(assignment_id=assignment).order_by('id')
+        for schema in schema_list:
+            self.fields[schema.field] = forms.FileField()
 
         # set up variables to be used
+        self.user = user
         self.assignment = assignment
 
+    def clean(self):
+        if not self.user.has_perm('modify_assignment', course):  # a student
+            # a student cannot submit after passing the deadline
+            if self.assignment.is_deadline_passed():
+                raise forms.ValidationError(self.error_messages['pass_deadline'],
+                        code='pass_deadline')
+
+            # a student can submit only if the previous submission is done
+            if not user_info_helper.can_submit_on_assignment(user, assignment):
+                raise forms.ValidationError(self.error_messages['submission_in_queue'],
+                        code='submission_in_queue')
+
+        return self.cleaned_data
+
     def save_and_commit(self, student):
+        """
+        Return:
+          - (submission, submission_files)
+        """
         submission = Submission(
                 student_id=student,
                 assignment_id=self.assignment,
@@ -198,5 +209,28 @@ class AssignmentSubmissionForm(Form):
             )
             submission_file.save()
             submission_files.append(submission_file)
+
+        # dispatch grading tasks
+        #TODO: dispatched tasks should be based on the execution scope
+        (assignment_tasks, _) = self.assignment.retrieve_assignment_tasks_and_score_sum(True)
+        now = timezone.now()
+        for assignment_task in assignment_tasks:
+            grading_task = TaskGradingStatus.objects.create(
+                submission_id=submission,
+                assignment_task_id=assignment_task,
+                grading_status=TaskGradingStatus.STAT_PENDING,
+                execution_status=TaskGradingStatus.EXEC_UNKNOWN,
+                status_update_time=now,
+            )
+
+            # create file records for each task
+            schema_list = TaskGradingStatusFileSchema.objects.filter(
+                    assignment_id=assignment)
+            for sch in schema_list:
+                TaskGradingStatusFile.objects.create(
+                    task_grading_status_id=grading_task,
+                    file_schema_id=sch,
+                    file=None,
+                )
 
         return (submission, submission_files)
