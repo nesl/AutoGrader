@@ -1,5 +1,8 @@
 import struct
 
+from serapis.models import *
+
+
 def _get_words_from_line(line):
     words = [x.strip() for x in line.split(',')]
     if len(words) != 3:
@@ -110,6 +113,6 @@ def get_last_fully_graded_submission(author, assignment):
     submission_list = Submission.objects.filter(
             student_id=author, assignment_id=assignment).order_by('-id')
     for s in submission_list:
-        if s.is_fully_graded():
+        if s.is_fully_graded(include_hidden=True):
             return s
     return None

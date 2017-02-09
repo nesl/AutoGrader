@@ -46,9 +46,6 @@ def assignment(request, assignment_id):
     time_remaining = str(assignment.deadline - now)
 
     # Handle POST the request
-    assignment_tasks = AssignmentTask.objects.filter(assignment_id=assignment).order_by('id')
-    total_points = 0
-    public_points = 0
     if request.method == 'POST':
         form = AssignmentSubmissionForm(request.POST, request.FILES, assignment=assignment)
         if form.is_valid():
@@ -78,59 +75,39 @@ def assignment(request, assignment_id):
                             file=None,
                         )
 
-    # get true total points and total points to students
-    for assignment_task in assignment_tasks:
-        total_points += assignment_task.points
-        if assignment_task.mode != AssignmentTask.MODE_HIDDEN or now > assignment.deadline:
-            public_points += assignment_task.points
+    can_see_hidden_cases = (
+            assignment.viewing_scope_by_user(user) == Assignment.VIEWING_SCOPE_FULL)
+    mode = 'instructor' if user.has_perm('modify_assignment', course) else 'student'
+
+    (assignment_tasks, _) = assignment.retrieve_assignment_tasks_and_score_sum(can_see_hidden_cases)
+    (public_points, total_points) = assignment.get_assignment_task_total_scores()
 
     submission_form = AssignmentSubmissionForm(assignment=assignment)
-    submission_short_list = []
-    if user.has_perm('modify_assignment', course):
-        students = CourseUserList.objects.filter(course_id=course)
-        submission_short_list = []
+
+    if mode == 'instructor':
+        students = [o.user_id for o in CourseUserList.objects.filter(course_id=course)]
+        submission_list = []
         for student in students:
             sub = grading.get_last_fully_graded_submission(student, assignment)
             if sub:
-                submission_short_list.append(sub)
+                submission_list.append(sub)
     else:
-        submission_short_list = Submission.objects.filter(
+        submission_list = Submission.objects.filter(
                 student_id=user, assignment_id=assignment).order_by('-id')[:10]
-
-    submission_grading_detail = []
-    student_list = []
-    gradings = []
-    for submission in submission_short_list:
-        student = User.objects.get(username = submission.student_id)
-        student_name = user_info_helper.get_first_last_name(student)
-        student_list.append(student_name)
-
-        total_submission_points = 0.
-        tasks = TaskGradingStatus.objects.filter(
-                submission_id=submission, grading_status=TaskGradingStatus.STAT_FINISH)
-
-        for task in tasks:
-            if task.grading_status == TaskGradingStatus.STAT_FINISH:
-                if user.has_perm('modify_assignment', course) or task.assignment_task_id.mode != AssignmentTask.MODE_HIDDEN or now > assignment.deadline:
-                    total_submission_points += task.points
-
-        submission_grading_detail.append(total_submission_points)
-        gradings.append(round(total_submission_points, 2))
-
-    recent_submission_list = list(zip(submission_short_list, submission_grading_detail, gradings, student_list))
 
     template_context = {
             'myuser': request.user,
             'user_profile': user_profile,
-            'assignment': assignment,
             'course': course,
+            'assignment': assignment,
             'submission_form': submission_form,
-            'submission_n_detail_short_list': recent_submission_list,
-            'tasks': assignment_tasks,
-            'total_points': total_points,
+            'can_see_hidden_cases': can_see_hidden_cases,
+            'submission_list': submission_list,
+            'assignment_tasks': assignment_tasks,
             'public_points': public_points,
+            'total_points': total_points,
+            'now': now,
             'time_remaining': time_remaining,
-            'now': now
     }
 
     return render(request, 'serapis/assignment.html', template_context)

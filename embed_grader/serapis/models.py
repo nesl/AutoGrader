@@ -162,6 +162,39 @@ class Assignment(models.Model):
     def __str__(self):
         return self.name
 
+    def retrieve_assignment_tasks_and_score_sum(self, include_hidden):
+        """
+        Paremeter:
+          - include_hidden: boolean, set true if to include hidden test cases.
+        Return:
+          (assignment_task_list, sum_score)
+        """
+        assignment_task_list = AssignmentTask.objects.filter(assignment_id=self).order_by('id')
+        if not include_hidden:
+            assignment_task_list = [t for t in assignment_task_list
+                    if t.mode != AssignmentTask.ASSIGNMENT_TASK_HIDDEN]
+
+        sum_score = 0.
+        for assignment_task in assignment_task_list:
+            sum_score += assignment_task.points
+        return (assignment_task_list, sum_score)
+
+    def get_assignment_task_total_scores(self):
+        """
+        Return:
+          (total_score_without_hidden, total_score_with_hidden)
+        """
+        assignment_task_list = AssignmentTask.objects.filter(assignment_id=self)
+
+        total_score_without_hidden = 0.
+        total_score_with_hidden = 0.
+        for assignment_task in assignment_task_list:
+            if assignment_task.mode != AssignmentTask.ASSIGNMENT_TASK_HIDDEN:
+                total_score_without_hidden += assignment_task.points
+            total_score_with_hidden += assignment_task.points
+
+        return (total_score_without_hidden, total_score_with_hidden)
+
     VIEWING_SCOPE_NO = 0  # nothing can be seen
     VIEWING_SCOPE_PARTIAL = 1  # problem statement, public & feedback cases
     VIEWING_SCOPE_FULL = 2  # problem statement, all cases
@@ -304,7 +337,7 @@ class Submission(models.Model):
         """
         (task_grading_status_list, _, _) = self.retrieve_task_grading_status_and_score_sum(
                 include_hidden)
-        return all([t.grading_status.is_grading_done() for t in task_grading_status_list])
+        return all([t.is_grading_done() for t in task_grading_status_list])
 
 
 class SubmissionFileSchema(models.Model):
@@ -363,9 +396,9 @@ class TaskGradingStatus(models.Model):
     grading_detail = models.FileField(upload_to='TaskGradingStatus_grading_detail',
             null=True, blank=True)
 
-    def is_grading_done(self, user):
+    def is_grading_done(self):
         return self.grading_status in [
-                TaskGradingStatus.STAT_FINISH, TaskGradingStatus.STAT_INTERRNAL_ERROR]
+                TaskGradingStatus.STAT_FINISH, TaskGradingStatus.STAT_INTERNAL_ERROR]
 
     def can_access_output_file_by_user(self, user):
         # If the user is an instructor, she can see the output file
