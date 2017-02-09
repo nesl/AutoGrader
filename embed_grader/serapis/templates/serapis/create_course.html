@@ -1,7 +1,7 @@
 {% extends 'serapis/base_sidebar.html' %}
 {% load staticfiles %}
 {% load widget_tweaks %}
-
+{% load bootstrap3 %}
 
 {% block sidebar-content %}
   <!-- SIDEBAR USER TITLE -->
@@ -39,22 +39,17 @@
     <div class="main-content">
       <div class="top-buffer">
         <ol class="breadcrumb">
-            <li><a href="{% url 'homepage' %}">Courses</a></li>
-            <li></li>
+          <li><a href="{% url 'homepage' %}">Courses</a></li>
+          <li class='active'>Create course</li>
         </ol>
       </div>
 
-      <h2 class="form-signin-heading">Create a course</h2>
+      <h2 class="form-signin-heading">Create course</h2>
       <form class="form-register" role="form" method="post" action=".">
-      {% csrf_token %}
-          {% for field in form %}
-              <div class="form-group">
-                  <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                  {{ field|attr:"class:form-control"|attr:"required"}}
-              </div>
-          {% endfor %}
-          <input type="submit" value="Submit" style="float:left;" class="btn btn-primary"/>
-          <a href="{% url 'homepage' %}" class="btn btn-danger" style="float:right">Cancel</a>
+        {% csrf_token %}
+        {% bootstrap_form form %}
+        <input type="submit" value="Submit" style="float:left;" class="btn btn-primary"/>
+        <a href="{% url 'homepage' %}" class="btn btn-danger" style="float:right">Cancel</a>
       </form>
   </div>
 

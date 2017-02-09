@@ -86,31 +86,6 @@ class TestbedTypeWiring(models.Model):
 
 
 class Course(models.Model):
-    FALL = 0
-    WINTER = 1
-    SPRING = 2
-    SUMMER = 3
-    QUARTER_TYPES = (
-        (FALL, 'Fall'),
-        (WINTER, 'Winter'),
-        (SPRING, 'Spring'),
-        (SUMMER, 'Summer'),
-    )
-
-    # Django does not support years field by default. So this is a hack to get a list of valid years.
-    YEAR_CHOICES = []
-    for r in range(2015, (datetime.datetime.now().year+2)):
-        YEAR_CHOICES.append((r,r))
-
-    course_code = models.CharField(max_length = 10, default = '')
-    name = models.CharField(max_length=100, default='')
-    description = models.TextField(default='', null=True, blank=True)
-    quarter = models.IntegerField(choices=QUARTER_TYPES, default=FALL)
-    year = models.IntegerField(choices=YEAR_CHOICES, default=datetime.datetime.now().year)
-
-    def __str__(self):
-        return '%s: %s %s %d' % (self.course_code, self.name, self.get_quarter_display(), self.year)
-
     class Meta:
         permissions = (
             ('view_course', 'View course'),
@@ -121,6 +96,34 @@ class Course(models.Model):
             ('view_assignment', 'View assignment'),
             ('modify_assignment', 'Modify assignment'),
         )
+
+    # The value assigned to quarters are based the appearing order in a year
+    QUARTER_WINTER = 0
+    QUARTER_SPRING = 1
+    QUARTER_SUMMER = 2
+    QUARTER_FALL = 3
+    QUARTER_DICT = {
+            QUARTER_WINTER: 'Winter',
+            QUARTER_SPRING: 'Spring',
+            QUARTER_SUMMER: 'Summer',
+            QUARTER_FALL: 'Fall',
+    }
+    QUARTER_TYPES = (
+        (QUARTER_WINTER, QUARTER_DICT[QUARTER_WINTER]),
+        (QUARTER_SPRING, QUARTER_DICT[QUARTER_SPRING]),
+        (QUARTER_SUMMER, QUARTER_DICT[QUARTER_SUMMER]),
+        (QUARTER_FALL, QUARTER_DICT[QUARTER_FALL]),
+    )
+
+    course_code = models.CharField(max_length=10)
+    name = models.CharField(max_length=100)
+    description = models.TextField(blank=True)
+    year = models.IntegerField()
+    quarter = models.IntegerField()
+
+    def __str__(self):
+        return '%s: %s %s %d' % (self.course_code, self.name, self.get_quarter_display(), self.year)
+
 
 class CourseUserList(models.Model):
     class Meta:

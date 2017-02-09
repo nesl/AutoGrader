@@ -35,37 +35,12 @@ def create_course(request):
         return HttpResponse("Not enough privilege.")
 
     if request.method == 'POST':
-        form = CourseCreationForm(request.POST, user=request.user)
+        form = CourseCreationForm(request.POST, user=user)
         if form.is_valid():
-            # database
-            course = form.save()
-
-            # permission: create groups, add group permissions
-            instructor_group_name = str(course.id) + "_Instructor_Group"
-            student_group_name = str(course.id) + "_Student_Group"
-
-            # get_or_create will raise error here
-            # instructor_group = Group.objects.get_or_create(name=instructor_group_name)
-            # student_group = Group.objects.get_or_create(name=student_group_name)
-            instructor_group = Group.objects.create(name=instructor_group_name)
-            student_group = Group.objects.create(name=student_group_name)
-            user.groups.add(instructor_group)
-
-            #assign permissions
-            assign_perm('serapis.view_hardware_type', instructor_group)
-            assign_perm('view_course', instructor_group, course)
-            assign_perm('view_course', student_group, course)
-            assign_perm('serapis.create_course', instructor_group)
-            assign_perm('modify_course', instructor_group, course)
-            assign_perm('view_membership', instructor_group, course)
-            assign_perm('view_assignment', instructor_group, course)
-            assign_perm('view_assignment', student_group, course)
-            assign_perm('modify_assignment', instructor_group, course)
-            assign_perm('create_assignment', instructor_group, course)
-
+            form.save_and_commit()
             return HttpResponseRedirect(reverse('homepage'))
     else:
-        form = CourseCreationForm()
+        form = CourseCreationForm(user=user)
 
     template_context = {
             'myuser': request.user,
@@ -73,32 +48,6 @@ def create_course(request):
             'form': form,
     }
     return render(request, 'serapis/create_course.html', template_context)
-
-
-@login_required(login_url='/login/')
-def course(request, course_id):
-    user = User.objects.get(username=request.user)
-    user_profile = UserProfile.objects.get(user=user)
-
-    try:
-        course = Course.objects.get(id=course_id)
-    except Course.DoesNotExist:
-        return HttpResponse("Course cannot be found.")
-
-    if not user.has_perm('view_course', course):
-        return HttpResponse("Not enough privilege.")
-
-    assignment_list = Assignment.objects.filter(course_id=course_id)
-
-    if not user.has_perm('modify_course', course):
-        assignment_list = [a for a in assignment_list if a.is_released()]
-
-    template_context = {
-        'myuser': request.user,
-        'course': course,
-        'assignment_list': assignment_list,
-    }
-    return render(request, 'serapis/course.html', template_context)
 
 
 @login_required(login_url='/login/')
@@ -130,6 +79,32 @@ def modify_course(request, course_id):
     }
 
     return render(request, 'serapis/modify_course.html', template_context)
+
+
+@login_required(login_url='/login/')
+def course(request, course_id):
+    user = User.objects.get(username=request.user)
+    user_profile = UserProfile.objects.get(user=user)
+
+    try:
+        course = Course.objects.get(id=course_id)
+    except Course.DoesNotExist:
+        return HttpResponse("Course cannot be found.")
+
+    if not user.has_perm('view_course', course):
+        return HttpResponse("Not enough privilege.")
+
+    assignment_list = Assignment.objects.filter(course_id=course_id)
+
+    if not user.has_perm('modify_course', course):
+        assignment_list = [a for a in assignment_list if a.is_released()]
+
+    template_context = {
+        'myuser': request.user,
+        'course': course,
+        'assignment_list': assignment_list,
+    }
+    return render(request, 'serapis/course.html', template_context)
 
 
 @login_required(login_url='/login/')
