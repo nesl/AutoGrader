@@ -90,11 +90,8 @@ def course(request, course_id):
 
     assignment_list = Assignment.objects.filter(course_id=course_id)
 
-    if not user.has_perm('modify_course',course):
-        for assignment in assignment_list:
-            now = timezone.now()
-            if now < assignment.release_time:
-                assignment_list = Assignment.objects.filter(course_id=course_id, release_time__lte=now)
+    if not user.has_perm('modify_course', course):
+        assignment_list = [a for a in assignment_list if a.is_released()]
 
     template_context = {
         'myuser': request.user,
