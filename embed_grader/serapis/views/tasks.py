@@ -26,7 +26,7 @@ from serapis.models import *
 from serapis.forms.task_forms import *
 
 
-def _create_or_modify_assignment(request, assignment_id, assignment_task):
+def _create_or_modify_assignment_task(request, assignment_id, assignment_task):
     """
     if assignment_task is None, it is creating mode, otherwise it is updating mode
     """
@@ -69,7 +69,7 @@ def _create_or_modify_assignment(request, assignment_id, assignment_task):
 
 @login_required(login_url='/login/')
 def create_assignment_task(request, assignment_id):
-    return _create_or_modify_assignment(
+    return _create_or_modify_assignment_task(
             request=request,
             assignment_id=assignment_id,
             assignment_task=None,
@@ -83,7 +83,7 @@ def modify_assignment_task(request, task_id):
     except AssignmentTask.DoesNotExist:
         return HttpResponse("Assignment task cannot be found")
 
-    return _create_or_modify_assignment(
+    return _create_or_modify_assignment_task(
             request=request,
             assignment_id=task.assignment_id.id,
             assignment_task=task,
