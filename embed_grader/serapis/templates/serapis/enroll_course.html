@@ -1,63 +1,43 @@
 {% extends 'serapis/base_sidebar.html' %}
 {% load staticfiles %}
 {% load widget_tweaks %}
+{% load bootstrap3 %}
 
 {% block sidebar-content %}
   <!-- SIDEBAR USER TITLE -->
   <div class="profile-usertitle">
-      <div class="profile-usertitle-name">
-          Welcome!
-      </div>
-      <div class="profile-usertitle-job">
-          {{ course.name }}
-      </div>
+    <div class="profile-usertitle-name">
+      Welcome!
+    </div>
+    <div class="profile-usertitle-job">
+      {{ course.name }}
+    </div>
   </div>
   <!-- END SIDEBAR USER TITLE -->
   <!-- SIDEBAR MENU -->
   <div class="profile-usermenu">
-      <ul class="nav nav-bar">
-          <li class="active">
-              <a href="{% url 'homepage' %}">Courses</a>
-          </li>
-          <li>
-              <a href="{% url 'submissions_full_log' %}">Submissions</a>
-          </li>
-          {% if perms.serapis.add_testbed %}
-          <li>
-              <a href="{% url 'testbed-type-list' %}">Testbed Types</a>
-          </li>
-          <li>
-              <a href="{% url 'hardware-type-list' %}">Hardware Types</a>
-          </li>
-          {% endif %}
-      </ul>
+    <ul class="nav nav-bar">
+      <li class="active"><a href="{% url 'homepage' %}">Courses</a></li>
+      <li><a href="{% url 'submissions_full_log' %}">Submissions</a></li>
+      {% if perms.serapis.add_testbed %}
+        <li><a href="{% url 'testbed-type-list' %}">Testbed Types</a></li>
+        <li><a href="{% url 'hardware-type-list' %}">Hardware Types</a></li>
+      {% endif %}
+    </ul>
   </div>
   <!-- END MENU -->
 {% endblock %}
 
 {% block main-content %}
-    <div class="main-content">
-        <h1 class="page-header">Enroll a course</h1>
-
-        <form action="." method="post">
-            {% csrf_token %}
-            {% if error_message %}
-              <div class="alert alert-danger">
-                <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
-                {{error_message}}
-              </div>
-            {% endif %}
-            {% for field in form %}
-            <div class="form-group" style="width:60%">
-                <label for="{{ field.id_for_label }}" style="font-size:17px;">{{ field.label }}</label>
-                {{ field|attr:"class:form-control"|attr:"required"}}
-            </div>
-            {% endfor %}
-            <br>
-            <input class="btn btn-primary"type="submit" value="Submit" style="float:left"/>
-            <a class="btn btn-primary" href="{% url 'homepage' %}" style="margin-left:20px;">Back</a>
-        </form>
-        <br>
-    </div>
-
+  <div class="main-content">
+    <h1 class="page-header">Enroll a course</h1>
+    <form action="." method="post">
+      {% csrf_token %}
+      {% bootstrap_form form %}
+      <br/>
+      <input class="btn btn-primary" type="submit" value="Submit" style="float:left"/>
+      <a class="btn btn-primary" href="{% url 'homepage' %}" style="margin-left:20px;">Back</a>
+    </form>
+    <br>
+  </div>
 {% endblock %}

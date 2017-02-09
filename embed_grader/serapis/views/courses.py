@@ -138,28 +138,18 @@ def modify_course(request, course_id):
 @login_required(login_url='/login/')
 def enroll_course(request):
     user = User.objects.get(username=request.user)
-    error_message = ''
+
     if request.method == 'POST':
-        form = CourseEnrollmentForm(request.POST, user=request.user)
+        form = CourseEnrollmentForm(request.POST, user=user)
         if form.is_valid():
-            # database
             form.save()
-
-            # add user to belonged group
-            course = form.cleaned_data['course_select']
-            student_group_name = str(course.id) + "_Student_Group"
-            student_group = Group.objects.get(name=student_group_name)
-            user.groups.add(student_group)
-
             return HttpResponseRedirect(reverse('homepage'))
-        error_message = "You have already enrolled in this course."
     else:
-        form = CourseEnrollmentForm(user=request.user)
+        form = CourseEnrollmentForm(user=user)
 
     template_context = {
+        'myuser': user,
         'form': form,
-        'error_message': error_message,
-        'myuser': request.user
     }
 
     return render(request, 'serapis/enroll_course.html', template_context)

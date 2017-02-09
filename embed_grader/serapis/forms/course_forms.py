@@ -63,12 +63,14 @@ class CourseEnrollmentForm(Form):
     error_messages = {
         'course_already_enrolled': "You have already enrolled in this course.",
     }
-    current_year = timezone.now().year
-    course_select = forms.ModelChoiceField(queryset=Course.objects.filter(year=current_year))
-
+    
     def __init__(self, *args, **kwargs):
-        self.user = kwargs.pop('user', None)
+        self.user = kwargs.pop('user')
         super(CourseEnrollmentForm, self).__init__(*args, **kwargs)
+
+        current_year = timezone.now().year
+        self.fields['course_select'] = forms.ModelChoiceField(
+            queryset=Course.objects.filter(year=current_year))
 
     def clean(self):
         course = self.cleaned_data.get("course_select")
@@ -78,7 +80,19 @@ class CourseEnrollmentForm(Form):
         return self.cleaned_data
 
     def save(self, commit=True):
-        course=self.cleaned_data['course_select']
-        course_user_list = CourseUserList.objects.create(user_id=self.user, course_id=course)
+        course = self.cleaned_data['course_select']
+        course_user_list = CourseUserList(
+                user_id=self.user,
+                course_id=course,
+                role=CourseUserList.ROLE_STUDENT
+        )
+        
+        student_group_name = str(course.id) + "_Student_Group"
+        student_group = Group.objects.get(name=student_group_name)
+        user.groups.add(student_group)
+        
+        if commit:
+            course_user_list.save()
 
-
+        return course_user_list
+        

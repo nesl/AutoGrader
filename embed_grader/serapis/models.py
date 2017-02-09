@@ -120,16 +120,17 @@ class Course(models.Model):
             ('create_assignment', 'Create assignment'),
             ('view_assignment', 'View assignment'),
             ('modify_assignment', 'Modify assignment'),
-
         )
 
-ROLE_SUPER_USER = 0
-ROLE_INSTRUCTOR = 10
-ROLE_TA = 11
-ROLE_GRADER = 12
-ROLE_STUDENT = 20
-
 class CourseUserList(models.Model):
+    class Meta:
+        unique_together = ('course_id', 'user_id')
+
+    ROLE_SUPER_USER = 0
+    ROLE_INSTRUCTOR = 10
+    ROLE_TA = 11
+    ROLE_GRADER = 12
+    ROLE_STUDENT = 20
     USER_ROLES = (
             (ROLE_SUPER_USER, 'Super user'),
             (ROLE_INSTRUCTOR, 'Instructor'),
@@ -140,8 +141,7 @@ class CourseUserList(models.Model):
 
     course_id = models.ForeignKey(Course, on_delete=models.CASCADE)
     user_id = models.ForeignKey(User, on_delete=models.CASCADE)
-    #TODO: try not give a default value especially it's permission related
-    role = models.IntegerField(choices=USER_ROLES, default=ROLE_STUDENT)
+    role = models.IntegerField(choices=USER_ROLES)
 
     def __str__(self):
         return '%s, %s' % (self.course_id.name, self.user_id)
