@@ -156,20 +156,44 @@ class AssignmentSubmissionForm(Form):
     }
 
     def __init__(self, *args, **kwargs):
+        """
+        Constructor:
+          - user: the user who submits the codes
+          - assignment: which assignment the user submit the codes to
+        """
         user = kwargs.pop('user')
         assignment = kwargs.pop('assignment')
         super(AssignmentSubmissionForm, self).__init__(*args, **kwargs)
 
+        execution_scope_choice = [
+                (AssignmentTask.MODE_DEBUG, 'Debug'),
+                (AssignmentTask.MODE_PUBLIC, 'Debug+Public'),
+                (AssignmentTask.MODE_FEEDBACK, 'Debug+Public+Feedback'),
+        ]
+        if user.has_perm('modify_assignment', assignment.course_id):  # an instructor
+            execution_scope_choice.append(
+                    (AssignmentTask.MODE_HIDDEN, 'Debug+Public+Feedback+Hidden'))
+        self.fields['execution_scope'] = forms.ChoiceField(
+                required=True,
+                widget=forms.Select,
+                choices=execution_scope_choice,
+                initial=AssignmentTask.MODE_DEBUG,
+        )
+
         schema_list = SubmissionFileSchema.objects.filter(assignment_id=assignment).order_by('id')
+        file_fields = []
         for schema in schema_list:
-            self.fields[schema.field] = forms.FileField()
+            field_name = 'file_' + schema.field
+            self.fields[field_name] = forms.FileField()
+            file_fields.append(field_name)
 
         # set up variables to be used
         self.user = user
         self.assignment = assignment
+        self.file_fields = file_fields
 
     def clean(self):
-        if not self.user.has_perm('modify_assignment', course):  # a student
+        if not self.user.has_perm('modify_assignment', self.assignment.course_id):  # a student
             # a student cannot submit after passing the deadline
             if self.assignment.is_deadline_passed():
                 raise forms.ValidationError(self.error_messages['pass_deadline'],
@@ -182,37 +206,39 @@ class AssignmentSubmissionForm(Form):
 
         return self.cleaned_data
 
-    def save_and_commit(self, student):
+    def save_and_commit(self):
         """
         Return:
           - (submission, submission_files)
         """
         submission = Submission(
-                student_id=student,
+                student_id=self.user,
                 assignment_id=self.assignment,
                 submission_time=timezone.now(),
                 grading_result=0.,
                 status=Submission.STAT_GRADING,
+                task_scope=self.cleaned_data['execution_scope'],
         )
         submission.save()
 
         submission_files = []
-        for field in self.fields:
+        for field_name in self.file_fields:
+            schema_name = field_name[5:]  # remove prefix 'file_'
             schema = SubmissionFileSchema.objects.get(
                     assignment_id=self.assignment,
-                    field=field,
+                    field=schema_name,
             )
             submission_file = SubmissionFile(
                     submission_id=submission,
                     file_schema_id=schema,
-                    file=self.cleaned_data[field],
+                    file=self.cleaned_data[field_name],
             )
             submission_file.save()
             submission_files.append(submission_file)
 
         # dispatch grading tasks
-        #TODO: dispatched tasks should be based on the execution scope
-        (assignment_tasks, _) = self.assignment.retrieve_assignment_tasks_and_score_sum(True)
+        assignment_tasks = self.assignment.retrieve_assignment_tasks_by_accumulative_scope(
+                self.cleaned_data['execution_scope'])
         now = timezone.now()
         for assignment_task in assignment_tasks:
             grading_task = TaskGradingStatus.objects.create(
@@ -225,7 +251,7 @@ class AssignmentSubmissionForm(Form):
 
             # create file records for each task
             schema_list = TaskGradingStatusFileSchema.objects.filter(
-                    assignment_id=assignment)
+                    assignment_id=self.assignment)
             for sch in schema_list:
                 TaskGradingStatusFile.objects.create(
                     task_grading_status_id=grading_task,

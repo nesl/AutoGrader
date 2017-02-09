@@ -172,12 +172,22 @@ class Assignment(models.Model):
         assignment_task_list = AssignmentTask.objects.filter(assignment_id=self).order_by('id')
         if not include_hidden:
             assignment_task_list = [t for t in assignment_task_list
-                    if t.mode != AssignmentTask.ASSIGNMENT_TASK_HIDDEN]
+                    if t.mode != AssignmentTask.MODE_HIDDEN]
 
         sum_score = 0.
         for assignment_task in assignment_task_list:
             sum_score += assignment_task.points
         return (assignment_task_list, sum_score)
+    
+    def retrieve_assignment_tasks_by_accumulative_scope(self, most_powerful_mode):
+        """
+        Paremeter:
+          - most_powerful_mode: int, should be one of AssignmentTask.MODE_*. 
+        Return:
+          assignment_task_list
+        """
+        return AssignmentTask.objects.filter(
+                assignment_id=self, mode__lte=most_powerful_mode).order_by('id')
 
     def get_assignment_task_total_scores(self):
         """
@@ -189,7 +199,7 @@ class Assignment(models.Model):
         total_score_without_hidden = 0.
         total_score_with_hidden = 0.
         for assignment_task in assignment_task_list:
-            if assignment_task.mode != AssignmentTask.ASSIGNMENT_TASK_HIDDEN:
+            if assignment_task.mode != AssignmentTask.MODE_HIDDEN:
                 total_score_without_hidden += assignment_task.points
             total_score_with_hidden += assignment_task.points
 
@@ -223,10 +233,12 @@ class Assignment(models.Model):
 
 
 class AssignmentTask(models.Model):
-    MODE_PUBLIC = 0
-    MODE_FEEDBACK = 1
-    MODE_HIDDEN = 2
+    MODE_DEBUG = 0
+    MODE_PUBLIC = 1
+    MODE_FEEDBACK = 2
+    MODE_HIDDEN = 3
     EVAL_MODES = (
+        (MODE_DEBUG, 'Debug'),
         (MODE_PUBLIC, 'Public'),
         (MODE_FEEDBACK, 'Feedback'),
         (MODE_HIDDEN, 'Hidden'),
@@ -295,7 +307,8 @@ class Submission(models.Model):
     assignment_id = models.ForeignKey(Assignment, on_delete=models.CASCADE)
     submission_time = models.DateTimeField()
     grading_result = models.FloatField()
-    status = models.IntegerField(choices = SUBMISSION_STATES, default=STAT_RECEIVED)
+    status = models.IntegerField(choices=SUBMISSION_STATES, default=STAT_RECEIVED)
+    task_scope = models.IntegerField()
 
     def __str__(self):
         return self.student_id.first_name + " " + self.student_id.last_name + ", " + str(self.id)
