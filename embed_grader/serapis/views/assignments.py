@@ -24,6 +24,7 @@ from guardian.shortcuts import assign_perm
 
 from serapis.models import *
 from serapis.utils import grading
+from serapis.utils import user_info_helper
 from serapis.forms.assignment_forms import *
 
 
@@ -101,8 +102,7 @@ def assignment(request, assignment_id):
     gradings = []
     for submission in submission_short_list:
         student = User.objects.get(username = submission.student_id)
-        #TODO: is there a function for this?
-        student_name = student.first_name + " " + student.last_name
+        student_name = user_info_helper.get_first_last_name(student)
         student_list.append(student_name)
 
         total_submission_points = 0.
