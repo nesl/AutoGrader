@@ -26,59 +26,49 @@ from serapis.models import *
 from serapis.forms.course_forms import *
 
 
-@login_required(login_url='/login/')
-def create_course(request):
+def _create_or_modify_course(request, course):
+    """
+    if course is None, it is creating mode, otherwise it is in updating mode
+    """
     user = User.objects.get(username=request.user)
     user_profile = UserProfile.objects.get(user=user)
 
     if not user.has_perm('serapis.create_course'):
         return HttpResponse("Not enough privilege.")
-
+    
     if request.method == 'POST':
-        form = CourseCreationForm(request.POST, user=user)
+        form = CourseCreationForm(request.POST, instance=course, user=user)
         if form.is_valid():
-            form.save_and_commit()
-            return HttpResponseRedirect(reverse('homepage'))
+            course = form.save_and_commit()
+            return HttpResponseRedirect(reverse('course', kwargs={'course_id': course.id}))
     else:
-        form = CourseCreationForm(user=user)
+        form = CourseCreationForm(instance=course, user=user)
+
+    mode = 'modify' if course else 'create'
 
     template_context = {
             'myuser': request.user,
             'user_profile': user_profile,
+            'mode': mode,
+            'course': course,
             'form': form,
     }
-    return render(request, 'serapis/create_course.html', template_context)
+    return render(request, 'serapis/create_or_modify_course.html', template_context)
+
+
+@login_required(login_url='/login/')
+def create_course(request):
+    return _create_or_modify_course(request, None)
 
 
 @login_required(login_url='/login/')
 def modify_course(request, course_id):
-    user = User.objects.get(username=request.user)
-    user_profile = UserProfile.objects.get(user=user)
-
     try:
         course = Course.objects.get(id=course_id)
     except Course.DoesNotExist:
         return HttpResponse("Course cannot be found.")
 
-    if not user.has_perm('modify_course', course):
-        return HttpResponse("Not enough privilege")
-
-    if request.method == 'POST':
-        form = CourseCompleteForm(request.POST, instance=course)
-        if form.is_valid():
-            course = form.save()
-            return HttpResponseRedirect('/course/'+course_id)
-    else:
-        form = CourseCompleteForm(instance=course)
-
-    template_context = {
-        'myuser': request.user,
-        'user_profile': user_profile,
-        'course':course,
-        'form': form
-    }
-
-    return render(request, 'serapis/modify_course.html', template_context)
+    return _create_or_modify_course(request, course)
 
 
 @login_required(login_url='/login/')

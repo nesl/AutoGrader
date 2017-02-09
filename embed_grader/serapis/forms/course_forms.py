@@ -27,6 +27,8 @@ class CourseCreationForm(ModelForm):
         self.user = kwargs.pop('user')
         super(CourseCreationForm, self).__init__(*args, **kwargs)
         
+        course = kwargs.get('instance')  # None if in creating mode, otherwise updating
+
         now = timezone.now()
         cur_year = now.year 
         cur_month = now.month
@@ -35,12 +37,24 @@ class CourseCreationForm(ModelForm):
         year_quarter_choices_idx = [cur_year_quarter + offset for offset in range(5)]
         year_quarter_choices = [(yq, '%d %s' % (yq // 4, Course.QUARTER_DICT[yq % 4]))
                 for yq in year_quarter_choices_idx]
+
+        if not course:
+            initial_year_quarter_value = year_quarter_choices_idx[0]
+        else:
+            initial_year_quarter_value = course.year * 4 + course.quarter
+            if initial_year_quarter_value not in year_quarter_choices_idx:
+                initial_year_quarter_value = year_quarter_choices_idx[0]
+
         self.fields['year_quarter'] = forms.ChoiceField(
                 required=True,
                 widget=forms.Select,
                 choices=year_quarter_choices,
+                initial=initial_year_quarter_value,
         )
         self.order_fields(['course_code', 'name', 'year_quarter', 'description'])
+
+        # set up variables to be used
+        self.course = course
 
     def clean(self):
         super(CourseCreationForm, self).clean()
@@ -53,52 +67,49 @@ class CourseCreationForm(ModelForm):
 
     def save_and_commit(self):
         year, quarter = divmod(int(self.cleaned_data['year_quarter']), 4)
-        course = Course.objects.create(
-                course_code=self.cleaned_data['course_code'],
-                name=self.cleaned_data['name'],
-                description=self.cleaned_data['description'],
-                year=year,
-                quarter=quarter,
-        )
-        course_user_list = CourseUserList.objects.create(
-                user_id=self.user, course_id=course, role=CourseUserList.ROLE_INSTRUCTOR)
 
-        # permission: create groups, add group permissions
-        #TODO: don't hardcode strings here
-        instructor_group_name = str(course.id) + "_Instructor_Group"
-        student_group_name = str(course.id) + "_Student_Group"
+        if not self.course:  # creating mode
+            course = Course.objects.create(
+                    course_code=self.cleaned_data['course_code'],
+                    name=self.cleaned_data['name'],
+                    description=self.cleaned_data['description'],
+                    year=year,
+                    quarter=quarter,
+            )
+            course_user_list = CourseUserList.objects.create(
+                    user_id=self.user, course_id=course, role=CourseUserList.ROLE_INSTRUCTOR)
 
-        instructor_group = Group.objects.create(name=instructor_group_name)
-        student_group = Group.objects.create(name=student_group_name)
-        
-        self.user.groups.add(instructor_group)
+            # permission: create groups, add group permissions
+            #TODO: don't hardcode strings here
+            instructor_group_name = str(course.id) + "_Instructor_Group"
+            student_group_name = str(course.id) + "_Student_Group"
 
-        #assign permissions
-        assign_perm('serapis.view_hardware_type', instructor_group)
-        assign_perm('view_course', instructor_group, course)
-        assign_perm('view_course', student_group, course)
-        assign_perm('serapis.create_course', instructor_group)
-        assign_perm('modify_course', instructor_group, course)
-        assign_perm('view_membership', instructor_group, course)
-        assign_perm('view_assignment', instructor_group, course)
-        assign_perm('view_assignment', student_group, course)
-        assign_perm('modify_assignment', instructor_group, course)
-        assign_perm('create_assignment', instructor_group, course)
+            instructor_group = Group.objects.create(name=instructor_group_name)
+            student_group = Group.objects.create(name=student_group_name)
+            
+            self.user.groups.add(instructor_group)
+
+            #assign permissions
+            assign_perm('serapis.view_hardware_type', instructor_group)
+            assign_perm('view_course', instructor_group, course)
+            assign_perm('view_course', student_group, course)
+            assign_perm('serapis.create_course', instructor_group)
+            assign_perm('modify_course', instructor_group, course)
+            assign_perm('view_membership', instructor_group, course)
+            assign_perm('view_assignment', instructor_group, course)
+            assign_perm('view_assignment', student_group, course)
+            assign_perm('modify_assignment', instructor_group, course)
+            assign_perm('create_assignment', instructor_group, course)
+        else:  # updating mode
+            course = self.course
+            course.course_code = self.cleaned_data['course_code']
+            course.name = self.cleaned_data['name']
+            course.description = self.cleaned_data['description']
+            course.year = year
+            course.quarter = quarter
+            course.save()
 
         return course
-
-
-class CourseCompleteForm(ModelForm):
-    class Meta:
-        model = Course
-        fields = ['course_code', 'name', 'quarter', 'year', 'description']
-        YEAR_CHOICES = [(timezone.now().year + i, timezone.now().year + i) for i in range(3)]
-        QUARTER_CHOICES = ((1, 'Fall'), (2, 'Winter'), (3, 'Spring'), (4, 'Summer'))
-        widgets = {
-                'description': forms.Textarea(attrs={'cols': 40, 'rows': 5}),
-                'year': forms.Select(choices=YEAR_CHOICES),
-                'quarter': forms.Select(choices=QUARTER_CHOICES)
-        }
 
 
 class CourseEnrollmentForm(Form):

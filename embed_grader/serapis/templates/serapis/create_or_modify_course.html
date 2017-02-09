@@ -1,0 +1,50 @@
+{% extends 'serapis/base_sidebar.html' %}
+{% load staticfiles %}
+{% load widget_tweaks %}
+{% load bootstrap3 %}
+
+{% block sidebar-content %}
+  <!-- SIDEBAR USER TITLE -->
+  <div class="profile-usertitle">
+    <div class="profile-usertitle-name">
+      {% if mode == 'create' %}Welcome!{% else %}{{ course.course_code }}{% endif %}
+    </div>
+    <div class="profile-usertitle-job">
+      {% if mode == 'update' %}{{ course.name }}{% endif %}
+    </div>
+  </div>
+  <!-- END SIDEBAR USER TITLE -->
+  <!-- SIDEBAR MENU -->
+  <div class="profile-usermenu">
+    <ul class="nav nav-bar">
+      <li class="active"><a href="{% url 'homepage' %}">Courses</a></li>
+      <li><a href="{% url 'submissions_full_log' %}">Submissions</a></li>
+      <li><a href="{% url 'testbed-type-list' %}">Testbed Types</a></li>
+      <li><a href="{% url 'hardware-type-list' %}">Hardware Types</a></li>
+    </ul>
+  </div>
+  <!-- END MENU -->
+{% endblock %}
+
+{% block main-content %}
+  <div class="main-content">
+    <div class="top-buffer">
+      <ol class="breadcrumb">
+        <li><a href="{% url 'homepage' %}">Courses</a></li>
+        <li class='active'>Create course</li>
+      </ol>
+    </div>
+
+    <h2 class="form-signin-heading">Create course</h2>
+    <form class="form-register" role="form" method="post" action=".">
+      {% csrf_token %}
+      {% bootstrap_form form %}
+      <input class="btn btn-primary" type="submit" value="Submit" style="float:left"/>
+      {% if mode == 'create' %}
+        <a href="{% url 'homepage' %}" class="btn btn-danger" style="float:right">Cancel</a>
+      {% else %}
+        <a href="{% url 'course' course.id %}" class="btn btn-danger" style="float:right">Cancel</a>
+      {% endif %}
+    </form>
+  </div>
+{% endblock %}
