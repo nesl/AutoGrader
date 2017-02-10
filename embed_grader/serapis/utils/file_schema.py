@@ -36,7 +36,7 @@ def _get_dict_schema_name_to_schema_files(SchemaClass, assignment, schema_file_l
 
     schema_id_2_schema_file = {}
     for schema_file in schema_file_list:
-        schema_id[schema_file.file_schema_id.id] = schema_file
+        schema_id_2_schema_file[schema_file.file_schema_id.id] = schema_file
 
     dict_schema_file = {}
     for schema in schema_list:
@@ -146,7 +146,7 @@ def save_dict_schema_name_to_assignment_task_files(
       - enforce_check: True if want to check the existances of all files
     """
     schema_name_2_schema_files = get_dict_schema_name_to_assignment_task_schema_files(
-            assignment_task, enforce_check)
+            assignment_task, False)  # the schema file may haven't established
     _save_dict_schema_name_to_files(
             schema_name_2_schema_files=schema_name_2_schema_files,
             schema_name_2_files=dict_sch_name_2_assignment_task_files,
@@ -186,7 +186,7 @@ def save_dict_schema_name_to_task_grading_status_files(
       - enforce_check: True if want to check the existances of all files
     """
     schema_name_2_schema_files = get_dict_schema_name_to_task_grading_status_schema_files(
-            task_grading_status, enforce_check)
+            task_grading_status, False)  # the schema file may haven't established
     _save_dict_schema_name_to_files(
             schema_name_2_schema_files=schema_name_2_schema_files,
             schema_name_2_files=dict_sch_name_2_task_grading_status_files,
