@@ -24,6 +24,7 @@ def homepage(request):
 
     course_user_list = CourseUserList.objects.filter(user_id=user)
     course_list = [cu.course_id for cu in course_user_list]
+
     template_context = {
             'user_profile': user_profile,
             'myuser': request.user,

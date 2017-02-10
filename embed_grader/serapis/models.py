@@ -119,7 +119,7 @@ class Course(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     year = models.IntegerField()
-    quarter = models.IntegerField()
+    quarter = models.IntegerField(choices=QUARTER_TYPES)
 
     def __str__(self):
         return '%s: %s %s %d' % (self.course_code, self.name, self.get_quarter_display(), self.year)
@@ -152,7 +152,7 @@ class CourseUserList(models.Model):
 
 class Assignment(models.Model):
     # basic information
-    course_id = models.ForeignKey(Course, on_delete = models.CASCADE)
+    course_id = models.ForeignKey(Course, on_delete=models.CASCADE)
     name = models.CharField(max_length=50)
     release_time = models.DateTimeField()
     deadline = models.DateTimeField()
