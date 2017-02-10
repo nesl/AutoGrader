@@ -16,6 +16,7 @@ from datetimewidget.widgets import DateTimeWidget, DateWidget, TimeWidget
 
 from serapis.models import *
 from serapis.utils import grading
+from serapis.utils import file_schema
 from serapis.utils import user_info_helper
 
 from django.utils import timezone
@@ -50,25 +51,26 @@ class AssignmentForm(ModelForm):
         self.course = kwargs.pop('course')
         super(AssignmentForm, self).__init__(*args, **kwargs)
 
+        assignment = kwargs.get('instance')  # None if in creating mode, otherwise updating mode
+
         # add three more input boxes for schema
-        self.fields['assignment_task_file_schema'] = forms.CharField(
-                required=False,
-                max_length=500,
-                label='Input file schema',
-                help_text="Use ; to separate multiple schema names.",
-        )
-        self.fields['submission_file_schema'] = forms.CharField(
-                required=False,
-                max_length=500,
-                label='Submission file schema',
-                help_text="Use ; to separate multiple schema names.",
-        )
-        self.fields['task_grading_status_file_schema'] = forms.CharField(
-                required=False,
-                max_length=500,
-                label='Output file schema',
-                help_text="Use ; to separate multiple schema names.",
-        )
+        schema_file_info = [
+                ('assignment_task_file_schema', 'Input file schema', 
+                    file_schema.get_assignment_task_file_schema_names),
+                ('submission_file_schema', 'Submission file schema',
+                    file_schema.get_submission_file_schema_names),
+                ('task_grading_status_file_schema', 'Output file schema',
+                    file_schema.get_task_grading_status_file_schema_names),
+        ]
+        for form_field_name, label_text, retrieve_func in schema_file_info:
+            initial_val = '; '.join(retrieve_func(assignment)) if assignment else ''
+            self.fields[form_field_name] = forms.CharField(
+                    required=False,
+                    max_length=500,
+                    label=label_text,
+                    help_text="Use ; to separate multiple schema names.",
+                    initial=initial_val,
+            )
 
     def clean(self):
         # the order release time and deadline should be in order
