@@ -182,10 +182,9 @@ class AssignmentSubmissionForm(Form):
                 initial=AssignmentTask.MODE_DEBUG,
         )
 
-        schema_list = SubmissionFileSchema.objects.filter(assignment_id=assignment).order_by('id')
         file_fields = []
-        for schema in schema_list:
-            field_name = 'file_' + schema.field
+        for schema_name in file_schema.get_submission_file_schema_names(assignment):
+            field_name = 'file_' + schema_name
             self.fields[field_name] = forms.FileField()
             file_fields.append(field_name)
 
@@ -211,7 +210,7 @@ class AssignmentSubmissionForm(Form):
     def save_and_commit(self):
         """
         Return:
-          - (submission, submission_files)
+          - submission
         """
         submission = Submission(
                 student_id=self.user,
@@ -223,20 +222,11 @@ class AssignmentSubmissionForm(Form):
         )
         submission.save()
 
-        submission_files = []
+        dict_schema_name_2_files = {}
         for field_name in self.file_fields:
             schema_name = field_name[5:]  # remove prefix 'file_'
-            schema = SubmissionFileSchema.objects.get(
-                    assignment_id=self.assignment,
-                    field=schema_name,
-            )
-            submission_file = SubmissionFile(
-                    submission_id=submission,
-                    file_schema_id=schema,
-                    file=self.cleaned_data[field_name],
-            )
-            submission_file.save()
-            submission_files.append(submission_file)
+            dict_schema_name_2_files[schema_name] = self.cleaned_data[field_name]
+        file_schema.save_dict_schema_name_to_submission_files(submission, dict_schema_name_2_files)
 
         # dispatch grading tasks
         assignment_tasks = self.assignment.retrieve_assignment_tasks_by_accumulative_scope(
@@ -251,14 +241,6 @@ class AssignmentSubmissionForm(Form):
                 status_update_time=now,
             )
 
-            # create file records for each task
-            schema_list = TaskGradingStatusFileSchema.objects.filter(
-                    assignment_id=self.assignment)
-            for sch in schema_list:
-                TaskGradingStatusFile.objects.create(
-                    task_grading_status_id=grading_task,
-                    file_schema_id=sch,
-                    file=None,
-                )
+            file_schema.create_empty_task_grading_status_schema_files(grading_task)
 
-        return (submission, submission_files)
+        return submission
