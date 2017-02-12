@@ -153,27 +153,26 @@ class RenderSubmissionTableRow:
                 TaskGradingStatus.STAT_SKIPPED: 'S',
         }
 
-        general_style = 'border-radius: 5px; width: 20px; text-align: center; font-weight: bold; color: white;'
-        status_2_style = {
-                TaskGradingStatus.STAT_PENDING: 'background:saddlebrown;' + general_style,
-                TaskGradingStatus.STAT_EXECUTING: 'background: steelblue;' + general_style,
-                TaskGradingStatus.STAT_OUTPUT_TO_BE_CHECKED: 'background: lightsteelblue;' + general_style,
-                TaskGradingStatus.STAT_FINISH: 'background: darkgreen;' + general_style,
-                TaskGradingStatus.STAT_INTERNAL_ERROR: 'background: darkred;' + general_style,
-                TaskGradingStatus.STAT_SKIPPED: 'background: lightgrey;' + general_style,
+        status_2_background_color = {
+                TaskGradingStatus.STAT_PENDING: 'saddlebrown',
+                TaskGradingStatus.STAT_EXECUTING: 'steelblue',
+                TaskGradingStatus.STAT_OUTPUT_TO_BE_CHECKED: 'lightsteelblue',
+                TaskGradingStatus.STAT_FINISH: 'darkgreen',
+                TaskGradingStatus.STAT_INTERNAL_ERROR: 'darkred',
+                TaskGradingStatus.STAT_SKIPPED: 'lightgrey',
         }
         htmls = []
         for assignment_task in all_assignment_tasks:
             atid = assignment_task.id
             if atid not in atid_2_task_grading_status:
-                htmls.append(self._render_task_status(' ', 'color:#aaa', None))
+                htmls.append(self._render_task_status('&nbsp;', 'lightgrey', None))
             else:
                 task = atid_2_task_grading_status[atid]
                 status = task.grading_status
                 task_id_for_url = task.id if task.can_detail_be_viewed_by_user(self.user) else None
                 htmls.append(self._render_task_status(status_2_text[status],
-                    status_2_style[status], task_id_for_url))
-        return ''.join(htmls)
+                    status_2_background_color[status], task_id_for_url))
+        return '&nbsp;'.join(htmls)
 
     def _get_content_score(self):
         (_, student_score, total_score) = (
@@ -193,11 +192,13 @@ class RenderSubmissionTableRow:
     def _get_content_author_name(self):
         return user_info_helper.get_first_last_name(self.submission.student_id)
 
-    def _render_task_status(self, text, style, task_id_for_url):
+    def _render_task_status(self, text, background_color, task_id_for_url):
         if not task_id_for_url:
             a_tag_prefix, a_tag_postfix = '', ''
         else:
             a_tag_prefix = '<a href="%s">' % reverse(
                     'task-grading-detail', kwargs={'task_grading_id': task_id_for_url})
             a_tag_postfix = '</a>'
-        return '%s<span style="%s">[%s]</span>%s' % (a_tag_prefix, style, text, a_tag_postfix)
+        return (('%s<span style="background:%s; border-radius:5px; width:20px; text-align:center;'
+                + 'font-weight:bold; color:white; display:inline-block;">%s</span>%s') % (
+                    a_tag_prefix, background_color, text, a_tag_postfix))

@@ -42,7 +42,7 @@ def _create_or_modify_assignment_task(request, assignment_id, assignment_task):
     course = assignment.course_id
 
     if not user.has_perm('modify_assignment', course):
-    	return HttpResponse("Not enough privilege")
+        return HttpResponse("Not enough privilege")
     
     mode = 'update' if assignment_task else 'create'
 
