@@ -137,12 +137,16 @@
 
     <hr/>
     <h3>Real-time Score Distribution</h3>
-    <p>Contributors: {{contributors}} (total: {{total_student_num}}) </p>
-    <p>Highest Score: {% show_score max_score total_points %}</p>
-    <p>1st Quantile: {% show_score first_quantile total_points %}</p>
-    <p>Mean: {% show_score mean_score total_points %}</p>
-    <p>Median: {% show_score median_score total_points %}</p>
-    <p>3rd Quantile: {% show_score third_quantile total_points %}</p>
+    {% if not score_statistics %}
+      <p>No students have tried this assignment so far.</p>
+    {% else %}
+      <p>{{num_contributed_students}} student(s) have tried this assignment so far</p>
+      <p>Mean: {{score_statistics.mean_score}}<br/>
+      Highest Score: {{score_statistics.max_score}}<br/>
+      1st Quantile: {{score_statistics.first_quantile}}<br/>
+      Median: {{score_statistics.median_score}}<br/>
+      3rd Quantile: {{score_statistics.third_quantile}}</p>
+    {% endif %}
 
     <hr/>
     <br/>

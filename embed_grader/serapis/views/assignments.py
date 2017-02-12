@@ -102,7 +102,9 @@ def assignment(request, assignment_id):
         submission_list = Submission.objects.filter(
                 student_id=user, assignment_id=assignment).order_by('-id')[:10]
 
-    enrollment, contributors, max_score, first_quantile, mean_score, median_score, third_quantile = score_distribution.get_class_statistics(assignment)
+    is_deadline_passed = assignment.is_deadline_passed()
+    enrollment, contributors, score_statistics = score_distribution.get_class_statistics(
+            assignment=assignment, include_hidden=is_deadline_passed)
 
     template_context = {
             'myuser': request.user,
@@ -118,12 +120,8 @@ def assignment(request, assignment_id):
             'now': now,
             'time_remaining': time_remaining,
             'total_student_num': enrollment,
-            'contributors': contributors,
-            'max_score': max_score,
-            'first_quantile': first_quantile,
-            'mean_score': mean_score,
-            'median_score': median_score,
-            'third_quantile':third_quantile
+            'num_contributed_students': contributors,
+            'score_statistics': score_statistics,
     }
 
     return render(request, 'serapis/assignment.html', template_context)
