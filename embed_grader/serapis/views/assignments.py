@@ -25,6 +25,7 @@ from guardian.shortcuts import assign_perm
 from serapis.models import *
 from serapis.utils import grading
 from serapis.utils import user_info_helper
+from serapis.utils import score_distribution
 from serapis.forms.assignment_forms import *
 
 
@@ -101,6 +102,8 @@ def assignment(request, assignment_id):
         submission_list = Submission.objects.filter(
                 student_id=user, assignment_id=assignment).order_by('-id')[:10]
 
+    enrollment, contributors, max_score, mean_score, median_score = score_distribution.get_class_statistics(assignment)
+
     template_context = {
             'myuser': request.user,
             'user_profile': user_profile,
@@ -114,6 +117,11 @@ def assignment(request, assignment_id):
             'total_points': total_points,
             'now': now,
             'time_remaining': time_remaining,
+            'total_student_num': enrollment,
+            'contributors': contributors,
+            'max_score': max_score,
+            'mean_score': mean_score,
+            'median_score': median_score
     }
 
     return render(request, 'serapis/assignment.html', template_context)

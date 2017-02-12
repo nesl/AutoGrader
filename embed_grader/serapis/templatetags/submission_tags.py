@@ -30,6 +30,13 @@ def show_score(achieved_score, total_score):
 	return format_html('<span class="badge" style="background:%s; width:100px;">%s / %s</span>' % (
 			background_color, achieved_score, total_score))
 
+def show_status(status):
+    try:
+        status = str(status)
+    except:
+        pass
+    
+
 
 class SubmissionTableSchemaNode(template.Node):
     SCHEMA_ASSIGNMENT = 'assignment'
@@ -52,6 +59,9 @@ class SubmissionTableSchemaNode(template.Node):
         self.schema_list = schema_list
         self.width_attr_list = width_attr_list
         self.var_name = var_name
+        print(self.schema_list)
+        print(self.width_attr_list)
+        print(self.var_name)
 
     def render(self, context):
         context[self.var_name] = self.schema_list

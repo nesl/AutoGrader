@@ -137,11 +137,11 @@ def membership(request, course_id):
     for cu in cu_list:
         member = UserProfile.objects.get(user=cu.user_id)
 
-        if cu.role == ROLE_INSTRUCTOR:
+        if cu.role == CourseUserList.ROLE_INSTRUCTOR:
             instructors.append(member)
-        elif cu.role == ROLE_TA:
+        elif cu.role == CourseUserList.ROLE_TA:
             assistants.append(member)
-        elif cu.role == ROLE_STUDENT:
+        elif cu.role == CourseUserList.ROLE_STUDENT:
             students.append(member)
         user_enrolled.append(member)
 

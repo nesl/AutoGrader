@@ -116,3 +116,12 @@ def get_last_fully_graded_submission(author, assignment):
         if s.is_fully_graded(include_hidden=True):
             return s
     return None
+
+# def get_submission_with_hightest_score(author, assignment):
+#     """
+#     Return:
+#       a submission object which has the highest score
+
+#     """
+
+#     submission_list = Submission.objects.filter(student_id=author, assignment_id=assignment)

@@ -70,7 +70,10 @@ class Command(BaseCommand):
         try:
             # upload assignment specific files (program DUTs)
             submission = task.submission_id
-            submission_files = file_schema.get_submission_files(submission)
+            ############################################################
+            # BUG: file_schema has no attribute 'get_submission_files'
+            ############################################################
+            submission_files = file_schema.get_submission_files(submission)  
             url = 'http://' + testbed.ip_address + '/dut/program/'
             files = {}
             for field in submission_files:

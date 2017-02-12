@@ -11,6 +11,7 @@ from ckeditor_uploader.fields import RichTextUploadingField
 
 from django.core.validators import MinValueValidator
 
+
 class UserProfile(models.Model):
     #Connect to built-in User model, which already has firstname, lastname, email and password
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -233,6 +234,28 @@ class Assignment(models.Model):
 
     def is_deadline_passed(self):
         return timezone.now() >= self.deadline
+
+    # def get_class_statistics(self):
+    #     course_user_list = CourseUserList.objects.filter(course_id=self.course_id)
+
+    #     # list of all students enrolled in this class
+    #     student_list=[]
+    #     for cu in course_user_list:
+    #         if cu.role == CourseUserList.ROLE_STUDENT:
+    #             student_list.append(cu.user_id)
+
+    #     contributor_count = 0
+    #     last_submission_score_list=[]
+    #     for student in student_list:
+    #         latest_submission = grading.get_last_fully_graded_submission(student, self)
+    #         if latest_submission != None:
+    #             _,sum_student_score, _ = sum_total_scoreretrieve_task_grading_status_and_score_sum(latest_submission, False)
+    #             last_submission_score_list.append(sum_student_score)
+
+    #     print(last_submission_score_list)
+
+    #     return len(student_list)
+
 
 
 class AssignmentTask(models.Model):
