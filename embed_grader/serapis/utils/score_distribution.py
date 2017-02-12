@@ -25,11 +25,15 @@ def get_class_statistics(assignment):
 
     if contributors > 0:
     	max_score = max(last_submission_score_list)
+    	first_quantile = np.percentile(last_submission_score_list, 25)
     	mean_score = np.mean(last_submission_score_list)
     	median = np.median(last_submission_score_list)
+    	third_quantile = np.percentile(last_submission_score_list, 75)
     else:
     	max_score = 0.0
+    	first_quantile = 0.0
     	mean_score = 0.0
     	median = 0.0
+    	third_quantile = 0.0
 
-    return enrollment, contributors, max_score, mean_score, median
+    return enrollment, contributors, max_score, first_quantile, mean_score, median, third_quantile

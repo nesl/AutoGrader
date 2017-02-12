@@ -102,7 +102,7 @@ def assignment(request, assignment_id):
         submission_list = Submission.objects.filter(
                 student_id=user, assignment_id=assignment).order_by('-id')[:10]
 
-    enrollment, contributors, max_score, mean_score, median_score = score_distribution.get_class_statistics(assignment)
+    enrollment, contributors, max_score, first_quantile, mean_score, median_score, third_quantile = score_distribution.get_class_statistics(assignment)
 
     template_context = {
             'myuser': request.user,
@@ -120,8 +120,10 @@ def assignment(request, assignment_id):
             'total_student_num': enrollment,
             'contributors': contributors,
             'max_score': max_score,
+            'first_quantile': first_quantile,
             'mean_score': mean_score,
-            'median_score': median_score
+            'median_score': median_score,
+            'third_quantile':third_quantile
     }
 
     return render(request, 'serapis/assignment.html', template_context)
