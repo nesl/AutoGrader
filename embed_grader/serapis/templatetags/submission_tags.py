@@ -59,9 +59,6 @@ class SubmissionTableSchemaNode(template.Node):
         self.schema_list = schema_list
         self.width_attr_list = width_attr_list
         self.var_name = var_name
-        print(self.schema_list)
-        print(self.width_attr_list)
-        print(self.var_name)
 
     def render(self, context):
         context[self.var_name] = self.schema_list
@@ -155,13 +152,15 @@ class RenderSubmissionTableRow:
                 TaskGradingStatus.STAT_INTERNAL_ERROR: '!',
                 TaskGradingStatus.STAT_SKIPPED: 'S',
         }
+
+        general_style = 'border-radius: 5px; width: 20px; text-align: center; font-weight: bold; color: white;'
         status_2_style = {
-                TaskGradingStatus.STAT_PENDING: 'color:#378',
-                TaskGradingStatus.STAT_EXECUTING: 'color:#373',
-                TaskGradingStatus.STAT_OUTPUT_TO_BE_CHECKED: 'color:#373',
-                TaskGradingStatus.STAT_FINISH: 'color:#863',
-                TaskGradingStatus.STAT_INTERNAL_ERROR: 'color:red',
-                TaskGradingStatus.STAT_SKIPPED: 'color:#aaa',
+                TaskGradingStatus.STAT_PENDING: 'background:saddlebrown;' + general_style,
+                TaskGradingStatus.STAT_EXECUTING: 'background: steelblue;' + general_style,
+                TaskGradingStatus.STAT_OUTPUT_TO_BE_CHECKED: 'background: lightsteelblue;' + general_style,
+                TaskGradingStatus.STAT_FINISH: 'background: darkgreen;' + general_style,
+                TaskGradingStatus.STAT_INTERNAL_ERROR: 'background: darkred;' + general_style,
+                TaskGradingStatus.STAT_SKIPPED: 'background: lightgrey;' + general_style,
         }
         htmls = []
         for assignment_task in all_assignment_tasks:
