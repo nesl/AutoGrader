@@ -55,6 +55,13 @@ class Command(BaseCommand):
             fo.write(final_msg + '\n')
         self.print_lock.release()
 
+    def _schemaFiles2postFiles(self, dict_schema_files):
+        postFiles = {}
+        for schema_name in submission_files:
+            postFiles[schema_name] = ('filename',
+                    open(submission_files[schema_name].file.path, 'rb'), 'text/plain')
+        return postFiles
+
     def _grade(self, testbed, task):
         TaskGradingStatusFile.objects.filter(
                 task_grading_status_id=task).update(file=None)
@@ -70,22 +77,16 @@ class Command(BaseCommand):
         try:
             # upload assignment specific files (program DUTs)
             submission = task.submission_id
-            ############################################################
-            # BUG: file_schema has no attribute 'get_submission_files'
-            ############################################################
-            submission_files = file_schema.get_submission_files(submission)  
+            files = _schemaFiles2postFiles(file_schema
+                    .get_dict_schema_name_to_submission_schema_files(submission))
             url = 'http://' + testbed.ip_address + '/dut/program/'
-            files = {}
-            for field in submission_files:
-                files[field] = ('filename', open(submission_files[field].file.path, 'rb'),
-                        'text/plain')
             r = requests.post(url, files=files)
 
             # upload input waveform command
             assignment_task = task.assignment_task_id
-            assignment_task_files = file_schema.get_assignment_task_files(assignment_task)
             url = 'http://' + testbed.ip_address + '/tb/upload_input_waveform/'
-            files = {}
+            files = _schemaFiles2postFiles(file_schema
+                    .get_dict_schema_name_to_assignment_task_schema_files(assignment_task))
             for field in assignment_task_files:
                 files[field] = ('filename', open(assignment_task_files[field].file.path, 'rb'),
                         'text/plain')
@@ -230,8 +231,8 @@ class Command(BaseCommand):
                     assignment_task = grading_task.assignment_task_id
                     grading_script_path = assignment_task.grading_script.path
                     cmd = ['python3', grading_script_path]
-                    task_grading_status_files = file_schema.get_task_grading_status_files(
-                            grading_task)
+                    task_grading_status_files = (file_schema.
+                            get_dict_schema_name_to_task_grading_statusschema_files(grading_task))
                     for field in task_grading_status_files:
                         cmd.append('%s:%s' % (field, task_grading_status_files[field].file.path))
 
