@@ -155,9 +155,9 @@ class Command(BaseCommand):
                 timer_testbed_invalidation_offline = K_TESTBED_INVALIDATION_OFFLINE_SEC
 
             # Since hardware front end does not keep track of the status of grading, what can
-            # happen is that somehow hardware (either hardware engine or DUT) goes wrong but
-            # it is not aware. If the testbed passed the grading deadline without reporting
-            # grading results, we abort the grading task and reset the status
+            # happen is that somehow some hardware (either hardware engine or DUT) go wrong but
+            # they are not aware the error. If the testbed passed the grading deadline without
+            # reporting grading results, we abort the grading task and reset the status
             testbed_list = Testbed.objects.filter(
                     status=Testbed.STATUS_BUSY,
                     grading_deadline__lt=now)
@@ -183,23 +183,17 @@ class Command(BaseCommand):
             # executed on this testbed, and do it
             testbed_list = Testbed.objects.filter(status=Testbed.STATUS_AVAILABLE)
             for testbed in testbed_list:
-                # We choose a task which is pending and prioritize more based on the mode
-                # of a task, i.e., public, feedback, or hidden. The way we define the
-                # task mode is already in order.
-                task_list = TaskGradingStatus.objects.filter(
-                        grading_status=TaskGradingStatus.STAT_PENDING).order_by(
-                                'assignment_task_id__mode', '-submission_id')
-                chosen_task = None
-                for task in task_list:
-                    required_tb_type = task.assignment_task_id.assignment_id.testbed_type_id
-                    if testbed.testbed_type_id == required_tb_type:
-                        # we found the task, exit the search
-                        chosen_task = task
-                        break
+                # We choose a task whose belonged submission has the smallest execution scope.
+                task_list = (TaskGradingStatus.objects
+                        .filter(grading_status=TaskGradingStatus.STAT_PENDING,
+                            assignment_task_id__assignment_id__testbed_type_id=testbed)
+                        .order_by('submission_id__task_scope', 'submission_id', 'id'))
 
-                if not chosen_task:
+                if task_list.count() == 0:
                     # next testbed
                     continue
+
+                chosen_task = task_list[0]
 
                 testbed.status = Testbed.STATUS_BUSY
                 testbed.task_being_graded = chosen_task
@@ -210,7 +204,7 @@ class Command(BaseCommand):
 
                 chosen_task.grading_status = TaskGradingStatus.STAT_EXECUTING
                 chosen_task.status_update_time = timezone.now()
-                chosen_task.points = 0
+                chosen_task.points = 0.
                 chosen_task.grading_detail = None
                 chosen_task.save()
 
@@ -273,6 +267,7 @@ class Command(BaseCommand):
                     s = grading_task.submission_id
                     s.status = Submission.STAT_GRADED
                     s.save()
+                    #TODO: send email to student
 
             # go to sleep
             self._printAlive()
