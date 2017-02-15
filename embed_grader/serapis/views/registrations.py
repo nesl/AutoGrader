@@ -13,11 +13,8 @@ from django.core.urlresolvers import reverse
 from django.http import *
 from django.shortcuts import render, get_object_or_404
 
-from django.template.loader import get_template
-from django.template import Context
-from django.core.mail import send_mail
-
 from serapis.models import *
+from serapis.utils import send_email_helper
 from serapis.forms.registration_forms import *
 
 
@@ -26,18 +23,16 @@ def _generate_activation_key(uid):
     salt = hashlib.sha1(random_string.encode('utf-8')).hexdigest()[:5] + uid
     return hashlib.sha1(salt.encode('utf-8')).hexdigest()
 
-def _send_email(activation_link, email):
-    template = get_template("serapis/activation_email.html")
-    context = Context({
+def _send_activation_email(activation_link, email):
+    context = {
         'activation_link': activation_link,
         'site_name': settings.SITE_NAME,
-    })
-    message = template.render(context)
-    send_mail(subject='Account Activation',
-            message=message,
-            from_email='NESL Embed AutoGrader',
-            recipient_list=[email],
-            fail_silently=False,
+    }
+    send_email_helper.send_by_template(
+            subject='Account Activation',
+            recipient_email_list=[email],
+            template_path='serapis/email/activation_email.html',
+            context_dict=context,
     )
 
 def registration(request):
@@ -48,7 +43,7 @@ def registration(request):
             form.save_and_commit(activation_key)  # Save the user and her profile
             activation_link = request.build_absolute_uri(
                     reverse('activation', kwargs={'key': activation_key}))
-            _send_email(activation_link, form.cleaned_data['email'])
+            _send_activation_email(activation_link, form.cleaned_data['email'])
 
             request.session['registered'] = True  # For display purposes
             return render(request, 'serapis/registration_done.html', locals())
@@ -83,7 +78,7 @@ def new_activation(request, user_id):
         activation_key = _generate_activation_key(user_profile.uid)
         activation_link = request.build_absolute_uri(
                 reverse('activation', kwargs={'key': activation_key}))
-        _send_email(activation_link, user.email)
+        _send_activation_email(activation_link, user.email)
         return HttpResponse("The new verification link has been sent to your email. Please check.")
 
 

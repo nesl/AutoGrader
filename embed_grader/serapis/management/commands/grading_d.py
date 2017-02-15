@@ -16,6 +16,7 @@ from django.db.models import Q
 
 from serapis.models import *
 from serapis.utils import file_schema
+from serapis.utils import send_email_helper
 
 
 K_TESTBED_INVALIDATION_OFFLINE_SEC = 30
@@ -264,11 +265,25 @@ class Command(BaseCommand):
                 self._printMessage('num_graded_tasks=%d, num_assignment_tasks=%d' % (
                         num_graded_tasks, num_assignment_tasks))
                 if num_graded_tasks == num_assignment_tasks:
-                    s = grading_task.submission_id
-                    s.status = Submission.STAT_GRADED
-                    s.save()
-                    #TODO: send email to student
+                    submission = grading_task.submission_id
+                    submission.status = Submission.STAT_GRADED
+                    submission.save()
+
+                    # send email to the student
+                    subject = 'Your submission has been graded (ID:%d)' % submission.id
+                    context = {
+                            'user': submission.student_id,
+                            'submission': submission,
+                            'assignment': submission.assignment_id,
+                    }
+                    send_email_helper.send_by_template(
+                            subject=subject,
+                            recipient_email_list=[submission.student_id.email],
+                            template_path='serapis/email/grading_done_email.html',
+                            context=context,
+                    )
 
             # go to sleep
             self._printAlive()
             time.sleep(K_CYCLE_DURATION_SEC)
+

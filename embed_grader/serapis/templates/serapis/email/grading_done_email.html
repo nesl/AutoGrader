@@ -1,0 +1,9 @@
+Dear {{ user.first_name }},
+
+Your submission in "{{ assignment.name }}" assignment has been graded. Please check out the following link to see the grading detail of each task.
+
+{% url 'submission' submission.id %}
+
+Thanks for using embed autograder!
+
+The {{ site_name }} team.
