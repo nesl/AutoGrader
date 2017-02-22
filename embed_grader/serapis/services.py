@@ -130,6 +130,15 @@ def testbed_return_dut_output(request):
         print('Error: task not found')
         return HttpResponseBadRequest('Bad request')
 
+    if not request.POST['secret_code']:
+        print('Error: no secret code is returned')
+        return HttpResponseBadRequest('Bad request')
+    
+    returned_secret_code = request.POST['secret_code']
+    if returned_secret_code != testbed.secret_code:
+        print('Error: secret code does not match')
+        return HttpResponseBadRequest('Bad request')
+
     form = ReturnDutOutputForm(request.POST, request.FILES, testbed=testbed)
     if not form.is_valid():
         print('Error: form is incorrect', form.errors)

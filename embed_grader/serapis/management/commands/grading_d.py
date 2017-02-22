@@ -74,32 +74,25 @@ class Command(BaseCommand):
             task.submission_id.assignment_id,
             task.submission_id.assignment_id.course_id.course_code))
 
-
         try:
-            # upload assignment specific files (program DUTs)
             submission = task.submission_id
             files = _schemaFiles2postFiles(file_schema
                     .get_dict_schema_name_to_submission_schema_files(submission))
-            url = 'http://' + testbed.ip_address + '/dut/program/'
-            r = requests.post(url, files=files)
-
-            # upload input waveform command
+            
             assignment_task = task.assignment_task_id
-            url = 'http://' + testbed.ip_address + '/tb/upload_input_waveform/'
-            files = _schemaFiles2postFiles(file_schema
-                    .get_dict_schema_name_to_assignment_task_schema_files(assignment_task))
-            for field in assignment_task_files:
-                files[field] = ('filename', open(assignment_task_files[field].file.path, 'rb'),
-                        'text/plain')
+            files.update(_schemaFiles2postFiles(file_schema
+                    .get_dict_schema_name_to_assignment_task_schema_files(assignment_task)))
+
+            url = 'http://' + testbed.ip_address + '/tb/grade_assignment/'
+            
             r = requests.post(url, files=files)
-
-            # hardware engine reset command
-            url = 'http://' + testbed.ip_address + '/he/reset/'
-            r = requests.post(url)
-
-            # execution start command
-            url = 'http://' + testbed.ip_address + '/tb/start/'
-            r = requests.post(url)
+            if r.status_code != 200  # testbed is not available
+                task.grading_status = TaskGradingStatus.STAT_PENDING
+                task.save()
+                testbed.task_being_graded = None
+                testbed.save()
+                self._printMessage('Testbed id=%d abort task %d' % (testbed.id, task.id))
+                
         except:
             testbed.status = Testbed.STATUS_OFFLINE
             testbed.save()
@@ -201,6 +194,7 @@ class Command(BaseCommand):
                 duration = (chosen_task.assignment_task_id.execution_duration
                         + K_GRADING_GRACE_PERIOD_SEC)
                 testbed.grading_deadline = timezone.now() + datetime.timedelta(0, duration)
+                testbed.secret_code = str(timezone.now())
                 testbed.save()
 
                 chosen_task.grading_status = TaskGradingStatus.STAT_EXECUTING

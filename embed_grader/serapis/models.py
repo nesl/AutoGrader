@@ -489,6 +489,9 @@ class Testbed(models.Model):
     # report message
     report_time = models.DateTimeField()
     report_status = models.IntegerField(choices=REPORT_STATUS)
+    
+    # status of the foreign testbed
+    secret_code = models.CharField(max_length=100, unique=True)
 
 
 class HardwareDevice(models.Model):
