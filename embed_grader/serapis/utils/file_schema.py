@@ -75,7 +75,7 @@ def get_dict_schema_name_to_task_grading_status_schema_files(task_grading_status
     Returns:
       dict_schema_name_2_schema_file: dict of str -> TaskGradingStatusFile
     """
-    assignment = submission.assignment_id
+    assignment = task_grading_status.assignment_task_id.assignment_id
     schema_file_list = TaskGradingStatusFile.objects.filter(
             task_grading_status_id=task_grading_status)
     return _get_dict_schema_name_to_schema_files(

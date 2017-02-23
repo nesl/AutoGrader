@@ -56,7 +56,7 @@ def submission(request, submission_id):
             submission.retrieve_task_grading_status_and_score_sum(
                 can_see_hidden_cases_and_feedback_details))
 
-    submission_file_dict = file_schema.get_submission_files(submission)
+    submission_file_dict = file_schema.get_dict_schema_name_to_submission_schema_files(submission)
     submission_file_list = []  # a list of {filename, file_field}
 
     for s in submission_file_dict:
@@ -111,7 +111,7 @@ def task_grading_detail(request, task_grading_id):
     now = timezone.now()
     assignment_task = task_grading_status.assignment_task_id
 
-    output_files = file_schema.get_task_grading_status_files(task_grading_status)
+    output_files = file_schema.get_dict_schema_name_to_task_grading_status_schema_files(task_grading_status,True)
     output_full_log = []  # A list of {field_name, content}
 
     for f in output_files:
