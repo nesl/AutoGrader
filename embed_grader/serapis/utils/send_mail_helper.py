@@ -6,7 +6,7 @@ from django.core.mail import send_mail
 def send_by_template(subject, recipient_email_list, template_path, context_dict,
 		fail_silently=False):
     template = get_template(template_path)
-	context = Context(context_dict)
+    context = Context(context_dict)
     message = template.render(context)
     send_mail(
 			subject=subject,

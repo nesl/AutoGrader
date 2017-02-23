@@ -14,7 +14,7 @@ from django.http import *
 from django.shortcuts import render, get_object_or_404
 
 from serapis.models import *
-from serapis.utils import send_email_helper
+from serapis.utils import send_mail_helper
 from serapis.forms.registration_forms import *
 
 
