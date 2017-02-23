@@ -83,9 +83,11 @@ class Command(BaseCommand):
             files.update(_schemaFiles2postFiles(file_schema
                     .get_dict_schema_name_to_assignment_task_schema_files(assignment_task)))
 
+            data = {'execution_time': task.execution_duration}
+
             url = 'http://' + testbed.ip_address + '/tb/grade_assignment/'
             
-            r = requests.post(url, files=files)
+            r = requests.post(url, data=data, files=files)
             if r.status_code != 200  # testbed is not available
                 task.grading_status = TaskGradingStatus.STAT_PENDING
                 task.save()
