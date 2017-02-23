@@ -30,11 +30,11 @@ def get_class_statistics(assignment, include_hidden):
         score_statistics = None
     else:
         score_statistics = {
-                'max_score': max(last_submission_score_list),
-                'first_quantile': np.percentile(last_submission_score_list, 75),
-                'mean_score': np.mean(last_submission_score_list),
-                'median_score': np.median(last_submission_score_list),
-                'third_quantile': np.percentile(last_submission_score_list, 25),
+                'max_score': round(max(last_submission_score_list),2),
+                'first_quantile': round(np.percentile(last_submission_score_list, 75), 2),
+                'mean_score': round(np.mean(last_submission_score_list), 2),
+                'median_score': round(np.median(last_submission_score_list),2),
+                'third_quantile': round(np.percentile(last_submission_score_list, 25),2),
         }
 
     return (num_enrolled_students, num_contributors, score_statistics)

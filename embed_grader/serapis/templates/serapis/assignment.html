@@ -141,11 +141,11 @@
       <p>No students have tried this assignment so far.</p>
     {% else %}
       <p>{{num_contributed_students}} student(s) have tried this assignment so far</p>
-      <p>Mean: {{score_statistics.mean_score}}<br/>
-      Highest Score: {{score_statistics.max_score}}<br/>
-      1st Quantile: {{score_statistics.first_quantile}}<br/>
-      Median: {{score_statistics.median_score}}<br/>
-      3rd Quantile: {{score_statistics.third_quantile}}</p>
+      <p><span style="padding: 1px 2px; border: 1px outset grey;">Mean<span>{{score_statistics.mean_score}}<br/>
+      <span style="padding: 1px 2px; border: 1px outset grey;">Highest Score</span> {{score_statistics.max_score}}<br/>
+      <span style="padding: 1px 2px; border: 1px outset grey;">1st Quantile</span> {{score_statistics.first_quantile}}<br/>
+      <span style="padding: 1px 2px; border: 1px outset grey;">Median</span> {{score_statistics.median_score}}<br/>
+      <span style="padding: 1px 2px; border: 1px outset grey;">3rd Quantile</span> {{score_statistics.third_quantile}}</p>
     {% endif %}
 
     <hr/>
