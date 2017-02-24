@@ -270,7 +270,7 @@ class AssignmentTask(models.Model):
         elif viewing_scope == Assignment.VIEWING_SCOPE_FULL:
             return True
         else:
-            if self.mode == MODE_HIDDEN:
+            if self.mode == self.MODE_HIDDEN:
                 return False
             return True
 
@@ -284,7 +284,7 @@ class AssignmentTask(models.Model):
         elif viewing_scope == Assignment.VIEWING_SCOPE_FULL:
             return True
         else:
-            if self.mode in [MODE_PUBLIC, MODE_DEBUG]:
+            if self.mode in [self.MODE_PUBLIC, self.MODE_DEBUG]:
                 return True
             else:
                 return False
