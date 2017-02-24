@@ -277,6 +277,18 @@ class AssignmentTask(models.Model):
     def can_access_grading_script_by_user(self, user):
         return user.has_perm('create_assignment', self.assignment_id.course_id)
 
+    def can_view_grading_detail_by_user(self, user):
+        viewing_scope = self.assignment_id.viewing_scope_by_user(user)
+        if viewing_scope == Assignment.VIEWING_SCOPE_NO:
+            return False
+        elif viewing_scope == Assignment.VIEWING_SCOPE_FULL:
+            return True
+        else:
+            if self.mode in [MODE_PUBLIC, MODE_DEBUG]:
+                return True
+            else:
+                return False
+
 
 class AssignmentTaskFileSchema(models.Model):
     class Meta:

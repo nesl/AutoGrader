@@ -104,15 +104,16 @@ def task_grading_detail(request, task_grading_id):
             print("Not author")
             return HttpResponse("Not enough privilege")
 
-    if not task_grading_status.can_detail_be_viewed_by_user(user):
+    assignment_task = task_grading_status.assignment_task_id
+    if not assignment_task.can_view_grading_detail_by_user(user):
         print("cannot view detail")
         return HttpResponse("Not enough privilege")
+
 
     if task_grading_status.grading_status != TaskGradingStatus.STAT_FINISH:
         return HttpResponse("Detail is not ready")
 
     now = timezone.now()
-    assignment_task = task_grading_status.assignment_task_id
 
     output_files = file_schema.get_dict_schema_name_to_task_grading_status_schema_files(task_grading_status,True)
     output_full_log = []  # A list of {field_name, content}
