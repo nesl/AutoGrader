@@ -284,10 +284,7 @@ class AssignmentTask(models.Model):
         elif viewing_scope == Assignment.VIEWING_SCOPE_FULL:
             return True
         else:
-            if self.mode in [self.MODE_PUBLIC, self.MODE_DEBUG]:
-                return True
-            else:
-                return False
+            return self.mode in [self.MODE_PUBLIC, self.MODE_DEBUG]
 
 
 class AssignmentTaskFileSchema(models.Model):
@@ -445,8 +442,7 @@ class TaskGradingStatus(models.Model):
         return self.assignment_task_id.can_access_test_input_by_user(user)
 
     def can_detail_be_viewed_by_user(self, user):
-        assignment = self.assignment_task_id.assignment_id
-        return assignment.viewing_scope_by_user(user) == Assignment.VIEWING_SCOPE_FULL
+        return self.assignment_task_id.can_view_grading_detail_by_user(user):
 
 
 class TaskGradingStatusFileSchema(models.Model):
