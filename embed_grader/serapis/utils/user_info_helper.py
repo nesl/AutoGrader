@@ -11,4 +11,7 @@ def all_submission_graded_on_assignment(user, assignment):
     query = Submission.objects.filter(student_id=user, assignment_id=assignment)
     if query.count() == 0:
         return True
-    return query.latest('id').is_fully_graded()
+    
+    # since students cannot see hidden tasks before deadline, we only need to consider those tasks
+    # which are hidden
+    return query.latest('id').is_fully_graded(include_hidden=False)

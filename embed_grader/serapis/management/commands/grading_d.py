@@ -16,13 +16,13 @@ from django.db.models import Q
 
 from serapis.models import *
 from serapis.utils import file_schema
-from serapis.utils import send_email_helper
+from serapis.utils import send_mail_helper
 
 
 K_TESTBED_INVALIDATION_OFFLINE_SEC = 30
 K_TESTBED_INVALIDATION_REMOVE_SEC = 10 * 60
 
-K_GRADING_GRACE_PERIOD_SEC = 600
+K_GRADING_GRACE_PERIOD_SEC = 60
 
 K_CYCLE_DURATION_SEC = 3
 
@@ -58,16 +58,17 @@ class Command(BaseCommand):
 
     def _schemaFiles2postFiles(self, dict_schema_files):
         postFiles = {}
-        for schema_name in submission_files:
-            postFiles[schema_name] = ('filename',
-                    open(submission_files[schema_name].file.path, 'rb'), 'text/plain')
+        for schema_name in dict_schema_files:
+            field_name = 'file_' + schema_name
+            postFiles[field_name] = ('filename',
+                    open(dict_schema_files[schema_name].file.path, 'rb'), 'text/plain')
         return postFiles
 
     def _grade(self, testbed, task):
         TaskGradingStatusFile.objects.filter(
                 task_grading_status_id=task).update(file=None)
 
-        self._printMessage('Executing task %d, sub=%s, hw_task=%s, hw=%s, course=%s' % (
+        self._printMessage('Send job for grading: task %d, sub=%s, hw_task=%s, hw=%s, course=%s' % (
             task.id,
             task.submission_id,
             task.assignment_task_id,
@@ -76,19 +77,22 @@ class Command(BaseCommand):
 
         try:
             submission = task.submission_id
-            files = _schemaFiles2postFiles(file_schema
+            files = self._schemaFiles2postFiles(file_schema
                     .get_dict_schema_name_to_submission_schema_files(submission))
             
             assignment_task = task.assignment_task_id
-            files.update(_schemaFiles2postFiles(file_schema
+            files.update(self._schemaFiles2postFiles(file_schema
                     .get_dict_schema_name_to_assignment_task_schema_files(assignment_task)))
 
-            data = {'execution_time': task.execution_duration}
+            data = {
+                    'execution_time': task.assignment_task_id.execution_duration,
+                    'secret_code': testbed.secret_code,
+            }
 
             url = 'http://' + testbed.ip_address + '/tb/grade_assignment/'
             
             r = requests.post(url, data=data, files=files)
-            if r.status_code != 200  # testbed is not available
+            if r.status_code != 200:  # testbed is not available
                 task.grading_status = TaskGradingStatus.STAT_PENDING
                 task.save()
                 testbed.task_being_graded = None
@@ -182,7 +186,7 @@ class Command(BaseCommand):
                 # We choose a task whose belonged submission has the smallest execution scope.
                 task_list = (TaskGradingStatus.objects
                         .filter(grading_status=TaskGradingStatus.STAT_PENDING,
-                            assignment_task_id__assignment_id__testbed_type_id=testbed)
+                            assignment_task_id__assignment_id__testbed_type_id=testbed.testbed_type_id)
                         .order_by('submission_id__task_scope', 'submission_id', 'id'))
 
                 if task_list.count() == 0:
@@ -205,7 +209,7 @@ class Command(BaseCommand):
                 chosen_task.grading_detail = None
                 chosen_task.save()
 
-                threading.Thread(target=self._grade, name=('id=%s' % testbed.unique_hardware_id),
+                threading.Thread(target=self._grade, name=('id=%s' % testbed.ip_address),
                         kwargs={'testbed': testbed, 'task': chosen_task}).start()
 
 
@@ -220,12 +224,18 @@ class Command(BaseCommand):
                     grading_task.points = 0.0
                 else:
                     assignment_task = grading_task.assignment_task_id
+                    submission = grading_task.submission_id
                     grading_script_path = assignment_task.grading_script.path
                     cmd = ['python3', grading_script_path]
-                    task_grading_status_files = (file_schema.
-                            get_dict_schema_name_to_task_grading_statusschema_files(grading_task))
-                    for field in task_grading_status_files:
-                        cmd.append('%s:%s' % (field, task_grading_status_files[field].file.path))
+                    schema_files = {}
+                    schema_files.update(file_schema.
+                            get_dict_schema_name_to_assignment_task_schema_files(assignment_task))
+                    schema_files.update(file_schema.
+                            get_dict_schema_name_to_submission_schema_files(submission))
+                    schema_files.update(file_schema.
+                            get_dict_schema_name_to_task_grading_status_schema_files(grading_task))
+                    for field in schema_files:
+                        cmd.append('%s:%s' % (field, schema_files[field].file.path))
 
                     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
                     try:

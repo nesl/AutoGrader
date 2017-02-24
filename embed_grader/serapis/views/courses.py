@@ -84,7 +84,7 @@ def course(request, course_id):
     if not user.has_perm('view_course', course):
         return HttpResponse("Not enough privilege.")
 
-    assignment_list = Assignment.objects.filter(course_id=course_id)
+    assignment_list = Assignment.objects.filter(course_id=course_id).order_by('-id')
 
     if not user.has_perm('modify_course', course):
         assignment_list = [a for a in assignment_list if a.is_released()]

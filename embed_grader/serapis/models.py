@@ -227,7 +227,7 @@ class Assignment(models.Model):
             return Assignment.VIEWING_SCOPE_FULL
 
         # during the homework session (before deadline), students can only see some cases
-        return VIEWING_SCOPE_PARTIAL
+        return Assignment.VIEWING_SCOPE_PARTIAL
 
     def is_released(self):
         return timezone.now() > self.release_time
@@ -333,7 +333,7 @@ class Submission(models.Model):
                 submission_id=self).order_by('assignment_task_id')
         if not include_hidden:
             task_grading_status_list = [t for t in task_grading_status_list
-                    if t.assignment_task_id.mode != ASSIGNMENT_TASK_HIDDEN]
+                    if t.assignment_task_id.mode != AssignmentTask.MODE_HIDDEN]
 
         sum_student_score = 0.
         sum_total_score = 0.
@@ -478,8 +478,7 @@ class Testbed(models.Model):
     #IP Address. Only allowing IPv4 as the testers are internal
     #TODO: see whether we should switch back to IPAddressField
     #ip_address = models.GenericIPAddressField(protocol='IPv4')
-    ip_address = models.CharField(max_length=25)
-    unique_hardware_id = models.CharField(max_length=30, unique=True)
+    ip_address = models.CharField(max_length=25, unique=True)
     task_being_graded = models.ForeignKey(TaskGradingStatus, null=True, on_delete=models.SET_NULL)
     grading_deadline = models.DateTimeField()
 
@@ -491,7 +490,7 @@ class Testbed(models.Model):
     report_status = models.IntegerField(choices=REPORT_STATUS)
     
     # status of the foreign testbed
-    secret_code = models.CharField(max_length=100, unique=True)
+    secret_code = models.CharField(max_length=100)
 
 
 class HardwareDevice(models.Model):

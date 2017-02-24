@@ -134,7 +134,7 @@ def _get_assignment_task_file_schema(assignment, field_name):
 def _get_submission_file_schema(assignment, field_name):
     return SubmissionFileSchema.objects.get(assignment_id=assignment, field=field_name)
 
-def _get_task_grading_file_schema(assignment, field_name):
+def _get_task_grading_status_file_schema(assignment, field_name):
     return TaskGradingStatusFileSchema.objects.get(assignment_id=assignment, field=field_name)
 
 def save_dict_schema_name_to_assignment_task_files(

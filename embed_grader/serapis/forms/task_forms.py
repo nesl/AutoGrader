@@ -54,14 +54,14 @@ class AssignmentTaskForm(ModelForm):
         super(AssignmentTaskForm, self).clean()
 
         for form_field_name in self.form_file_fields:
-            #TODO: here we assume all files are (input) waveform files, which may not be true in
-            #      the future
             file_field = self.cleaned_data.get(form_field_name)
             if file_field:
                 binary = file_field.read()
-                res, msg = grading.check_format(binary)
-                if not res:
-                    self.add_error(form_field_name, ValidationError(_(msg), code='invalid'))
+                #TODO: here we assume all files are (input) waveform files, which may not be true in
+                #      the future
+                #res, msg = grading.check_format(binary)
+                #if not res:
+                #    self.add_error(form_field_name, ValidationError(_(msg), code='invalid'))
 
     def save(self, commit=True):
         raise Exception('Deprecated method')

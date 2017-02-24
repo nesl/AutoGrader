@@ -14,32 +14,32 @@ from serapis.forms.service_forms import *
 from ipware.ip import get_ip
 
 
+
+def _get_ip_port(request):
+    try:
+        ip = get_ip(request)
+        port = int(request.POST['localport'])
+        return '%s:%d' % (ip, port)
+    except MultiValueDictKeyError:
+        print('No localport is provided')
+    except ValueError:
+        print('"port" is not an integer')
+    return None
+
 @csrf_exempt
 def testbed_show_summary_report(request):
-    ip = get_ip(request)
-    try:
-        info_json_string = request.POST['summary']
-    except MultiValueDictKeyError:
-        print('No summary field in POST request')
+    if not request.method == 'POST':
+        print('Error: not use post')
         return HttpResponseBadRequest('Bad request')
 
-    try:
-        info = json.loads(info_json_string)
-    except JSONDecodeError:
-        print('Not in JSON format')
-        return HttpResponseBadRequest('Bad request')
-
-    try:
-        port = info['localport']
-        testbed_id = info['id']
-    except KeyError:
-        print('No localport or id field in JSON')
+    ip_port = _get_ip_port(request)
+    if not ip_port:
         return HttpResponseBadRequest('Bad request')
     
     try:
-        testbed_type_name = info['testbed_type']
-    except JSONDecodeError:
-        print('No testbed_type field in JSON')
+        testbed_type_name = request.POST['testbed_type']
+    except MultiValueDictKeyError:
+        print('No testbed_type is provided')
         return HttpResponseBadRequest('Bad request')
 
     testbed_types = TestbedType.objects.filter(name=testbed_type_name)
@@ -48,7 +48,7 @@ def testbed_show_summary_report(request):
         return HttpResponseBadRequest('Bad request')
     testbed_type = testbed_types[0]
 
-    tmp_testbed_list = Testbed.objects.filter(unique_hardware_id=testbed_id)
+    tmp_testbed_list = Testbed.objects.filter(ip_address=ip_port)
     flag_ask_status = False
     if tmp_testbed_list:
         testbed = tmp_testbed_list[0]
@@ -56,15 +56,14 @@ def testbed_show_summary_report(request):
             flag_ask_status = True
     else:
         testbed = Testbed()
-        testbed.unique_hardware_id = testbed_id
         testbed.grading_deadline = timezone.now()
         flag_ask_status = True
-    ip_port_address = '%s:%d' % (ip, port)
-    testbed.ip_address = ip_port_address
+    testbed.ip_address = ip_port
     testbed.testbed_type_id = testbed_type
+    
     if flag_ask_status:
         try:
-            r = requests.get('http://' + ip_port_address + '/tb/status/')
+            r = requests.get('http://' + ip_port + '/tb/status/')
             if r.text == 'IDLE':
                 testbed.report_status = Testbed.STATUS_AVAILABLE
                 testbed.status = Testbed.STATUS_AVAILABLE
@@ -77,6 +76,7 @@ def testbed_show_summary_report(request):
         except requests.exceptions.ConnectionError:
             testbed.report_status = Testbed.STATUS_UNKNOWN
             testbed.status = Testbed.STATUS_OFFLINE
+
     testbed.report_time = timezone.now()
     testbed.save()
     return HttpResponse("Gotcha!")
@@ -84,16 +84,24 @@ def testbed_show_summary_report(request):
 
 @csrf_exempt
 def testbed_show_status_report(request):
-    try:
-        status = request.POST['status']
-        unique_hardware_id = request.POST['id']
-    except MultiValueDictKeyError:
+    if not request.method == 'POST':
+        print('Error: not use post')
         return HttpResponseBadRequest('Bad request')
 
-    testbed_list = Testbed.objects.filter(unique_hardware_id=unique_hardware_id)
+    ip_port = _get_ip_port(request)
+    if not ip_port:
+        return HttpResponseBadRequest('Bad request')
+
+    testbed_list = Testbed.objects.filter(ip_address=ip_port)
     if not testbed_list:
         return HttpResponseBadRequest('No such testbed')
     testbed = testbed_list[0]
+
+    try:
+        status = request.POST['status']
+    except MultiValueDictKeyError:
+        print('Error: no "status" field')
+        return HttpResponseBadRequest('Bad request')
 
     if status == 'IDLE':
         testbed.report_status = Testbed.STATUS_AVAILABLE
@@ -115,11 +123,11 @@ def testbed_return_dut_output(request):
         print('Error: not use post')
         return HttpResponseBadRequest('Bad request')
     
-    if not request.POST['id']:
-        print('Error: unique hardware id is not provided')
+    ip_port = _get_ip_port(request)
+    if not ip_port:
         return HttpResponseBadRequest('Bad request')
 
-    testbed_list = Testbed.objects.filter(unique_hardware_id=request.POST['id'])
+    testbed_list = Testbed.objects.filter(ip_address=ip_port)
     if not testbed_list:
         print('Error: testbed not found')
         return HttpResponseBadRequest('Bad request')

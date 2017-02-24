@@ -82,7 +82,7 @@ def assignment(request, assignment_id):
         can_submit, reason_of_cannot_submit = True, None
     elif assignment.is_deadline_passed():
         can_submit, reason_of_cannot_submit = False, 'Deadline has passed'
-    elif user_info_helper.all_submission_graded_on_assignment(user, assignment):
+    elif not user_info_helper.all_submission_graded_on_assignment(user, assignment):
         can_submit, reason_of_cannot_submit = (
                 False, 'Please wait until current submission if fully graded')
     else:

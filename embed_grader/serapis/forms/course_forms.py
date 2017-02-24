@@ -142,7 +142,7 @@ class CourseEnrollmentForm(Form):
         
         student_group_name = str(course.id) + "_Student_Group"
         student_group = Group.objects.get(name=student_group_name)
-        user.groups.add(student_group)
+        self.user.groups.add(student_group)
         
         if commit:
             course_user_list.save()

@@ -139,10 +139,9 @@ class RenderSubmissionTableRow:
                 self.submission.retrieve_task_grading_status_and_score_sum(self.include_hidden))
         
         atid_2_task_grading_status = {}
-        for task_grading_stataus in task_grading_status_list:
-            atid = task_grading_status.assignment_id.id
+        for task_grading_status in task_grading_status_list:
+            atid = task_grading_status.assignment_task_id.id
             atid_2_task_grading_status[atid] = task_grading_status
-
 
         status_2_text = {
                 TaskGradingStatus.STAT_PENDING: 'P',

@@ -95,14 +95,17 @@ def task_grading_detail(request, task_grading_id):
     assignment = submission.assignment_id
     course = assignment.course_id
     if not user.has_perm('view_assignment', course):
+        print("not enrolled")
         return HttpResponse("Not enough privilege")
 
     author = submission.student_id
     if not user.has_perm('modify_assignment', course):
         if author != user:
+            print("Not author")
             return HttpResponse("Not enough privilege")
 
     if not task_grading_status.can_detail_be_viewed_by_user(user):
+        print("cannot view detail")
         return HttpResponse("Not enough privilege")
 
     if task_grading_status.grading_status != TaskGradingStatus.STAT_FINISH:
@@ -249,7 +252,7 @@ def student_submission_full_log(request):
     if not user.has_perm('serapis.view_hardware_type'):
         return HttpResponse("Not enough privilege")
     courses_as_instructor = [o.course_id for o in 
-            CourseUserList.objects.filter(user_id=user).exclude(role=ROLE_STUDENT)]
+            CourseUserList.objects.filter(user_id=user).exclude(role=CourseUserList.ROLE_STUDENT)]
 
     assignment_list = []
     for course in courses_as_instructor:

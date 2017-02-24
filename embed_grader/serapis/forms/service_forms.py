@@ -12,8 +12,9 @@ class ReturnDutOutputForm(forms.Form):
 
         # services.py has checked the graded task is valid
         task = testbed.task_being_graded
+        assignment = task.assignment_task_id.assignment_id
 
-        schema_names = file_schema.get_task_grading_status_file_schema_names(task)
+        schema_names = file_schema.get_task_grading_status_file_schema_names(assignment)
         for schema_name in schema_names:
             field_name = 'file_' + schema_name
             self.fields[field_name] = forms.FileField(allow_empty_file=True)
@@ -43,7 +44,7 @@ class ReturnDutOutputForm(forms.Form):
 
         schema_name_2_files = {}
         for schema_name in self.schema_names:
-            field_name = 'file_' + field
+            field_name = 'file_' + schema_name
             schema_name_2_files[schema_name] = self.cleaned_data[field_name]
         file_schema.save_dict_schema_name_to_task_grading_status_files(
                 self.task, schema_name_2_files)

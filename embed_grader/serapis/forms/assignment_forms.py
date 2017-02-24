@@ -26,7 +26,7 @@ from datetime import timedelta
 class AssignmentForm(ModelForm):
     error_messages = {
         'time_conflict': 'Release time must be earlier than deadline.',
-        'invalid_schema': 'Schema can only contain 0-9, a-z, and \'_\'.',
+        'invalid_schema': 'Schema can only contain 0-9, a-z, \'.\', and \'_\'.',
     }
 
     class Meta:
@@ -116,7 +116,7 @@ class AssignmentForm(ModelForm):
             else:
                 idx += 1
 
-        qualified_chars = string.digits + string.ascii_lowercase + '_'
+        qualified_chars = string.digits + string.ascii_lowercase + '_.'
             
         # if not all the schema name are composed only by letters, digits, and underscores
         if not all([all([(c in qualified_chars) for c in s]) for s in schema_name_list]):
@@ -201,7 +201,7 @@ class AssignmentSubmissionForm(Form):
                         code='pass_deadline')
 
             # a student can submit only if the previous submission is done
-            if not user_info_helper.can_submit_on_assignment(user, assignment):
+            if not user_info_helper.all_submission_graded_on_assignment(self.user, self.assignment):
                 raise forms.ValidationError(self.error_messages['submission_in_queue'],
                         code='submission_in_queue')
 

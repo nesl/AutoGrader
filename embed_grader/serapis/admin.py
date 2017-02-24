@@ -24,7 +24,7 @@ class CourseUserListAdmin(admin.ModelAdmin):
         instructor_group = Group.objects.get(name=instructor_group_name)
         student_group = Group.objects.get(name=student_group_name)
 
-        if obj.role == ROLE_STUDENT:
+        if obj.role == CourseUserList.ROLE_STUDENT:
             if instructor_group in user.groups.all():
                 user.groups.remove(instructor_group)
             if student_group not in user.groups.all():
