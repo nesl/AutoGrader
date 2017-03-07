@@ -153,24 +153,24 @@ def submission_file2(request):
     return _make_http_response_for_file_download(file_to_download.file.path)
 
 
-@login_required(login_url='/login/')
-def task_grading_status_output_file(request):
-    user = User.objects.get(username=request.user)
-    query_file_name = _get_query_file_name(request.get_full_path())
+# @login_required(login_url='/login/')
+# def task_grading_status_output_file(request):
+#     user = User.objects.get(username=request.user)
+#     query_file_name = _get_query_file_name(request.get_full_path())
 
-    # Check file exists
-    status_list = TaskGradingStatus.objects.filter(output_file=query_file_name)
-    if len(status_list) == 0:
-        return HttpResponseForbidden()
+#     # Check file exists
+#     status_list = TaskGradingStatus.objects.filter(output_file=query_file_name)
+#     if len(status_list) == 0:
+#         return HttpResponseForbidden()
 
-    if len(status_list) >= 2:
-        print('Warning: find 2 or more records with this file name')
+#     if len(status_list) >= 2:
+#         print('Warning: find 2 or more records with this file name')
 
-    status = status_list[0]
-    if status.can_access_output_file_by_user(user):
-        return _make_http_response_for_file_download(status.output_file.path)
-    else:
-        return HttpResponseForbidden()
+#     status = status_list[0]
+#     if status.can_access_output_file_by_user(user):
+#         return _make_http_response_for_file_download(status.output_file.path)
+#     else:
+#         return HttpResponseForbidden()
 
 
 @login_required(login_url='/login/')
@@ -193,24 +193,24 @@ def task_grading_status_grading_detail(request):
         return HttpResponseForbidden()
 
 
-@login_required(login_url='/login/')
-def task_grading_status_dut_serial_output(request):
-    user = User.objects.get(username=request.user)
-    query_file_name = _get_query_file_name(request.get_full_path())
+# @login_required(login_url='/login/')
+# def task_grading_status_dut_serial_output(request):
+#     user = User.objects.get(username=request.user)
+#     query_file_name = _get_query_file_name(request.get_full_path())
 
-    # Check file exists
-    status_list = TaskGradingStatus.objects.filter(DUT_serial_output=query_file_name)
-    if len(status_list) == 0:
-        return HttpResponseForbidden()
+#     # Check file exists
+#     status_list = TaskGradingStatus.objects.filter(DUT_serial_output=query_file_name)
+#     if len(status_list) == 0:
+#         return HttpResponseForbidden()
 
-    if len(status_list) >= 2:
-        print('Warning: find 2 or more records with this file name')
+#     if len(status_list) >= 2:
+#         print('Warning: find 2 or more records with this file name')
 
-    status = status_list[0]
-    if status.can_access_output_file_by_user(user):
-        return _make_http_response_for_file_download(status.DUT_serial_output.path)
-    else:
-        return HttpResponseForbidden()
+#     status = status_list[0]
+#     if status.can_access_output_file_by_user(user):
+#         return _make_http_response_for_file_download(status.DUT_serial_output.path)
+#     else:
+#         return HttpResponseForbidden()
 
 
 @login_required(login_url='/login/')

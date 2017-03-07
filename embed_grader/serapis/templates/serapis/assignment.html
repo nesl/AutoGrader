@@ -79,12 +79,14 @@
               <th style="width:25%">Task</th>
               <th style="width:15%">Mode</th>
               <th style="width:10%">Points</th>
-              <th style="width:50%">Description</th>
-            {% else %}
-              <th style="width:25%">Task</th>
-              <th style="width:15%">Mode</th>
-              <th style="width:10%">Points</th>
               <th style="width:35%">Description</th>
+              <th style="width:15%">Input File</th>
+            {% else %}
+              <th style="width:15%">Task</th>
+              <th style="width:12%">Mode</th>
+              <th style="width:13%">Points</th>
+              <th style="width:30%">Description</th>
+              <th style="width:15%">Input File</th>
               <th style="width:15%">Edit</th>
             {% endif %}
           <thead>
@@ -96,6 +98,23 @@
               <td>{{ task.get_mode_display }}</td>
               <td>{{ task.points }}</td>
               <td>{{ task.description }}</td>
+              <td>
+                {% if submission_form %}
+                  {% if task.get_mode_display == 'Public' or task.get_mode_display == 'Debug' %}
+                  <a href="{{ MEDIA_URL }}{{ task.grading_script.url }}" class="btn btn-primary" 
+                      style="font-size:12px; background:white; color:SteelBlue; border-color:SteelBlue;">
+                    <span class="glyphicon glyphicon-download-alt"></span> &nbsp;Download   
+                  </a>
+                  {% else %}
+                    N/A
+                  {% endif %}
+                {% else %}
+                  <a href="{{ MEDIA_URL }}{{ task.grading_script.url }}" class="btn btn-primary" 
+                      style="font-size:12px; background:white; color:SteelBlue; border-color:SteelBlue;">
+                    <span class="glyphicon glyphicon-download-alt"></span> &nbsp;Download   
+                  </a>
+                {% endif %}
+              </td>
             </tr>
           {% else %}
             <tr>
@@ -103,6 +122,12 @@
               <td>{{ task.get_mode_display }}</td>
               <td>{{ task.points }}</td>
               <td>{{ task.description }}</td>
+              <td>
+                <a href="{{ MEDIA_URL }}{{ task.grading_script.url }}" class="btn btn-primary" 
+                    style="font-size:12px; background:white; color:SteelBlue; border-color:SteelBlue;">
+                  <span class="glyphicon glyphicon-download-alt"></span> &nbsp;Download   
+                </a>
+              </td>
               <td>
                 <a href="{% url 'modify-assignment-task' task.id %}" class="btn btn-primary"
                     style="font-size: 12px; background:white; color:SteelBlue; border-color:SteelBlue;width:80px">
