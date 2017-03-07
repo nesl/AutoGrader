@@ -218,9 +218,10 @@ def task_grading_status_file(request):
     user = User.objects.get(username=request.user)
     file_path = request.get_full_path()
     query_file_name = _get_query_file_name(file_path)
-
+    print(query_file_name)
     # check if file exists
     task_grading_status_file_list = TaskGradingStatusFile.objects.filter(file=query_file_name)
+    print(task_grading_status_file_list)
     if len(task_grading_status_file_list) == 0:
         return HttpResponseForbidden()
 
@@ -229,7 +230,7 @@ def task_grading_status_file(request):
 
     task_grading_status = task_grading_status_file_list[0].task_grading_status_id
     if task_grading_status.can_access_output_file_by_user(user):
-        return _make_http_response_for_file_download(file_path)
+        return _make_http_response_for_file_download(task_grading_status_file_list[0].file.path)
     else:
         return HttpResponseForbidden()
 
