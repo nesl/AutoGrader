@@ -213,6 +213,27 @@ def task_grading_status_dut_serial_output(request):
         return HttpResponseForbidden()
 
 
+@login_required(login_url='/login/')
+def task_grading_status_file(request):
+    user = User.objects.get(username=request.user)
+    file_path = request.get_full_path()
+    query_file_name = _get_query_file_name(file_path)
+
+    # check if file exists
+    task_grading_status_file_list = TaskGradingStatusFile.objects.filter(file=query_file_name)
+    if len(task_grading_status_file_list) == 0:
+        return HttpResponseForbidden()
+
+    if len(task_grading_status_file_list) >= 2:
+        print('Warning: find 2 or more records with this file name')
+
+    task_grading_status = task_grading_status_file_list[0].task_grading_status_id
+    if task_grading_status.can_access_output_file_by_user(user):
+        return _make_http_response_for_file_download(file_path)
+    else:
+        return HttpResponseForbidden()
+
+
 
 def content_images(request):
     query_file_name = _get_query_file_name(request.get_full_path())

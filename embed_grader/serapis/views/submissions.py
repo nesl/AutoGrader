@@ -120,6 +120,7 @@ def task_grading_detail(request, task_grading_id):
 
     for f in output_files:
         raw_content = output_files[f].file.read()
+        url = output_files[f].file.url
         if len(raw_content) == 0:
             content = '(Empty file)'
         else:
@@ -130,6 +131,7 @@ def task_grading_detail(request, task_grading_id):
         output_full_log.append({
             'field_name': f,
             'content': content,
+            'url':url,
         })
 
     if task_grading_status.grading_detail:

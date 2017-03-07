@@ -58,7 +58,12 @@
 
     {% for output in output_log %}
       <hr/>
-      <h4>File: {{output.field_name}}<h4>
+      <h4>File: {{output.field_name}} 
+        <a href="{{ MEDIA_URL }}{{ output.url }}" class="btn btn-primary" 
+        style="font-size:12px; background:white; color:SteelBlue; border-color:SteelBlue;">
+          <span class="glyphicon glyphicon-download-alt"></span> &nbsp;Download   
+        </a>
+      <h4>
       <br/>
       <p style="white-space:pre; font-size:13px; font-family:monospace">{{output.content}}</p>
     {% endfor %}
