@@ -268,13 +268,10 @@ class AssignmentTask(models.Model):
         if viewing_scope == Assignment.VIEWING_SCOPE_NO:
             return False
         elif viewing_scope == Assignment.VIEWING_SCOPE_FULL:
-            print("hey ful")
             return True
         else:
             if self.mode in [self.MODE_HIDDEN, self.MODE_FEEDBACK]:
-                print("hey in")
                 return False
-            print("hey out")
             return True
 
     def can_access_grading_script_by_user(self, user):
@@ -296,7 +293,6 @@ class AssignmentTask(models.Model):
         viewing_scope = self.assignment_id.viewing_scope_by_user(user)
         assign_task_file_list = AssignmentTaskFile.objects.filter(assignment_task_id=self.id)
         assign_task_file_url_list = [f.file.url for f in assign_task_file_list]
-        print(assign_task_file_url_list)
         
         if viewing_scope == Assignment.VIEWING_SCOPE_NO:
             return []
