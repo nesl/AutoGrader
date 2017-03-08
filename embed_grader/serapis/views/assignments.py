@@ -78,6 +78,11 @@ def assignment(request, assignment_id):
     (assignment_tasks, _) = assignment.retrieve_assignment_tasks_and_score_sum(can_see_hidden_cases)
     (public_points, total_points) = assignment.get_assignment_task_total_scores()
 
+    assignment_task_files_list = []
+    for task in assignment_tasks:
+        task_files = task.retrieve_assignment_task_files(user)
+        assignment_task_files_list.append(task_files)
+
     if user.has_perm('modify_assignment', course):
         can_submit, reason_of_cannot_submit = True, None
     elif assignment.is_deadline_passed():
@@ -106,6 +111,8 @@ def assignment(request, assignment_id):
     enrollment, contributors, score_statistics = score_distribution.get_class_statistics(
             assignment=assignment, include_hidden=is_deadline_passed)
 
+    assignment_tasks_with_file_list = zip(assignment_tasks, assignment_task_files_list)
+
     template_context = {
             'myuser': request.user,
             'user_profile': user_profile,
@@ -114,7 +121,7 @@ def assignment(request, assignment_id):
             'submission_form': submission_form,
             'reason_of_cannot_submit': reason_of_cannot_submit,
             'submission_list': submission_list,
-            'assignment_tasks': assignment_tasks,
+            'assignment_tasks': assignment_tasks_with_file_list,
             'public_points': public_points,
             'total_points': total_points,
             'now': now,

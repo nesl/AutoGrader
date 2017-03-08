@@ -91,7 +91,7 @@
             {% endif %}
           <thead>
         </tr>
-        {% for task in assignment_tasks %}
+        {% for task, file_list in assignment_tasks %}
           {% if "modify_assignment" not in course_perms %}
             <tr>
               <td>{{ task.brief_description }}</td>
@@ -101,7 +101,7 @@
               <td>
                 {% if submission_form %}
                   {% if task.get_mode_display == 'Public' or task.get_mode_display == 'Debug' %}
-                  <a href="{{ MEDIA_URL }}{{ task.grading_script.url }}" class="btn btn-primary" 
+                  <a href="{{ MEDIA_URL }}{{ file_list.0 }}" class="btn btn-primary" 
                       style="font-size:12px; background:white; color:SteelBlue; border-color:SteelBlue;">
                     <span class="glyphicon glyphicon-download-alt"></span> &nbsp;Download   
                   </a>
@@ -109,7 +109,7 @@
                     N/A
                   {% endif %}
                 {% else %}
-                  <a href="{{ MEDIA_URL }}{{ task.grading_script.url }}" class="btn btn-primary" 
+                  <a href="{{ MEDIA_URL }}{{ file_list.0 }}" class="btn btn-primary" 
                       style="font-size:12px; background:white; color:SteelBlue; border-color:SteelBlue;">
                     <span class="glyphicon glyphicon-download-alt"></span> &nbsp;Download   
                   </a>
@@ -123,7 +123,7 @@
               <td>{{ task.points }}</td>
               <td>{{ task.description }}</td>
               <td>
-                <a href="{{ MEDIA_URL }}{{ task.grading_script.url }}" class="btn btn-primary" 
+                <a href="{{ MEDIA_URL }}{{ file_list.0 }}" class="btn btn-primary" 
                     style="font-size:12px; background:white; color:SteelBlue; border-color:SteelBlue;">
                   <span class="glyphicon glyphicon-download-alt"></span> &nbsp;Download   
                 </a>
