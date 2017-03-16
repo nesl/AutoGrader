@@ -22,7 +22,9 @@ Web frontend of Embedded Systems Auto Grader project
   - ```pip3 install django-ipware```
   - ```pip3 install django-guardian```
   - ```pip3 install django-chartjs```
+  - ```pip install django-ckeditor```
 
+`compute_accu_im_trend.m` reads feature files from `data_private/clustering_numericalize_sync/`, comparing with `data/profile_timeline/` to generate the result. The output file are named as `<user_id>_<mitigation_method>_<parameter>_<num_clus_lb>_<num_clus_ub>.csv`.
 - If you are using PostgreSQL as your database
   - ```pip install psycopg2```
 
