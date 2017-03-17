@@ -49,7 +49,7 @@ def _display_remaining_time(tdelta):
 
 
 @login_required(login_url='/login/')
-def assignment(request, assignment_id):
+def assignment(request, assignment_id, final_grade=''):
     user = User.objects.get(username=request.user)
     user_profile = UserProfile.objects.get(user=user)
 
@@ -121,6 +121,30 @@ def assignment(request, assignment_id):
             assignment=assignment, include_hidden=is_deadline_passed)
 
     assignment_tasks_with_file_list = zip(assignment_tasks, assignment_task_files_list)
+
+    if user.has_perm('modify_assignment', course):
+        if final_grade == 'final-grade':
+            # final_grade == 1 means run final grading
+            # dispatch grading tasks
+            assignment_tasks = assignment.retrieve_assignment_tasks_by_accumulative_scope(AssignmentTask.MODE_HIDDEN)
+            # print(assignment_tasks)
+            # print(submission_lists['graded'])
+            for s in submission_lists['graded']:
+                graded_task_obj_for_s = TaskGradingStatus.objects.filter(submission_id=s)
+                graded_task_for_s = [t.assignment_task_id for t in graded_task_obj_for_s]
+                # print("*******graded task for s %s *******\n" % graded_task_for_s)
+                task_to_run = [t for t in assignment_tasks if t not in graded_task_for_s]
+                # print("*******task to run %s *******\n" % task_to_run)
+                for task in task_to_run:
+                    grading_task = TaskGradingStatus.objects.create(
+                        submission_id=s,
+                        assignment_task_id=task,
+                        grading_status=TaskGradingStatus.STAT_PENDING,
+                        execution_status=TaskGradingStatus.EXEC_UNKNOWN,
+                        status_update_time=now,
+                        )
+                    file_schema.create_empty_task_grading_status_schema_files(grading_task)
+
 
     template_context = {
             'myuser': request.user,
