@@ -270,7 +270,7 @@ class AssignmentTask(models.Model):
         elif viewing_scope == Assignment.VIEWING_SCOPE_FULL:
             return True
         else:
-            if self.mode == self.MODE_HIDDEN:
+            if self.mode in [self.MODE_HIDDEN, self.MODE_FEEDBACK]:
                 return False
             return True
 
@@ -285,6 +285,22 @@ class AssignmentTask(models.Model):
             return True
         else:
             return self.mode in [self.MODE_PUBLIC, self.MODE_DEBUG]
+
+    def retrieve_assignment_task_files(self, user):
+        viewing_scope = self.assignment_id.viewing_scope_by_user(user)
+        assign_task_file_list = AssignmentTaskFile.objects.filter(assignment_task_id=self.id)
+        assign_task_file_url_list = [f.file.url for f in assign_task_file_list]
+        
+        if viewing_scope == Assignment.VIEWING_SCOPE_NO:
+            return []
+        elif viewing_scope == Assignment.VIEWING_SCOPE_FULL:
+            return assign_task_file_url_list
+        else:
+            if self.mode in [self.MODE_DEBUG, self.MODE_PUBLIC]:
+                return assign_task_file_url_list
+            else:
+                return []
+
 
 
 class AssignmentTaskFileSchema(models.Model):

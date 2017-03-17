@@ -117,6 +117,18 @@ def get_last_fully_graded_submission(author, assignment):
             return s
     return None
 
+def get_last_grading_submission(author, assignment):
+    """
+    Return:
+      a Submission object which hasn't fully graded yet
+    """
+    submission_list = Submission.objects.filter(
+            student_id=author, assignment_id=assignment).order_by('-id')
+    for s in submission_list:
+        if not s.is_fully_graded(include_hidden=True):
+            return s
+    return None
+
 # def get_submission_with_hightest_score(author, assignment):
 #     """
 #     Return:

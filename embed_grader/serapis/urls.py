@@ -71,13 +71,16 @@ urlpatterns = [
     ## Media access
     url(r'^media/HardwareType_pinout/.*/$', media_controls.hardware_type_pinout, name='media-hardware-type-pinout'),
     url(r'^media/TestbedHardwareList_firmware/.*/$', media_controls.testbed_hardware_list_firmware, name='media-testbed-hardware-list-firmware'),
-    url(r'^media/AssignmentTask_test_input/.*/$', media_controls.assignment_task_test_input, name='media-assignment-task-test-input'),
+    # url(r'^media/AssignmentTask_test_input/.*/$', media_controls.assignment_task_test_input, name='media-assignment-task-test-input'),
     url(r'^media/AssignmentTask_grading_script/.*/$', media_controls.assignment_task_grading_script, name='media-assignment-task-grading-script'),
     url(r'^media/Submission_file/.*/$', media_controls.submission_file, name='media-submission-file'),
-    url(r'^media/TaskGradingStatus_output_file/.*/$', media_controls.task_grading_status_output_file, name='media-task-grading-status-output-file'),
+    # url(r'^media/TaskGradingStatus_output_file/.*/$', media_controls.task_grading_status_output_file, name='media-task-grading-status-output-file'),
     url(r'^media/TaskGradingStatus_grading_detail/.*/$', media_controls.task_grading_status_grading_detail, name='media-task-grading-status-grading-detail'),
-    url(r'^media/TaskGradingStatus_DUT_serial_output/.*/$', media_controls.task_grading_status_dut_serial_output, name='media-task-grading-status-dut-serial-output'),
+    # url(r'^media/TaskGradingStatus_DUT_serial_output/.*/$', media_controls.task_grading_status_dut_serial_output, name='media-task-grading-status-dut-serial-output'),
+    
     url(r'^media/SubmissionFile_file/.*/$', media_controls.submission_file2, name='media-submission-file2'),
+    url(r'^media/TaskGradingStatusFile_file/.*/$', media_controls.task_grading_status_file, name='media-task-grading-status-file'),
+    url(r'^media/AssignmentTaskFile_file/.*/$', media_controls.assignment_task_file, name='assignment-task-file'),
 
     url(r'^ckeditor/', include('ckeditor_uploader.urls')),
     url(r'^media/Content_images/.*/$', media_controls.content_images, name='content-images')

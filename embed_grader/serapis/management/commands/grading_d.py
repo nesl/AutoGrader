@@ -266,8 +266,8 @@ class Command(BaseCommand):
                         Q(grading_status=TaskGradingStatus.STAT_FINISH)
                         | Q(grading_status=TaskGradingStatus.STAT_INTERNAL_ERROR),
                         submission_id=grading_task.submission_id))
-                num_assignment_tasks = len(AssignmentTask.objects.filter(
-                        assignment_id=grading_task.submission_id.assignment_id))
+                num_assignment_tasks = len(TaskGradingStatus.objects.filter(
+                        submission_id=grading_task.submission_id))
                 self._printMessage('num_graded_tasks=%d, num_assignment_tasks=%d' % (
                         num_graded_tasks, num_assignment_tasks))
                 if num_graded_tasks == num_assignment_tasks:
@@ -282,11 +282,11 @@ class Command(BaseCommand):
                             'submission': submission,
                             'assignment': submission.assignment_id,
                     }
-                    send_email_helper.send_by_template(
+                    send_mail_helper.send_by_template(
                             subject=subject,
                             recipient_email_list=[submission.student_id.email],
                             template_path='serapis/email/grading_done_email.html',
-                            context=context,
+                            context_dict=context,
                     )
 
             # go to sleep

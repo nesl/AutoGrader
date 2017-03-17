@@ -65,7 +65,7 @@ class RegradeForm(Form):
                 widget=forms.TextInput,
         )
 
-        assignment_tasks = AssignmentTask.objects.filter(assignment_id=assignment)
+        assignment_tasks = AssignmentTask.objects.filter(assignment_id=assignment).order_by('id')
         assignment_task_choices = [(a.id, a.brief_description) for a in assignment_tasks]
         assignment_task_choices_id = [t[0] for t in assignment_task_choices]
         self.fields['assignment_task_choice'] = forms.MultipleChoiceField(

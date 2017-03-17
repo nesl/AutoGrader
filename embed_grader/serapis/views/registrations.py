@@ -28,7 +28,7 @@ def _send_activation_email(activation_link, email):
         'activation_link': activation_link,
         'site_name': settings.SITE_NAME,
     }
-    send_email_helper.send_by_template(
+    send_mail_helper.send_by_template(
             subject='Account Activation',
             recipient_email_list=[email],
             template_path='serapis/email/activation_email.html',

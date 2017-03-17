@@ -78,6 +78,11 @@ def assignment(request, assignment_id):
     (assignment_tasks, _) = assignment.retrieve_assignment_tasks_and_score_sum(can_see_hidden_cases)
     (public_points, total_points) = assignment.get_assignment_task_total_scores()
 
+    assignment_task_files_list = []
+    for task in assignment_tasks:
+        task_files = task.retrieve_assignment_task_files(user)
+        assignment_task_files_list.append(task_files)
+
     if user.has_perm('modify_assignment', course):
         can_submit, reason_of_cannot_submit = True, None
     elif assignment.is_deadline_passed():
@@ -91,20 +96,31 @@ def assignment(request, assignment_id):
     submission_form = (AssignmentSubmissionForm(user=user, assignment=assignment)
             if can_submit else None)
 
-    if user.has_perm('modify_assignment', course):
+    submission_lists = {}
+    if not user.has_perm('modify_assignment', course):
+        submission_lists['student'] = Submission.objects.filter(
+                student_id=user, assignment_id=assignment).order_by('-id')[:10]
+    else:
         students = [o.user_id for o in CourseUserList.objects.filter(course_id=course)]
-        submission_list = []
+        graded_list = []
+        grading_list = []
         for student in students:
             sub = grading.get_last_fully_graded_submission(student, assignment)
             if sub:
-                submission_list.append(sub)
-    else:
-        submission_list = Submission.objects.filter(
-                student_id=user, assignment_id=assignment).order_by('-id')[:10]
+                graded_list.append(sub)
+            
+            sub = grading.get_last_grading_submission(student, assignment)
+            if sub:
+                grading_list.append(sub)
+
+        submission_lists['graded'] = graded_list
+        submission_lists['grading'] = grading_list
 
     is_deadline_passed = assignment.is_deadline_passed()
     enrollment, contributors, score_statistics = score_distribution.get_class_statistics(
             assignment=assignment, include_hidden=is_deadline_passed)
+
+    assignment_tasks_with_file_list = zip(assignment_tasks, assignment_task_files_list)
 
     template_context = {
             'myuser': request.user,
@@ -113,8 +129,8 @@ def assignment(request, assignment_id):
             'assignment': assignment,
             'submission_form': submission_form,
             'reason_of_cannot_submit': reason_of_cannot_submit,
-            'submission_list': submission_list,
-            'assignment_tasks': assignment_tasks,
+            'submission_lists': submission_lists,
+            'assignment_tasks': assignment_tasks_with_file_list,
             'public_points': public_points,
             'total_points': total_points,
             'now': now,
