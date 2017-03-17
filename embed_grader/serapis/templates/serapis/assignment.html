@@ -206,8 +206,8 @@
           </table>
         {% endif %}
 
-        <h4>Working submissions</h4>
         {% if submission_lists.grading %}
+          <h4>Working submissions</h4>
           <table class="table table-striped table-hover table-sm">
             <tr><thead class="thead-default">
               {% submission_table_schema  author_name 22%  status 23%  score 15%  submission_time 25%  detail_button 15% as table_schema %}
