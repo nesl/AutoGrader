@@ -574,6 +574,7 @@ class Testbed(models.Model):
                 task.save()
             self.task_being_graded = None
             self.status = set_status
+            self.secret_code = ''
             self.save()
 
 
@@ -594,6 +595,7 @@ class Testbed(models.Model):
             self.report_time = now
             self.report_status = Testbed.STATUS_AVAILABLE
             self.status = Testbed.STATUS_AVAILABLE
+            self.secret_code = ''
             self.save()
 
 

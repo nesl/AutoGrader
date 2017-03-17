@@ -19,6 +19,12 @@ from datetime import timedelta
 
 
 class RegradeForm(Form):
+    """
+    When RegradeForm processes a request, it guarantee that it will not affect the working
+    testbeds, meaning that when physical testbeds return the result after the request is processed,
+    django will simply ignore the results.
+    """
+
     AUTHOR_OPTION_ALL = 0
     AUTHOR_OPTION_CUSTOMIZED = 1
     AUTHOR_SCOPE_CHOICES = (
@@ -103,6 +109,9 @@ class RegradeForm(Form):
                         raise ValidationError(_('Invalid submission range'), code='invalid_sub_range')
             self.cleaned_data['submission_range'] = submission_ids
     
+    def save(self, commit=True):
+         raise Exception('Deprecated method')
+
     def save_and_commit(self):
         # finalize the author list
         if int(self.cleaned_data['author_scope']) == RegradeForm.AUTHOR_OPTION_ALL:
@@ -127,12 +136,12 @@ class RegradeForm(Form):
                         submission_list.append(s)
 
         num_affected_submissions = len(submission_list)
-        num_affected_task_grading_status = 0
         assignment_tasks = [AssignmentTask.objects.get(id=atid)
                 for atid in self.cleaned_data['assignment_task_choice']]
         assignment_task_set = set(assignment_tasks)
-        
+
         # change TaskGradingStatus records
+        affected_task_grading_status = set()
         for s in submission_list:
             task_grading_status_list = TaskGradingStatus.objects.filter(submission_id=s)
             for task_grading in task_grading_status_list:
@@ -140,7 +149,20 @@ class RegradeForm(Form):
                     task_grading.grading_status = TaskGradingStatus.STAT_PENDING
                     task_grading.points = 0.
                     task_grading.save()
-                    num_affected_task_grading_status += 1
+                    affected_task_grading_status.add(task_grading)
+        num_affected_task_grading_status = len(affected_task_grading_status)
+
+        # invalidate affected testbeds
+        testbed_type = self.assignment.testbed_type_id
+        testbeds = Testbed.objects.filter(testbed_type_id=testbed_type)
+        for t in testbeds:
+            task = t.task_being_graded
+            if task and task in affected_task_grading_status:
+                # We set the testbed as offline for the django to figure out the status. Whenever
+                # testbeds broadcast their summaries, the status in django is going to be reset.
+                # The abort_task() method will clear the task status to pending again, but it
+                # won't hurt.
+                t.abort_task(set_status=Testbed.STATUS_OFFLINE)
 
         return (num_affected_submissions, num_affected_task_grading_status)
 
