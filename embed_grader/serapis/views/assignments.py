@@ -151,6 +151,8 @@ def assignment(request, assignment_id, final_grade=''):
                         status_update_time=now,
                         )
                     file_schema.create_empty_task_grading_status_schema_files(grading_task)
+                s.task_scope=AssignmentTask.MODE_HIDDEN
+                s.save()
 
 
     template_context = {
