@@ -29,18 +29,7 @@ class ReturnDutOutputForm(forms.Form):
         Return:
           (task_grading_status, testbed)
         """
-        now = timezone.now()
-
-        self.task.grading_status = TaskGradingStatus.STAT_OUTPUT_TO_BE_CHECKED
-        self.task.execution_status = TaskGradingStatus.EXEC_OK
-        self.task.status_update_time = now
-        self.task.save()
-        
-        self.testbed.task_being_graded = None
-        self.testbed.report_time = now
-        self.testbed.report_status = Testbed.STATUS_AVAILABLE
-        self.testbed.status = Testbed.STATUS_AVAILABLE
-        self.testbed.save()
+        self.testbed.finish_grading(task_execution_status=TaskGradingStatus.EXEC_OK)
 
         schema_name_2_files = {}
         for schema_name in self.schema_names:
