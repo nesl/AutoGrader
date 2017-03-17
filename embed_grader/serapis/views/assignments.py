@@ -104,6 +104,7 @@ def assignment(request, assignment_id, final_grade=''):
         students = [o.user_id for o in CourseUserList.objects.filter(course_id=course)]
         graded_list = []
         grading_list = []
+        last_submission_list = []
         for student in students:
             sub = grading.get_last_fully_graded_submission(student, assignment)
             if sub:
@@ -113,8 +114,14 @@ def assignment(request, assignment_id, final_grade=''):
             if sub:
                 grading_list.append(sub)
 
+            sub = grading.get_last_submission(student, assignment)
+            if sub:
+                last_submission_list.append(sub)
+
+
         submission_lists['graded'] = graded_list
         submission_lists['grading'] = grading_list
+        submission_lists['last_submission'] = last_submission_list
 
     is_deadline_passed = assignment.is_deadline_passed()
     enrollment, contributors, score_statistics = score_distribution.get_class_statistics(
@@ -128,8 +135,8 @@ def assignment(request, assignment_id, final_grade=''):
             # dispatch grading tasks
             assignment_tasks = assignment.retrieve_assignment_tasks_by_accumulative_scope(AssignmentTask.MODE_HIDDEN)
             # print(assignment_tasks)
-            # print(submission_lists['graded'])
-            for s in submission_lists['graded']:
+            print(submission_lists['last_submission'])
+            for s in submission_lists['last_submission']:
                 graded_task_obj_for_s = TaskGradingStatus.objects.filter(submission_id=s)
                 graded_task_for_s = [t.assignment_task_id for t in graded_task_obj_for_s]
                 # print("*******graded task for s %s *******\n" % graded_task_for_s)
