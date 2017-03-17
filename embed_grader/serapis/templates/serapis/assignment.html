@@ -189,7 +189,7 @@
             <tr>{% submission_table_row table_schema submission myuser %}</tr>
           {% endfor %}
         </table>
-      {% endif %}
+      {% endif %} {# not submission_lists.student #}
     {% else %}
       {% if not submission_lists.grading and not submission_lists.graded %}
         <p>No submissions to this assignment yet.</p>
@@ -217,7 +217,11 @@
             {% endfor %}
           </table>
         {% endif %}
-      {% endif %}
+      {% endif %} {# not submission_lists.grading and not submission_lists.graded #}
+
+      <div>
+        <a class="btn btn-primary" href="{% url 'regrade' assignment.id %}">Regrade interface</a>
+      </div>
     {% endif %}
 
     <br/>
