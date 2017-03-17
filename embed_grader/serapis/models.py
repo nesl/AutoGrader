@@ -538,7 +538,7 @@ class Testbed(models.Model):
         
         with transaction.atomic():
             self.status = Testbed.STATUS_BUSY
-            self.task_being_graded = task_grading_status
+            self.task_being_graded = chosen_task
             self.grading_deadline = timezone.now() + datetime.timedelta(0, duration)
             self.secret_code = str(timezone.now())
             self.save()
