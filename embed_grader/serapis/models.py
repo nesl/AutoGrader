@@ -520,15 +520,22 @@ class Testbed(models.Model):
     # status of the foreign testbed
     secret_code = models.CharField(max_length=100)
 
-    def grade_task(self, chosen_task, duration,
+    def grade_task(self, chosen_task, duration, force_detach_currently_graded_task=False,
             check_testbed_status_is_available=True, check_task_status_is_pending=True):
         """
         Paremeter:
           - chosen_task: TaskGradingStatus, the task to be graded
           - duration: Float, how much time the task can be executed
+          - force_detach_currently_grading_task: True to abort the currently graded task if
+                present. Otherwise an exception is raised if task_being_graded is not None.
           - check_testbed_status_available: True if want to check this testbed is available
           - check_task_status_pending: True if want to check the status of chosen_task is pending
         """
+        if force_detach_currently_graded_task:
+            if self.task_being_graded:
+                self.abort_task(set_status=self.status, check_task_status_is_executing=False)
+        if self.task_being_graded:
+            raise Exception('This testbed is still grading one task')
         if check_testbed_status_is_available:
             if self.status != Testbed.STATUS_AVAILABLE:
                 raise Exception('Request grading a task but status is not available')

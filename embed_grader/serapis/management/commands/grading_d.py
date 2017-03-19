@@ -164,7 +164,8 @@ class Command(BaseCommand):
                             % (graded_task.id))
                 else:
                     self._printMessage('Wait, no grading task is found, why being busy then')
-                testbed.abort_task(set_status=Testbed.STATUS_AVAILABLE)
+                testbed.abort_task(set_status=Testbed.STATUS_AVAILABLE,
+                        tolerate_task_is_not_present=True)
 
             #
             # task assignment
@@ -188,7 +189,7 @@ class Command(BaseCommand):
 
                 duration = (chosen_task.assignment_task_id.execution_duration
                         + K_GRADING_GRACE_PERIOD_SEC)
-                testbed.grade_task(chosen_task, duration)
+                testbed.grade_task(chosen_task, duration, force_detach_currently_graded_task=True)
 
                 threading.Thread(target=self._grade, name=('id=%s' % testbed.ip_address),
                         kwargs={'testbed': testbed, 'task': chosen_task}).start()
