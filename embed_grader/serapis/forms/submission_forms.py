@@ -161,8 +161,9 @@ class RegradeForm(Form):
                 # We set the testbed as offline for the django to figure out the status. Whenever
                 # testbeds broadcast their summaries, the status in django is going to be reset.
                 # The abort_task() method will clear the task status to pending again, but it
-                # won't hurt.
-                t.abort_task(set_status=Testbed.STATUS_OFFLINE)
+                # won't hurt. Since we just clear each task as pending, we should force it not to
+                # check if the task is executing.
+                t.abort_task(set_status=Testbed.STATUS_OFFLINE, check_task_status_is_executing=False)
 
         return (num_affected_submissions, num_affected_task_grading_status)
 
