@@ -187,7 +187,7 @@ def task_grading_status_grading_detail(request):
         print('Warning: find 2 or more records with this file name')
 
     status = status_list[0]
-    if status.can_access_output_file_by_user(user):
+    if status.can_access_grading_details_by_user(user):
         return _make_http_response_for_file_download(status.grading_detail.path)
     else:
         return HttpResponseForbidden()
@@ -218,10 +218,9 @@ def task_grading_status_file(request):
     user = User.objects.get(username=request.user)
     file_path = request.get_full_path()
     query_file_name = _get_query_file_name(file_path)
-    # print(query_file_name)
+    
     # check if file exists
     task_grading_status_file_list = TaskGradingStatusFile.objects.filter(file=query_file_name)
-    # print(task_grading_status_file_list)
     if len(task_grading_status_file_list) == 0:
         return HttpResponseForbidden()
 
@@ -229,11 +228,10 @@ def task_grading_status_file(request):
         print('Warning: find 2 or more records with this file name')
 
     task_grading_status = task_grading_status_file_list[0].task_grading_status_id
-    if task_grading_status.can_access_output_file_by_user(user):
+    if task_grading_status.can_access_grading_details_by_user(user):
         return _make_http_response_for_file_download(task_grading_status_file_list[0].file.path)
     else:
         return HttpResponseForbidden()
-
 
 
 @login_required(login_url='/login/')
@@ -250,14 +248,12 @@ def assignment_task_file(request):
     if len(assignment_task_file_list) >= 2:
         print('Warning: find 2 or more records with this file name')
 
-    assignment_task = assignment_task_file_list[0].assignment_task_id 
-    if assignment_task.can_access_test_input_by_user(user):
-        return _make_http_response_for_file_download(assignment_task_file_list[0].file.path)
+    assignment_task_file = assignment_task_file_list[0]
+    assignment_task = assignment_task_file.assignment_task_id 
+    if assignment_task.can_access_grading_details_by_user(user):
+        return _make_http_response_for_file_download(assignment_task_file.file.path)
     else:
         return HttpResponseForbidden()
-
-
-
 
 
 def content_images(request):

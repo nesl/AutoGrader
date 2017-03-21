@@ -168,7 +168,8 @@ class RenderSubmissionTableRow:
             else:
                 task = atid_2_task_grading_status[atid]
                 status = task.grading_status
-                task_id_for_url = task.id if task.can_detail_be_viewed_by_user(self.user) else None
+                task_id_for_url = (
+                        task.id if task.can_show_grading_details_to_user(self.user) else None)
                 htmls.append(self._render_task_status(status_2_text[status],
                     status_2_background_color[status], task_id_for_url))
         return '&nbsp;'.join(htmls)

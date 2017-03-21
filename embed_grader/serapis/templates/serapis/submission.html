@@ -91,7 +91,7 @@
             <td>N/A</td>
           {% else %}
             <td>
-              {% if t|pm:'can_detail_be_viewed_by_user'|pa:myuser|invoke %}
+              {% if t|pm:'can_show_grading_details_to_user'|pa:myuser|invoke %}
                 <a href="{% url 'task-grading-detail' t.id %}" class="btn btn-primary" style="font-size: 12px;
                 background:white; color:SteelBlue; border-color:SteelBlue; width:100px">
               {% else %}

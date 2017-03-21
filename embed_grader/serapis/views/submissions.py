@@ -105,7 +105,7 @@ def task_grading_detail(request, task_grading_id):
             return HttpResponse("Not enough privilege")
 
     assignment_task = task_grading_status.assignment_task_id
-    if not assignment_task.can_view_grading_detail_by_user(user):
+    if not assignment_task.can_access_grading_details_by_user(user):
         print("cannot view detail")
         return HttpResponse("Not enough privilege")
 

@@ -267,21 +267,10 @@ class AssignmentTask(models.Model):
     def __str__(self):
         return self.brief_description
 
-    def can_access_test_input_by_user(self, user):
-        viewing_scope = self.assignment_id.viewing_scope_by_user(user)
-        if viewing_scope == Assignment.VIEWING_SCOPE_NO:
-            return False
-        elif viewing_scope == Assignment.VIEWING_SCOPE_FULL:
-            return True
-        else:
-            if self.mode in [self.MODE_HIDDEN, self.MODE_FEEDBACK]:
-                return False
-            return True
-
-    def can_access_grading_script_by_user(self, user):
-        return user.has_perm('create_assignment', self.assignment_id.course_id)
-
-    def can_view_grading_detail_by_user(self, user):
+    def can_access_grading_details_by_user(self, user):
+        """
+        The grading details here include input and output files, grading feedback, and scores.
+        """
         viewing_scope = self.assignment_id.viewing_scope_by_user(user)
         if viewing_scope == Assignment.VIEWING_SCOPE_NO:
             return False
@@ -289,6 +278,9 @@ class AssignmentTask(models.Model):
             return True
         else:
             return self.mode in [self.MODE_PUBLIC, self.MODE_DEBUG]
+
+    def can_access_grading_script_by_user(self, user):
+        return user.has_perm('create_assignment', self.assignment_id.course_id)
 
     def retrieve_assignment_task_files(self, user):
         viewing_scope = self.assignment_id.viewing_scope_by_user(user)
@@ -446,7 +438,12 @@ class TaskGradingStatus(models.Model):
         return self.grading_status in [
                 TaskGradingStatus.STAT_FINISH, TaskGradingStatus.STAT_INTERNAL_ERROR]
 
-    def can_access_output_file_by_user(self, user):
+    def can_access_grading_details_by_user(self, user):
+        """
+        The grading details is defined the same as in AssignmentTask, including output files, 
+        grading feedback, and score.
+        """
+
         # If the user is an instructor, she can see the output file
         if user.has_perm('create_assignment', self.assignment_task_id.assignment_id.course_id):
             return True
@@ -459,10 +456,14 @@ class TaskGradingStatus(models.Model):
         # Now, is the output ready to download? Depends on the mode of the task.
         # Fortunately, the accessibility of an input file and an output file within the
         # same task should be the same. We can simply ask the permission of the input file.
-        return self.assignment_task_id.can_access_test_input_by_user(user)
+        return self.assignment_task_id.can_access_grading_details_by_user(user)
 
-    def can_detail_be_viewed_by_user(self, user):
-        return self.assignment_task_id.can_view_grading_detail_by_user(user)
+    def can_show_grading_details_to_user(self, user):
+        """
+        The grading details can be displayed on web only if the user has the permission to see this
+        information and the content is ready.
+        """
+        return self.can_access_grading_details_by_user(user) and self.is_grading_done()
 
 
 class TaskGradingStatusFileSchema(models.Model):
