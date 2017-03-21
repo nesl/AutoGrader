@@ -221,6 +221,7 @@
 
       <div>
         <a class="btn btn-primary" href="{% url 'regrade' assignment.id %}">Regrade interface</a>
+        <a class="btn btn-primary" href="{% url 'assignment' assignment.id 'final-grade' %}">Run final grading</a>
       </div>
     {% endif %}
 

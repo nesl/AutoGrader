@@ -93,17 +93,11 @@ class Command(BaseCommand):
             
             r = requests.post(url, data=data, files=files)
             if r.status_code != 200:  # testbed is not available
-                task.grading_status = TaskGradingStatus.STAT_PENDING
-                task.save()
-                testbed.task_being_graded = None
-                testbed.save()
+                testbed.abort_task(set_status=Testbed.STATUS_BUSY)
                 self._printMessage('Testbed id=%d abort task %d' % (testbed.id, task.id))
                 
         except:
-            testbed.status = Testbed.STATUS_OFFLINE
-            testbed.save()
-            task.grading_status = TaskGradingStatus.STAT_PENDING
-            task.save()
+            testbed.abort_task(set_status=Testbed.STATUS_OFFLINE)
             self._printMessage('Testbed id=%d goes offline since something goes wrong:'
                     % testbed.id)
             exc_type, exc_value, exc_tb = sys.exc_info()
@@ -130,6 +124,9 @@ class Command(BaseCommand):
                 threshold_time = now - datetime.timedelta(0, K_TESTBED_INVALIDATION_REMOVE_SEC)
                 testbed_list = Testbed.objects.filter(report_time__lt=threshold_time)
                 for testbed in testbed_list:
+                    # make sure that no task is associated with this testbed
+                    testbed.abort_task(set_status=Testbed.STATUS_OFFLINE,
+                            tolerate_task_is_not_present=True)
                     self._printMessage('Testbed id=%d removed from testbed' % (testbed.id))
                 testbed_list.delete()
                 timer_testbed_invalidation_remove = K_TESTBED_INVALIDATION_REMOVE_SEC
@@ -143,15 +140,13 @@ class Command(BaseCommand):
                 )
                 for testbed in testbed_list:
                     self._printMessage('Set testbed id=%d offline' % (testbed.id))
-                    testbed.status = Testbed.STATUS_OFFLINE
                     graded_task = testbed.task_being_graded
-                    testbed.task_being_graded = None
-                    testbed.save()
                     if graded_task:
-                        graded_task.grading_status = TaskGradingStatus.STAT_PENDING
-                        graded_task.save()
                         self._printMessage('Abort the grading task id=%d and reset to pending'
                                 % (graded_task.id))
+                    testbed.abort_task(set_status=Testbed.STATUS_OFFLINE,
+                            tolerate_task_is_not_present=True)
+                
                 timer_testbed_invalidation_offline = K_TESTBED_INVALIDATION_OFFLINE_SEC
 
             # Since hardware front end does not keep track of the status of grading, what can
@@ -163,17 +158,14 @@ class Command(BaseCommand):
                     grading_deadline__lt=now)
             for testbed in testbed_list:
                 graded_task = testbed.task_being_graded
-                testbed.status = Testbed.STATUS_AVAILABLE
-                testbed.task_being_graded = None
-                testbed.save()
                 self._printMessage('Testbed id=%d passed the grading deadline' % testbed.id)
                 if graded_task:
-                    graded_task.grading_status = TaskGradingStatus.STAT_PENDING
-                    graded_task.save()
                     self._printMessage('Abort the grading task id=%d and reset to pending'
                             % (graded_task.id))
                 else:
                     self._printMessage('Wait, no grading task is found, why being busy then')
+                testbed.abort_task(set_status=Testbed.STATUS_AVAILABLE,
+                        tolerate_task_is_not_present=True)
 
             #
             # task assignment
@@ -195,19 +187,9 @@ class Command(BaseCommand):
 
                 chosen_task = task_list[0]
 
-                testbed.status = Testbed.STATUS_BUSY
-                testbed.task_being_graded = chosen_task
                 duration = (chosen_task.assignment_task_id.execution_duration
                         + K_GRADING_GRACE_PERIOD_SEC)
-                testbed.grading_deadline = timezone.now() + datetime.timedelta(0, duration)
-                testbed.secret_code = str(timezone.now())
-                testbed.save()
-
-                chosen_task.grading_status = TaskGradingStatus.STAT_EXECUTING
-                chosen_task.status_update_time = timezone.now()
-                chosen_task.points = 0.
-                chosen_task.grading_detail = None
-                chosen_task.save()
+                testbed.grade_task(chosen_task, duration, force_detach_currently_graded_task=True)
 
                 threading.Thread(target=self._grade, name=('id=%s' % testbed.ip_address),
                         kwargs={'testbed': testbed, 'task': chosen_task}).start()
