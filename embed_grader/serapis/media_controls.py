@@ -115,28 +115,7 @@ def assignment_task_grading_script(request):
 
 
 @login_required(login_url='/login/')
-def submission_file(request):
-    user = User.objects.get(username=request.user)
-    query_file_name = _get_query_file_name(request.get_full_path())
-
-    # Check file exists
-    submissions = Submission.objects.filter(file=query_file_name)
-    if len(submissions) == 0:
-        return HttpResponseForbidden()
-
-    if len(submissions) >= 2:
-        print('Warning: find 2 or more records with this file name')
-
-    submission = submissions[0]
-
-    if submission.can_access_file_by_user(user):
-        return _make_http_response_for_file_download(submission.file.path)
-    else:
-        return HttpResponseForbidden()
-
-
-@login_required(login_url='/login/')
-def submission_file2(request):
+def submission_file_file(request):
     user = User.objects.get(username=request.user)
     query_file_name = _get_query_file_name(request.get_full_path())
 
@@ -150,27 +129,8 @@ def submission_file2(request):
 
     file_to_download = submission_file[0]
 
+    #TODO: no permission check
     return _make_http_response_for_file_download(file_to_download.file.path)
-
-
-# @login_required(login_url='/login/')
-# def task_grading_status_output_file(request):
-#     user = User.objects.get(username=request.user)
-#     query_file_name = _get_query_file_name(request.get_full_path())
-
-#     # Check file exists
-#     status_list = TaskGradingStatus.objects.filter(output_file=query_file_name)
-#     if len(status_list) == 0:
-#         return HttpResponseForbidden()
-
-#     if len(status_list) >= 2:
-#         print('Warning: find 2 or more records with this file name')
-
-#     status = status_list[0]
-#     if status.can_access_output_file_by_user(user):
-#         return _make_http_response_for_file_download(status.output_file.path)
-#     else:
-#         return HttpResponseForbidden()
 
 
 @login_required(login_url='/login/')
@@ -193,28 +153,8 @@ def task_grading_status_grading_detail(request):
         return HttpResponseForbidden()
 
 
-# @login_required(login_url='/login/')
-# def task_grading_status_dut_serial_output(request):
-#     user = User.objects.get(username=request.user)
-#     query_file_name = _get_query_file_name(request.get_full_path())
-
-#     # Check file exists
-#     status_list = TaskGradingStatus.objects.filter(DUT_serial_output=query_file_name)
-#     if len(status_list) == 0:
-#         return HttpResponseForbidden()
-
-#     if len(status_list) >= 2:
-#         print('Warning: find 2 or more records with this file name')
-
-#     status = status_list[0]
-#     if status.can_access_output_file_by_user(user):
-#         return _make_http_response_for_file_download(status.DUT_serial_output.path)
-#     else:
-#         return HttpResponseForbidden()
-
-
 @login_required(login_url='/login/')
-def task_grading_status_file(request):
+def task_grading_status_file_file(request):
     user = User.objects.get(username=request.user)
     file_path = request.get_full_path()
     query_file_name = _get_query_file_name(file_path)
@@ -235,7 +175,7 @@ def task_grading_status_file(request):
 
 
 @login_required(login_url='/login/')
-def assignment_task_file(request):
+def assignment_task_file_file(request):
     user = User.objects.get(username=request.user)
     file_path = request.get_full_path()
     query_file_name = _get_query_file_name(file_path)
