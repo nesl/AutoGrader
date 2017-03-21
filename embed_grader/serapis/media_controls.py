@@ -128,9 +128,12 @@ def submission_file_file(request):
         print('Warning: find 2 or more records with this file name')
 
     file_to_download = submission_file[0]
+    submission = file_to_download.submission_id
 
-    #TODO: no permission check
-    return _make_http_response_for_file_download(file_to_download.file.path)
+    if submission.can_access_file_by_user(user):
+        return _make_http_response_for_file_download(file_to_download.file.path)
+    else:
+        return HttpResponseForbidden()
 
 
 @login_required(login_url='/login/')
