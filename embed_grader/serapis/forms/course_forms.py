@@ -148,4 +148,26 @@ class CourseEnrollmentForm(Form):
             course_user_list.save()
 
         return course_user_list
+
+class CourseDropForm(Form):
+    error_messages = {
+        'course_not_enrolled': "You cannot drop a class you have not enrolled."
+    }
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user')
+        self.course = kwargs.pop('course')
+        super(CourseDropForm, self).__init__(*args, **kwargs)
+
+    def clean(self):
+        if CourseUserList.objects.filter(user_id=self.user, course_id=self.course).count() == 0:
+            raise forms.ValidationError(self.error_messages['course_not_enrolled'],
+                code='course_not_enrolled')
+        return self.cleaned_data
+
+    def save(self, commit=True):
+        if commit:
+            print("course dropped")
+            CourseUserList.objects.filter(user_id=self.user, course_id=self.course).delete()
+    
         

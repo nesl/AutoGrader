@@ -116,6 +116,26 @@ def enroll_course(request):
 
     return render(request, 'serapis/enroll_course.html', template_context)
 
+@login_required(login_url='/login/')
+def unenroll_course(request, course_id):
+    user = User.objects.get(username=request.user)
+    course = Course.objects.get(id=course_id)
+
+    if request.method == 'POST':
+        form = CourseDropForm(request.POST, user=user, course=course)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(reverse('homepage'))
+    else:
+        form = CourseDropForm(user=user, course=course)
+
+    template_context = {
+        'course':course,
+        'form': form,
+    }
+
+    return render(request, 'serapis/unenroll_course.html', template_context)
+
 
 @login_required(login_url='/login/')
 def membership(request, course_id):

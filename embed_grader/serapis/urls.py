@@ -39,6 +39,7 @@ urlpatterns = [
     url(r'^create-course/$', courses.create_course, name='create-course'),
     url(r'^modify-course/(?P<course_id>[0-9]+)/$', courses.modify_course, name='modify-course'),
     url(r'^enroll-course/$', courses.enroll_course, name='enroll-course'),
+    url(r'^unenroll-course/(?P<course_id>[0-9]+)/$', courses.unenroll_course, name='unenroll-course'),
 
     ## Assignment pages
     url(r'^assignment/(?P<assignment_id>[0-9]+)/$', assignments.assignment, name='assignment'),

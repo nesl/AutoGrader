@@ -1,0 +1,45 @@
+{% extends 'serapis/base_sidebar.html' %}
+{% load staticfiles %}
+{% load widget_tweaks %}
+{% load bootstrap3 %}
+
+{% block sidebar-content %}
+  <!-- SIDEBAR USER TITLE -->
+  <div class="profile-usertitle">
+    <div class="profile-usertitle-name">
+      Welcome!
+    </div>
+    <div class="profile-usertitle-job">
+      {{ course.name }}
+    </div>
+  </div>
+  <!-- END SIDEBAR USER TITLE -->
+  <!-- SIDEBAR MENU -->
+  <div class="profile-usermenu">
+    <ul class="nav nav-bar">
+      <li class="active"><a href="{% url 'homepage' %}">Courses</a></li>
+      <li><a href="{% url 'submissions_full_log' %}">Submissions</a></li>
+      {% if perms.serapis.add_testbed %}
+        <li><a href="{% url 'testbed-type-list' %}">Testbed Types</a></li>
+        <li><a href="{% url 'hardware-type-list' %}">Hardware Types</a></li>
+      {% endif %}
+    </ul>
+  </div>
+  <!-- END MENU -->
+{% endblock %}
+
+{% block main-content %}
+  <div class="main-content">
+    <h3 class="page-header">Drop course <a href="{url 'course' course.id}">{{course.course_code}}:{{course.name}}</a></h3>
+    <p>You are about to drop course {{course.course_code}}: {{course.name}}. Are you sure you want to drop this class?</p>
+    <form action="." method="post">
+      {% csrf_token %}
+      {% bootstrap_form form %}
+      <br/>
+      <input type="submit" value="Yes, Drop" style="float:left"/>
+      <button style="margin-left:10px;">
+        <a href="{% url 'homepage' %}" style="color: black; text-decoration: none">Cancel</a>
+      </button>
+    </form>
+  </div>
+{% endblock %}
