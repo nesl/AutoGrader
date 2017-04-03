@@ -167,7 +167,13 @@ class CourseDropForm(Form):
 
     def save(self, commit=True):
         if commit:
-            print("course dropped")
             CourseUserList.objects.filter(user_id=self.user, course_id=self.course).delete()
+            # if len(cu_list) > 0 && cu_list[0].role < 20:
+            #     instructor_group_name = str(course.id) + "_Instructor_Group"
+        
+            # remove user from course group also
+            student_group_name = str(self.course.id) + "_Student_Group"
+            student_group = Group.objects.get(name=student_group_name)
+            self.user.groups.remove(student_group)
     
         
