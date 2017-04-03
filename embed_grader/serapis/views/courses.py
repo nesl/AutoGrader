@@ -116,30 +116,35 @@ def enroll_course(request):
 
     return render(request, 'serapis/enroll_course.html', template_context)
 
+
 @login_required(login_url='/login/')
 def unenroll_course(request, course_id):
     user = User.objects.get(username=request.user)
     course = Course.objects.get(id=course_id)
-    form = ''
 
-    course_not_enrolled = False
-    if len(CourseUserList.objects.filter(user_id=user, course_id=course)) < 1:
-        course_not_enrolled = True
-    else:
-        if request.method == 'POST':
-            form = CourseDropForm(request.POST, user=user, course=course)
-            if form.is_valid():
-                form.save_and_commit()
-                return HttpResponseRedirect(reverse('homepage'))
-        else:
-            form = CourseDropForm(user=user, course=course)
+    course_enrolled = (CourseUserList.objects.filter(user_id=user, course_id=course).count() > 0)
+    
+    if not course_enrolled:
+        template_context = {
+            'myuser': user,
+            'course': course,
+            'course_enrolled': False,
+        }
+        return render(request, 'serapis/unenroll_course.html', template_context)
 
+    if request.method == 'POST':
+        form = CourseDropForm(request.POST, user=user, course=course)
+        if form.is_valid():
+            form.save_and_commit()
+            return HttpResponseRedirect(reverse('homepage'))
+
+    form = CourseDropForm(user=user, course=course)
     template_context = {
+        'myuser': user,
         'course': course,
         'form': form,
-        'course_not_enrolled': course_not_enrolled
+        'course_enrolled': True,
     }
-
     return render(request, 'serapis/unenroll_course.html', template_context)
 
 
