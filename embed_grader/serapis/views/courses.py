@@ -129,7 +129,7 @@ def unenroll_course(request, course_id):
         if request.method == 'POST':
             form = CourseDropForm(request.POST, user=user, course=course)
             if form.is_valid():
-                form.save()
+                form.save_and_commit()
                 return HttpResponseRedirect(reverse('homepage'))
         else:
             form = CourseDropForm(user=user, course=course)
