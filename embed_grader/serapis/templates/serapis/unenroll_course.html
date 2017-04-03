@@ -31,15 +31,20 @@
 {% block main-content %}
   <div class="main-content">
     <h3 class="page-header">Drop course <a href="{url 'course' course.id}">{{course.course_code}}:{{course.name}}</a></h3>
-    <p>You are about to drop course {{course.course_code}}: {{course.name}}. Are you sure you want to drop this class?</p>
-    <form action="." method="post">
-      {% csrf_token %}
-      {% bootstrap_form form %}
-      <br/>
-      <input type="submit" value="Yes, Drop" style="float:left"/>
-      <button style="margin-left:10px;">
-        <a href="{% url 'homepage' %}" style="color: black; text-decoration: none">Cancel</a>
-      </button>
-    </form>
+    {% if course_not_enrolled %}
+      <p>You are not currently enrolled in course {{course.course_code}}: {{course.name}}.</p>
+    {% else %}
+      <p>You are about to drop course {{course.course_code}}: {{course.name}}. Are you sure you want to drop this class?</p>
+      <form action="." method="post">
+        {% csrf_token %}
+        {% bootstrap_form form %}
+        <br/>
+        <input type="submit" value="Yes, Drop" style="float:left"/>
+        <button style="margin-left:10px;">
+          <a href="{% url 'homepage' %}" style="color: black; text-decoration: none">Cancel</a>
+        </button>
+      </form>
+    {% endif %}
+
   </div>
 {% endblock %}
