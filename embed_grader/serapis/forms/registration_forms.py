@@ -48,7 +48,7 @@ class UserRegistrationForm(UserCreationForm):
 
     def clean_email(self):
         email = self.cleaned_data.get("email")
-        if User.objects.filter(email=email).count() > 0:
+        if User.objects.filter(email__iexact=email).count() > 0:
             raise forms.ValidationError(self.error_messages['email_not_unique'],
                 code='email_not_unique')
         return email
