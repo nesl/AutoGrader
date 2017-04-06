@@ -8,10 +8,8 @@ Web frontend of Embedded Systems Auto Grader project
   - If not, go to this link https://www.python.org/downloads/ to get the latest version of Python.
 
 - Install Django
-  - Go to your Python ```~/site-packages``` path, which is probably ```/Library/Frameworks/Python.framework/Versions/3.5/lib/python3.5/site-packages``` for Mac, and then run the following two commands:
-    - ```git clone git://github.com/django/django.git```
-    - ```pip install -e django/```
   - You might also need to get ```pip3``` by ```sudo apt-get install python3-pip```.
+  - ```pip3 install Django==1.10.2```
 
 - Install missing modules
   - ```pip3 install numpy```
