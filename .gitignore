@@ -46,3 +46,5 @@ embed_grader/dev_grader_wsgi.ini
 #SSL/TLS certification bot
 certbot-auto
 
+# Database file
+*.sqlite3
