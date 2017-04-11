@@ -32,7 +32,7 @@
                 <ul class="nav nav-bar">
                   <li class="{% block courses-active %}{% endblock %}"><a href="{% url 'homepage' %}">Courses</a></li>
                   
-                  {% if course != None %}
+                  {% if course is not None %}
                     {% get_obj_perms request.user for course as "course_perms" %}
                     {% if "modify_course" in course_perms %}
                       <li class="{% block membership-active %}{% endblock %}"><a href="{% url 'membership' course.id %}">Students</a></li>
