@@ -2,40 +2,15 @@
 {% load staticfiles %}
 {% load submission_tags %}
 
-{% block sidebar-content %}
-  <!-- SIDEBAR USER TITLE -->
-
-  <div class="profile-usertitle">
-    <div class="profile-usertitle-name">
-      Submissions
-    </div>
-    <div class="profile-usertitle-job">
-      {{ myuser_name }}
-    </div>
-  </div>
-  <!-- END SIDEBAR USER TITLE -->
-  <!-- SIDEBAR MENU -->
-  <div class="profile-usermenu">
-    <ul class="nav nav-bar">
-      <li><a href="{% url 'homepage' %}">Courses</a></li>
-      {% if perms.serapis.view_hardware_type %}
-        <li>
-          <a data-toggle="collapse"
-          data-target="#submenu1" aria-expanded="false">Submissions</a>
-          <ul class="nav collapse" id="submenu1" role="menu" aria-labelledby="btn-1">
-            <li class="active"><a href="{% url 'submissions_full_log' %}">My Submissions</a></li>
-            <li><a href="{% url 'student_submission_full_log' %}">Student Submissions</a></li>
-          </ul>
-        </li>
-        <li><a href="{% url 'testbed-type-list' %}">Testbed Types</a></li>
-        <li><a href="{% url 'hardware-type-list' %}">Hardware Types</a></li>
-      {% else %}
-        <li class="active"><a href="{% url 'submissions_full_log' %}">Submissions</a></li>
-      {% endif %}
-    </ul>
-  </div>
-  <!-- END MENU -->
+{% block profile-usertitle-name %}
+  Submissions
 {% endblock %}
+
+{% block profile-usertitle-job %}
+  {{ myuser_name }}
+{% endblock %}
+
+{% block my-submissions-active %}active{% endblock %}
 
 {% block main-content %}
   <div class="main-content">
