@@ -10,69 +10,69 @@
 
 
 {% block content %}
-    <div class="row">
-        <div class="col-md-2">
-            <div class="profile-sidebar" style="position:fixed; height:100%;
-            width:15%; min-width:150px; text-align:center; padding-top:20px;">
-            {% block sidebar-content %}
-              <!-- SIDEBAR USER TITLE -->
-              <div class="profile-usertitle">
-                <div class="profile-usertitle-name">
-                  {% block profile-usertitle-name %}
-                  {% endblock %}
-                </div>
-                <div class="profile-usertitle-job">
-                  {% block profile-usertitle-job %}
-                  {% endblock %}
-                </div>
-              </div>
-              <!-- END SIDEBAR USER TITLE -->
-              <!-- SIDEBAR MENU -->
-              <div class="profile-usermenu">
-                <ul class="nav nav-bar">
-                  <li class="{% block courses-active %}{% endblock %}"><a href="{% url 'homepage' %}">Courses</a></li>
-                  
-                  {% if course is not None %}
-                    {% get_obj_perms request.user for course as "course_perms" %}
-                    {% if "modify_course" in course_perms %}
-                      <li class="{% block membership-active %}{% endblock %}"><a href="{% url 'membership' course.id %}">Students</a></li>
-                    {% endif %}
-                  {% endif %}
-      
-                  {% if perms.serapis.view_hardware_type or perms.serapis.add_testbed %}
-                      <li>
-                          <a data-toggle="collapse"
-                          data-target="#submenu1" aria-expanded="false">Submissions</a>
-                          <ul class="nav collapse" id="submenu1" role="menu" aria-labelledby="btn-1">
-                            <li class="{% block my-submissions-active %}{% endblock %}"><a href="{% url 'submissions_full_log' %}">My Submissions</a></li>
-                            <li class="{% block student-submissions-active %}{% endblock %}"><a href="{% url 'student_submission_full_log' %}">Student Submissions</a></li>
-                          </ul>
-                      </li>
-                  {% else %}
-                      <li class="{% block submissions-active %}{% endblock %}">
-                          <a href="{% url 'submissions_full_log' %}">Submissions</a>
-                      </li>
-                  {% endif %}
-                  {% if perms.serapis.view_hardware_type or perms.serapis.add_testbed %}
-                    <li class="{% block testbed-type-list-active %}{% endblock %}"><a href="{% url 'testbed-type-list' %}">Testbed Types</a></li>
-                    <li class="{% block hardware-type-list-active %}{% endblock %}"><a href="{% url 'hardware-type-list' %}">Hardware Types</a></li>
-                  {% endif %}
-                </ul>
-              </div>
-              <!-- END MENU -->
-            {% endblock %}
-            </div>
-            <!--END SIDEBAR-->
+  <div class="row">
+    <div class="col-md-2">
+      <div class="profile-sidebar" style="position:fixed; height:100%;
+      width:15%; min-width:150px; text-align:center; padding-top:20px;">
+      {% block sidebar-content %}
+        <!-- SIDEBAR USER TITLE -->
+        <div class="profile-usertitle">
+        <div class="profile-usertitle-name">
+          {% block profile-usertitle-name %}
+          {% endblock %}
         </div>
-        <!--END COLUMN-->
-        <!--START COLUMN-->
-        <div class="col-md-10" style="margin-left:15%; width:85%">
-            <!--MAIN CONTENT-->
-            {% block main-content %}
-            {% endblock %}
-            <!--END MAIN CONTENT-->
+        <div class="profile-usertitle-job">
+          {% block profile-usertitle-job %}
+          {% endblock %}
         </div>
-        <!--END COLUMN-->
+        </div>
+        <!-- END SIDEBAR USER TITLE -->
+        <!-- SIDEBAR MENU -->
+        <div class="profile-usermenu">
+        <ul class="nav nav-bar">
+          <li class="{% block courses-active %}{% endblock %}"><a href="{% url 'homepage' %}">Courses</a></li>
+          
+          {% if course is not None %}
+          {% get_obj_perms request.user for course as "course_perms" %}
+          {% if "modify_course" in course_perms %}
+            <li class="{% block membership-active %}{% endblock %}"><a href="{% url 'membership' course.id %}">Students</a></li>
+          {% endif %}
+          {% endif %}
+    
+          {% if perms.serapis.view_hardware_type or perms.serapis.add_testbed %}
+            <li>
+              <a data-toggle="collapse"
+              data-target="#submenu1" aria-expanded="false">Submissions</a>
+              <ul class="nav collapse" id="submenu1" role="menu" aria-labelledby="btn-1">
+              <li class="{% block my-submissions-active %}{% endblock %}"><a href="{% url 'submissions_full_log' %}">My Submissions</a></li>
+              <li class="{% block student-submissions-active %}{% endblock %}"><a href="{% url 'student_submission_full_log' %}">Student Submissions</a></li>
+              </ul>
+            </li>
+          {% else %}
+            <li class="{% block submissions-active %}{% endblock %}">
+              <a href="{% url 'submissions_full_log' %}">Submissions</a>
+            </li>
+          {% endif %}
+          {% if perms.serapis.view_hardware_type or perms.serapis.add_testbed %}
+          <li class="{% block testbed-type-list-active %}{% endblock %}"><a href="{% url 'testbed-type-list' %}">Testbed Types</a></li>
+          <li class="{% block hardware-type-list-active %}{% endblock %}"><a href="{% url 'hardware-type-list' %}">Hardware Types</a></li>
+          {% endif %}
+        </ul>
+        </div>
+        <!-- END MENU -->
+      {% endblock %}
+      </div>
+      <!--END SIDEBAR-->
     </div>
-    <!--END ROW-->
+    <!--END COLUMN-->
+    <!--START COLUMN-->
+    <div class="col-md-10" style="margin-left:15%; width:85%">
+      <!--MAIN CONTENT-->
+      {% block main-content %}
+      {% endblock %}
+      <!--END MAIN CONTENT-->
+    </div>
+    <!--END COLUMN-->
+  </div>
+  <!--END ROW-->
 {% endblock %}
