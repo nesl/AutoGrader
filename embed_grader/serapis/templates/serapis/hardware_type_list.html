@@ -1,37 +1,15 @@
 {% extends 'serapis/base_sidebar.html' %}
 {% load staticfiles %}
 
-
-{% block sidebar-content %}
-    <!-- SIDEBAR USER TITLE -->
-    <div class="profile-usertitle">
-        <div class="profile-usertitle-name">
-            Welcome!
-        </div>
-        <div class="profile-usertitle-job">
-            <br>
-        </div>
-    </div>
-    <!-- END SIDEBAR USER TITLE -->
-    <!-- SIDEBAR MENU -->
-    <div class="profile-usermenu">
-        <ul class="nav">
-            <li>
-                <a href="{% url 'homepage' %}">Courses</a>
-            </li>
-            <li>
-                <a href="{% url 'submissions_full_log' %}">Submissions</a>
-            </li>
-            <li>
-                <a href="{% url 'testbed-type-list' %}">Testbed Types</a>
-            </li>
-            <li class="active">
-                <a href="{% url 'hardware-type-list' %}">Hardware Types</a>
-            </li>
-        </ul>
-    </div>
-    <!-- END MENU -->
+{% block profile-usertitle-name %}
+  Testbed
 {% endblock %}
+
+{% block profile-usertitle-job %}
+  <br>
+{% endblock %}
+
+{% block hardware-type-list-active %}active{% endblock %}
 
 {% block main-content %}
     <div class="main-content">
