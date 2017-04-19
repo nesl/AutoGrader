@@ -26,6 +26,7 @@ from datetime import timedelta
 class AssignmentForm(ModelForm):
     error_messages = {
         'time_conflict': 'Release time must be earlier than deadline.',
+        'invalid_num_members': 'Number of team members has to be more than or equal to 2.',
         'invalid_schema': 'Schema can only contain 0-9, a-z, \'.\', and \'_\'.',
     }
 
@@ -85,11 +86,10 @@ class AssignmentForm(ModelForm):
                 choices=AssignmentForm.TEAM_CHOICES,
                 initial=AssignmentForm.TEAM_OPTION_INDIVIDUAL,
         )
-        self.fields['num_max_team_members'] = forms.CharField(
+        self.fields['num_max_team_members'] = forms.IntegerField(
                 required=False,
-                widget=forms.TextInput,
                 initial=2,
-                #TODO: >= 2 validator
+                validators=[MinValueValidator(2)]
         )
 
         #TODO: order
@@ -102,6 +102,19 @@ class AssignmentForm(ModelForm):
         if rt and dl and rt >= dl:
             raise forms.ValidationError(self.error_messages['time_conflict'],
                 code='time_conflict')
+
+        # team choice
+        if int(self.cleaned_data['team_choice']) == AssignmentForm.TEAM_OPTION_INDIVIDUAL:
+            self.cleaned_data['num_max_team_members'] = 1
+        else:
+            if 'num_max_team_members' not in self.cleaned_data:
+                # Since field 'num_max_team_members' is optional, the data is not saved in
+                # self.cleaned_data if its format is not correct.
+                raise forms.ValidationError(self.error_messages['invalid_num_members'],
+                    code='invalid_num_members')
+            
+            self.cleaned_data['num_max_team_members'] = int(
+                    self.cleaned_data['num_max_team_members'])
 
         return self.cleaned_data
 
@@ -150,14 +163,9 @@ class AssignmentForm(ModelForm):
          raise Exception('Deprecated method')
 
     def save_and_commit(self):
-        if int(self.cleaned_data['team_choice']) == AssignmentForm.TEAM_OPTION_INDIVIDUAL:
-            num_max_team_members = 1
-        else:
-            num_max_team_members = int(self.cleaned_data['num_max_team_members'])
-
         assignment = super(AssignmentForm, self).save(commit=False)
         assignment.course_id = self.course
-        assignment.num_max_team_members = num_max_team_members
+        assignment.num_max_team_members = self.cleaned_data['num_max_team_members']
         assignment.save()
 
         # file schemas
