@@ -80,19 +80,24 @@ class AssignmentForm(ModelForm):
                     initial=initial_val,
             )
         
+        num_max_team_members = assignment.num_max_team_members if assignment else 1
+        initial_team_choice_val, initial_num_member_val = (
+                (AssignmentForm.TEAM_OPTION_INDIVIDUAL, 2) if num_max_team_members == 1
+                else (AssignmentForm.TEAM_OPTION_TEAM, num_max_team_members))
+
         self.fields['team_choice'] = forms.ChoiceField(
                 required=True,
                 widget=forms.RadioSelect,
                 choices=AssignmentForm.TEAM_CHOICES,
-                initial=AssignmentForm.TEAM_OPTION_INDIVIDUAL,
+                initial=initial_team_choice_val,
         )
         self.fields['num_max_team_members'] = forms.IntegerField(
                 required=False,
-                initial=2,
+                initial=initial_num_member_val,
                 validators=[MinValueValidator(2)]
         )
 
-        #TODO: order
+        #TODO: field order
         
 
     def clean(self):
