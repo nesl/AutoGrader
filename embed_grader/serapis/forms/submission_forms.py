@@ -113,6 +113,11 @@ class RegradeForm(Form):
          raise Exception('Deprecated method')
 
     def save_and_commit(self):
+        """
+        Returns:
+          (num_affected_submissions, num_affected_task_grading_status)
+        """
+          
         # finalize the author list
         if int(self.cleaned_data['author_scope']) == RegradeForm.AUTHOR_OPTION_ALL:
             authors = [o.user_id for o in CourseUserList.objects.filter(course_id=self.course)]
