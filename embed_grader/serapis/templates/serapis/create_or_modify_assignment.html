@@ -39,5 +39,27 @@
       <h2 class="page-header">Danger zone</h2>
       <a class="btn btn-danger" href="{% url 'course' course.id %}">Delete assignment</a>
     {% endif %}
+		
+		<script>
+      $('#id_num_max_team_members').width(200);
+      $('#id_num_max_team_members').css('display', 'inline-block');
+      $('#id_team_choice').children().last().css('display', 'inline-block');
+      $('#id_team_choice').append('<div id="id_team_choice_num_members" style="display:inline-block">: </div>');
+      $('#id_num_max_team_members').appendTo('#id_team_choice_num_members');
+
+			//TODO: see which has to be removed
+      $('.form-group').slice(10, 11).remove();
+
+      function onTeamChoiceChange() {
+        if ($("#id_team_choice_0:checked").is(":checked"))
+          $('#id_team_choice_num_members').css('visibility', 'hidden');
+        else
+          $('#id_team_choice_num_members').css('visibility', 'visible');
+      }
+
+      onTeamChoiceChange();
+
+      $('input[type=radio][name=team_choice]').change(onTeamChoiceChange);
+    </script>
   </div>
 {% endblock %}

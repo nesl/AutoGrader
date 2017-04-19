@@ -43,6 +43,13 @@ class AssignmentForm(ModelForm):
             'deadline': DateTimeWidget(bootstrap_version=3, options=date_time_options),
         }
 
+    TEAM_OPTION_INDIVIDUAL = 0
+    TEAM_OPTION_TEAM = 1
+    TEAM_CHOICES = (
+            (TEAM_OPTION_INDIVIDUAL, 'Individual assignment'),
+            (TEAM_OPTION_TEAM, 'Team assignment'),
+    )
+
     def __init__(self, *args, **kwargs):
         """
         Constructor:
@@ -71,6 +78,22 @@ class AssignmentForm(ModelForm):
                     help_text="Use ; to separate multiple schema names.",
                     initial=initial_val,
             )
+        
+        self.fields['team_choice'] = forms.ChoiceField(
+                required=True,
+                widget=forms.RadioSelect,
+                choices=AssignmentForm.TEAM_CHOICES,
+                initial=AssignmentForm.TEAM_OPTION_INDIVIDUAL,
+        )
+        self.fields['num_max_team_members'] = forms.CharField(
+                required=False,
+                widget=forms.TextInput,
+                initial=2,
+                #TODO: >= 2 validator
+        )
+
+        #TODO: order
+        
 
     def clean(self):
         # the order release time and deadline should be in order
@@ -124,11 +147,20 @@ class AssignmentForm(ModelForm):
         return schema_name_list
 
     def save(self, commit=True):
+         raise Exception('Deprecated method')
+
+    def save_and_commit(self):
+        if int(self.cleaned_data['team_choice']) == AssignmentForm.TEAM_OPTION_INDIVIDUAL:
+            num_max_team_members = 1
+        else:
+            num_max_team_members = int(self.cleaned_data['num_max_team_members'])
+
         assignment = super(AssignmentForm, self).save(commit=False)
         assignment.course_id = self.course
-        if commit:
-            assignment.save()
-        
+        assignment.num_max_team_members = num_max_team_members
+        assignment.save()
+
+        # file schemas
         SchemaClass_n_new_schema_name = [
                 (AssignmentTaskFileSchema, self.cleaned_data['assignment_task_file_schema']),
                 (SubmissionFileSchema, self.cleaned_data['submission_file_schema']),
@@ -148,7 +180,8 @@ class AssignmentForm(ModelForm):
                 if n_name not in old_schema_name_list:
                     SchemaClass.objects.create(assignment_id=assignment, field=n_name)
 
-        return assignment
+        # teams
+        #TODO: create teams if the assignment is just created and this is an individual assignment
 
 
 class AssignmentSubmissionForm(Form):
