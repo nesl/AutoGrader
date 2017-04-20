@@ -318,13 +318,20 @@ class AssignmentTaskFile(models.Model):
 
 class Team(models.Model):
     assignment_id = models.ForeignKey(Assignment, on_delete=models.CASCADE)
-    passcode = models.CharField(max_length=20)
+    passcode = models.CharField(max_length=20, unique=True)
+    
+    def __str__(self):
+        return str(self.id)
 
 
 class TeamMember(models.Model):
+    #TODO: unique together ('user_id, team_id.assignment_id')
     team_id = models.ForeignKey(Team, on_delete=models.CASCADE)
     user_id = models.ForeignKey(User, on_delete=models.CASCADE)
     is_leader = models.BooleanField()
+
+    def __str__(self):
+        return 'team%d-%s' % (self.team_id.id, self.user_id) 
 
 
 class Submission(models.Model):

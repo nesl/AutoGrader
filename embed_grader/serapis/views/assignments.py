@@ -197,7 +197,7 @@ def _create_or_modify_assignment(request, course_id, assignment):
     if request.method == 'POST':
         form = AssignmentForm(request.POST, course=course, instance=assignment)
         if form.is_valid():
-            assignment = form.save()
+            assignment = form.save_and_commit()
             return HttpResponseRedirect(reverse('assignment',
                 kwargs={'assignment_id': assignment.id}))
     else:

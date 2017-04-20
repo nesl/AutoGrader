@@ -18,6 +18,7 @@ from serapis.models import *
 from serapis.utils import grading
 from serapis.utils import file_schema
 from serapis.utils import user_info_helper
+from serapis.utils import team_helper
 
 from django.utils import timezone
 from datetime import timedelta
@@ -60,6 +61,10 @@ class AssignmentForm(ModelForm):
         super(AssignmentForm, self).__init__(*args, **kwargs)
 
         assignment = kwargs.get('instance')  # None if in creating mode, otherwise updating mode
+        if assignment and assignment.course_id != self.course:
+            raise Exception('The passed assignment does not belong to the course')
+
+        self.mode = 'modify' if assignment else 'create'
 
         # add three more input boxes for schema
         schema_file_info = [
@@ -168,6 +173,10 @@ class AssignmentForm(ModelForm):
          raise Exception('Deprecated method')
 
     def save_and_commit(self):
+        """
+        Return:
+          assignment
+        """
         assignment = super(AssignmentForm, self).save(commit=False)
         assignment.course_id = self.course
         assignment.num_max_team_members = self.cleaned_data['num_max_team_members']
@@ -193,8 +202,13 @@ class AssignmentForm(ModelForm):
                 if n_name not in old_schema_name_list:
                     SchemaClass.objects.create(assignment_id=assignment, field=n_name)
 
-        # teams
-        #TODO: create teams if the assignment is just created and this is an individual assignment
+        # create teams if the assignment is just created and this is an individual assignment
+        if self.mode == 'create' and self.cleaned_data['num_max_team_members'] == 1:
+            users = [o.user_id for o in CourseUserList.objects.filter(course_id=self.course)]
+            for u in users:
+                team_helper.create_team(assignment=assignment, users=[u])
+
+        return assignment
 
 
 class AssignmentSubmissionForm(Form):
