@@ -25,15 +25,15 @@ class RegradeForm(Form):
     django will simply ignore the results.
     """
 
-    AUTHOR_OPTION_ALL = 0
-    AUTHOR_OPTION_CUSTOMIZED = 1
+    AUTHOR_OPTION_ALL = '0'
+    AUTHOR_OPTION_CUSTOMIZED = '1'
     AUTHOR_SCOPE_CHOICES = (
             (AUTHOR_OPTION_ALL, 'All students in the course'),
             (AUTHOR_OPTION_CUSTOMIZED, 'Specify a student'),
     )
 
-    SUBMISSION_OPTION_LAST_ONES = 10
-    SUBMISSION_OPTION_CUSTOMIZED = 11
+    SUBMISSION_OPTION_LAST_ONES = '10'
+    SUBMISSION_OPTION_CUSTOMIZED = '11'
     SUBMISSION_SCOPE_CHOICES = (
             (SUBMISSION_OPTION_LAST_ONES, 'Last submission of all users'),
             (SUBMISSION_OPTION_CUSTOMIZED, 'Specify submission IDs'),
@@ -88,7 +88,7 @@ class RegradeForm(Form):
         super(RegradeForm, self).clean()
 
         # if customized submission range is set, parse the range
-        if int(self.cleaned_data['submission_scope']) == RegradeForm.SUBMISSION_OPTION_CUSTOMIZED:
+        if self.cleaned_data['submission_scope'] == RegradeForm.SUBMISSION_OPTION_CUSTOMIZED:
             submission_range_str = self.cleaned_data['submission_range']
             terms = [t.strip() for t in submission_range_str.split(',')]
             submission_ids = set()
@@ -114,14 +114,14 @@ class RegradeForm(Form):
 
     def save_and_commit(self):
         # finalize the author list
-        if int(self.cleaned_data['author_scope']) == RegradeForm.AUTHOR_OPTION_ALL:
+        if self.cleaned_data['author_scope'] == RegradeForm.AUTHOR_OPTION_ALL:
             authors = [o.user_id for o in CourseUserList.objects.filter(course_id=self.course)]
         else:
             authors = [self.cleaned_data['author_choice']]
 
         # finalize the submission list
         submission_list = []
-        if int(self.cleaned_data['submission_scope']) == RegradeForm.SUBMISSION_OPTION_LAST_ONES:
+        if self.cleaned_data['submission_scope'] == RegradeForm.SUBMISSION_OPTION_LAST_ONES:
             for a in authors:
                 query = Submission.objects.filter(student_id=a, assignment_id=self.assignment)
                 if query.count() > 0:
