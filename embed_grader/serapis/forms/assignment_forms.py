@@ -45,8 +45,8 @@ class AssignmentForm(ModelForm):
             'deadline': DateTimeWidget(bootstrap_version=3, options=date_time_options),
         }
 
-    TEAM_OPTION_INDIVIDUAL = 0
-    TEAM_OPTION_TEAM = 1
+    TEAM_OPTION_INDIVIDUAL = '0'
+    TEAM_OPTION_TEAM = '1'
     TEAM_CHOICES = (
             (TEAM_OPTION_INDIVIDUAL, 'Individual assignment'),
             (TEAM_OPTION_TEAM, 'Team assignment'),
@@ -114,7 +114,7 @@ class AssignmentForm(ModelForm):
                 code='time_conflict')
 
         # team choice
-        if int(self.cleaned_data['team_choice']) == AssignmentForm.TEAM_OPTION_INDIVIDUAL:
+        if self.cleaned_data['team_choice'] == AssignmentForm.TEAM_OPTION_INDIVIDUAL:
             self.cleaned_data['num_max_team_members'] = 1
         else:
             if 'num_max_team_members' not in self.cleaned_data:
