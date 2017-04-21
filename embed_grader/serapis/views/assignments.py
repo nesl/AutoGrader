@@ -185,8 +185,8 @@ def assignment_run_final_grade(request, assignment_id):
                     )
                 file_schema.create_empty_task_grading_status_schema_files(grading_task)
 
-            s.task_scope = AssignmentTask.MODE_HIDDEN
-            s.save()
+            submission.task_scope = AssignmentTask.MODE_HIDDEN
+            submission.save()
     
     return HttpResponseRedirect(reverse('assignment', kwargs={'assignment_id': assignment_id}))
 

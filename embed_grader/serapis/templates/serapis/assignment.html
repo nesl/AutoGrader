@@ -105,36 +105,9 @@
       <a class="btn btn-primary" href="{% url 'create-assignment-task' assignment.id %}">Create New Task</a>
     {% endif %}
 
-    {% if assignment.num_max_team_members > 1 %}
-      <hr/>
-      <br/>
-      <h3>{% if team %}Team requirement{% else %}Form a team{% endif %}</h3>
-      
-      <p>This is a team-based assignment with a maximum of {{assignment.num_max_team_members}}. Currently,
-      {% if not team %}
-        you are not involved in any team.
-      {% else %}
-        if num team members is one
-          you are the only person in the team.
-        else
-          there are xxx people in your team.
-        endif
-      {% endif %}
-      </p>
-
-      {% if not team %}
-        <p>To form a team, you can either
-          <ul>
-            <li>Create a team and become a leader <a>Click here</a></li>
-            <li>Enter a team passcode to join a new team <input /><a>Click here</a></li>
-          </ul>
-        </p>
-      {% endif %}
-    {% endif %}
-
     <hr/>
     <br/>
-    <h3>Submit your code</h3>
+    <h3/>Submit your code</h3>
     <hr/>
     <p><b>Release time: </b>{{ assignment.release_time }}</p>
     <p><b>Deadline: </b>{{ assignment.deadline }}</p>
@@ -210,7 +183,17 @@
 
       <div>
         <a class="btn btn-primary" href="{% url 'regrade' assignment.id %}">Regrade interface</a>
-        <a class="btn btn-primary" href="{% url 'assignment-run-final-grade' assignment.id %}">Run final grading</a>
+        {% if assignment.is_deadline_passed %}
+          <a class="btn btn-primary" href="{% url 'assignment-run-final-grade' assignment.id %}">Run final grading</a>
+        {% else %}
+          <a class="btn btn-primary" href="{% url 'assignment-run-final-grade' assignment.id %}" onclick="double_check()">Run final grading</a>
+          <script>
+            function double_check() {
+              if (confirm("The assignment deadline is not passed yet, meaning some students may be still working on the assignment. Do you still want to proceed final grading?"))
+                window.location.replace("{% url 'assignment-run-final-grade' assignment.id %}");
+            }
+          </script>
+        {% endif %}
       </div>
     {% endif %}
 
