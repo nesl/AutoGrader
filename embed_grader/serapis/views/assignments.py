@@ -50,6 +50,7 @@ def _display_remaining_time(tdelta):
 
 @login_required(login_url='/login/')
 def assignment(request, assignment_id, final_grade=''):
+    # check permission of viewing this page
     user = User.objects.get(username=request.user)
     user_profile = UserProfile.objects.get(user=user)
 
@@ -62,16 +63,21 @@ def assignment(request, assignment_id, final_grade=''):
     if not user.has_perm('view_assignment', course):
         return HttpResponse("Not enough privilege")
 
-    now = timezone.now()
-    time_remaining = _display_remaining_time(assignment.deadline - now)
-
-    # Handle POST the request
+    # handle POST the request
     if request.method == 'POST':
         form = AssignmentSubmissionForm(
                 request.POST, request.FILES, user=user, assignment=assignment)
         if form.is_valid():
             form.save_and_commit()
 
+    # retrieve team status
+    #TODO
+
+    # compute remaining time for submission
+    now = timezone.now()
+    time_remaining = _display_remaining_time(assignment.deadline - now)
+
+    # retrieve task status
     can_see_hidden_cases = (
             assignment.viewing_scope_by_user(user) == Assignment.VIEWING_SCOPE_FULL)
 
@@ -93,9 +99,11 @@ def assignment(request, assignment_id, final_grade=''):
     else:
         can_submit, reason_of_cannot_submit = True, None
 
+    # render the submission form
     submission_form = (AssignmentSubmissionForm(user=user, assignment=assignment)
             if can_submit else None)
 
+    # retrieve submission lists
     submission_lists = {}
     if not user.has_perm('modify_assignment', course):
         submission_lists['student'] = Submission.objects.filter(
@@ -123,6 +131,7 @@ def assignment(request, assignment_id, final_grade=''):
         submission_lists['grading'] = grading_list
         submission_lists['last_submission'] = last_submission_list
 
+    # score distribution
     is_deadline_passed = assignment.is_deadline_passed()
     enrollment, contributors, score_statistics = score_distribution.get_class_statistics(
             assignment=assignment, include_hidden=is_deadline_passed)
