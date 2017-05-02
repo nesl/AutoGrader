@@ -325,7 +325,10 @@ class Team(models.Model):
 
 
 class TeamMember(models.Model):
-    #TODO: unique together ('user_id, team_id.assignment_id')
+    class Meta:
+        unique_together = ('assignment_id', 'field')
+
+    assignment_id = models.ForeignKey(Assignment, on_delete=models.CASCADE)
     team_id = models.ForeignKey(Team, on_delete=models.CASCADE)
     user_id = models.ForeignKey(User, on_delete=models.CASCADE)
     is_leader = models.BooleanField()

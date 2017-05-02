@@ -22,7 +22,8 @@ def create_team(assignment, users):
 
         for idx, user in enumerate(users):
             is_leader = (idx == 0)
-            TeamMember.objects.create(team_id=team, user_id=user, is_leader=is_leader)
+            TeamMember.objects.create(team_id=team, user_id=user,
+                    assignment_id=assignment, is_leader=is_leader)
 
 def check_passcode(passcode):
     """
@@ -63,7 +64,8 @@ def add_users_to_team(team, users):
         for user in users:
             if TeamMember.objects.filter(team_id=team, user_id=user):
                 raise Exception('Some users have had belonged team')
-            TeamMember.objects.create(team_id=team, user_id=user, is_leader=False)
+            TeamMember.objects.create(team_id=team, user_id=user,
+                    assignment_id=team.assignment_id, is_leader=False)
             
 def remove_users_from_team(team, users):
     """
