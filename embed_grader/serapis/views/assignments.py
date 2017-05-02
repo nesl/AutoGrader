@@ -144,21 +144,29 @@ def assignment(request, assignment_id):
 
 
     template_context = {
+            # user
             'myuser': request.user,
             'user_profile': user_profile,
+            # assignment/course
             'course': course,
             'assignment': assignment,
-            'submission_form': submission_form,
-            'reason_of_cannot_submit': reason_of_cannot_submit,
-            'submission_lists': submission_lists,
-            'assignment_tasks': assignment_tasks_with_file_list,
+            # assignment task section
             'public_points': public_points,
             'total_points': total_points,
+            'assignment_tasks': assignment_tasks_with_file_list,
+            # team info
+            'team': team,
+            'num_team_members': num_team_members,
+            # form
+            'submission_form': submission_form,
+            'reason_of_cannot_submit': reason_of_cannot_submit,
             'now': now,
             'time_remaining': time_remaining,
-            'total_student_num': enrollment,
+            # score distribution
             'num_contributed_students': contributors,
             'score_statistics': score_statistics,
+            # submission section
+            'submission_lists': submission_lists,
     }
 
     return render(request, 'serapis/assignment.html', template_context)
@@ -205,6 +213,27 @@ def assignment_run_final_grade(request, assignment_id):
 
             submission.task_scope = AssignmentTask.MODE_HIDDEN
             submission.save()
+    
+    return HttpResponseRedirect(reverse('assignment', kwargs={'assignment_id': assignment_id}))
+
+
+@login_required(login_url='/login/')
+def assignment_create_team(request, assignment_id):
+    user = User.objects.get(username=request.user)
+
+    try:
+        assignment = Assignment.objects.get(id=assignment_id)
+    except Assignment.DoesNotExist:
+        return HttpResponse("Assignment cannot be found.")
+
+    course = assignment.course_id
+    if not user.has_perm('view_assignment', course):
+        return HttpResponse("Not enough privilege")
+
+    if assignment.is_deadline_passed():
+        return HttpResponse("Deadline is passed")
+
+    team_helper.create_team(assignment, [user])
     
     return HttpResponseRedirect(reverse('assignment', kwargs={'assignment_id': assignment_id}))
 

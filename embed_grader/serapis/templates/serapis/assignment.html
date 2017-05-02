@@ -113,10 +113,16 @@
         <p>This is a team-based assignment with a maximum of {{assignment.num_max_team_members}} people. Currently, you are not part of any team.</p>
         <p>To form a team, you can either
           <ul>
-            <li>Create a team and become a leader <a>Click here</a></li>
+            <li>Create a team and become a leader <a onclick="double_check_create_team()">Click here</a></li>
             <li>Enter a team passcode to join a new team <input /><a>Click here</a></li>
           </ul>
         </p>
+        <script>
+          function double_check_create_team() {
+            if (confirm("Are you sure you want to create a new team? Once you create a team, you cannot join a different team."))
+              window.location.replace("{% url 'assignment-create-team' assignment.id %}");
+          }
+        </script>
       {% else %}
         <h3>Team requirement</h3>
         <p>This is a team-based assignment with a maximum of {{assignment.num_max_team_members}} people. Currently,
@@ -209,9 +215,9 @@
         {% if assignment.is_deadline_passed %}
           <a class="btn btn-primary" href="{% url 'assignment-run-final-grade' assignment.id %}">Run final grading</a>
         {% else %}
-          <a class="btn btn-primary" href="{% url 'assignment-run-final-grade' assignment.id %}" onclick="double_check()">Run final grading</a>
+          <a class="btn btn-primary" href="{% url 'assignment-run-final-grade' assignment.id %}" onclick="double_check_fun_final_grade()">Run final grading</a>
           <script>
-            function double_check() {
+            function double_check_fun_final_grade() {
               if (confirm("The assignment deadline is not passed yet, meaning some students may be still working on the assignment. Do you still want to proceed final grading?"))
                 window.location.replace("{% url 'assignment-run-final-grade' assignment.id %}");
             }
