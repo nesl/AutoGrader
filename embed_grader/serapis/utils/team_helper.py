@@ -88,3 +88,17 @@ def remove_users_from_team(team, users):
     else:
         for m in team_member_list:
             m.delete()
+
+def get_num_team_members(team):
+    """
+    Return:
+      num_team_members: int
+    """
+    return TeamMember.objects.filter(team_id=team).count()
+
+def get_team_members(team)
+    """
+    Return:
+      team_members: A list of team members
+    """
+    return [tm for tm in TeamMember.objects.filter(team_id=team)]

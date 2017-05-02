@@ -78,6 +78,10 @@ def assignment(request, assignment_id):
     if team is None and assignment.num_max_team_members == 1:
         team_helper.create_team(assignment=assignment, users=[user])
 
+    # get team member info
+    if team:
+        num_team_members = team_helper.get_num_team_members()
+
     # compute remaining time for submission
     now = timezone.now()
     time_remaining = _display_remaining_time(assignment.deadline - now)
