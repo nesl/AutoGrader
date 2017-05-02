@@ -26,6 +26,7 @@ from serapis.models import *
 from serapis.utils import grading
 from serapis.utils import user_info_helper
 from serapis.utils import score_distribution
+from serapis.utils import team_helper
 from serapis.forms.assignment_forms import *
 
 
@@ -70,7 +71,12 @@ def assignment(request, assignment_id):
             form.save_and_commit()
 
     # retrieve team status
-    #TODO
+    team = team_helper.get_beloned_team(user, assignment)
+
+    # if the user does not belong to any team yet it's an individual assignment, just create the
+    # one-person team
+    if team is None and assignment.num_max_team_members == 1:
+        team_helper.create_team(assignment=assignment, users=[user])
 
     # compute remaining time for submission
     now = timezone.now()

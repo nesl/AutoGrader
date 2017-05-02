@@ -202,12 +202,6 @@ class AssignmentForm(ModelForm):
                 if n_name not in old_schema_name_list:
                     SchemaClass.objects.create(assignment_id=assignment, field=n_name)
 
-        # create teams if the assignment is just created and this is an individual assignment
-        if self.mode == 'create' and self.cleaned_data['num_max_team_members'] == 1:
-            users = [o.user_id for o in CourseUserList.objects.filter(course_id=self.course)]
-            for u in users:
-                team_helper.create_team(assignment=assignment, users=[u])
-
         return assignment
 
 
