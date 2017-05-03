@@ -11,6 +11,8 @@ def create_team(assignment, users):
     Parameters:
       assignment: An Assignment object
       users: A list of User objects. The first user will be the leader of th team.
+    Returns:
+      (team, team_member_list)
     """
     if len(users) > assignment.num_max_team_members:
         raise Exception('Maximum number of team members exceeds')
@@ -20,10 +22,14 @@ def create_team(assignment, users):
         team.passcode = _generate_passcode(team)
         team.save()
 
+        team_member_list = []
         for idx, user in enumerate(users):
             is_leader = (idx == 0)
-            TeamMember.objects.create(team_id=team, user_id=user,
+            team_member = TeamMember.objects.create(team_id=team, user_id=user,
                     assignment_id=assignment, is_leader=is_leader)
+            team_member_list.append(team_member)
+
+        return (team, team_member_list)
 
 def check_passcode(passcode):
     """
@@ -96,7 +102,7 @@ def get_num_team_members(team):
     """
     return TeamMember.objects.filter(team_id=team).count()
 
-def get_team_members(team)
+def get_team_members(team):
     """
     Return:
       team_members: A list of team members

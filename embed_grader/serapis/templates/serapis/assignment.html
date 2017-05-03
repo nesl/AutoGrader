@@ -114,13 +114,21 @@
         <p>To form a team, you can either
           <ul>
             <li>Create a team and become a leader <a onclick="double_check_create_team()">Click here</a></li>
-            <li>Enter a team passcode to join a new team <input /><a>Click here</a></li>
+            <li>
+              <form action="{% url 'assignment-join-team' assignment.id %}" method="post" class="form" id="join_team_form">
+              Enter a team passcode to join a new team <input class="form-control" id="id_team_passcode" name="team_passcode" placeholder="Passcode" type="text" style="width: 150px; display: inline-block;"/>
+              <a onclick="double_check_join_team()">Click here</a>
+            </li>
           </ul>
         </p>
         <script>
           function double_check_create_team() {
             if (confirm("Are you sure you want to create a new team? Once you create a team, you cannot join a different team."))
               window.location.replace("{% url 'assignment-create-team' assignment.id %}");
+          }
+          function double_check_join_team() {
+            if (confirm("Are you sure you want to join an existing team? Once you join the team, you cannot drop off from the team."))
+              document.getElementById("join_team_form").submit();
           }
         </script>
       {% else %}

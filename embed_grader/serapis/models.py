@@ -326,7 +326,7 @@ class Team(models.Model):
 
 class TeamMember(models.Model):
     class Meta:
-        unique_together = ('assignment_id', 'field')
+        unique_together = ('assignment_id', 'user_id')
 
     assignment_id = models.ForeignKey(Assignment, on_delete=models.CASCADE)
     team_id = models.ForeignKey(Team, on_delete=models.CASCADE)

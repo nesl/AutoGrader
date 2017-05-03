@@ -72,15 +72,13 @@ def assignment(request, assignment_id):
 
     # retrieve team status
     team = team_helper.get_beloned_team(user, assignment)
+    num_team_members = team_helper.get_num_team_members(team)
 
     # if the user does not belong to any team yet it's an individual assignment, just create the
     # one-person team
     if team is None and assignment.num_max_team_members == 1:
-        team_helper.create_team(assignment=assignment, users=[user])
-
-    # get team member info
-    if team:
-        num_team_members = team_helper.get_num_team_members()
+        team, _ = team_helper.create_team(assignment=assignment, users=[user])
+        num_team_members = 1
 
     # compute remaining time for submission
     now = timezone.now()
@@ -234,6 +232,38 @@ def assignment_create_team(request, assignment_id):
         return HttpResponse("Deadline is passed")
 
     team_helper.create_team(assignment, [user])
+    
+    return HttpResponseRedirect(reverse('assignment', kwargs={'assignment_id': assignment_id}))
+
+
+@login_required(login_url='/login/')
+def assignment_join_team(request, assignment_id):
+    user = User.objects.get(username=request.user)
+
+    try:
+        assignment = Assignment.objects.get(id=assignment_id)
+    except Assignment.DoesNotExist:
+        return HttpResponse("Assignment cannot be found.")
+
+    course = assignment.course_id
+    if not user.has_perm('view_assignment', course):
+        return HttpResponse("Not enough privilege")
+
+    if assignment.is_deadline_passed():
+        return HttpResponse("Deadline is passed")
+
+    if team_helper.get_belonged_team(user, assignment) is not None:
+        return HttpResponse("Already involved in some team")
+
+    if request.method != 'POST':
+        return HttpResponse("Invalid request")
+
+    form = JoinTeamForm(request.POST, user=user, assignment=assignment)
+    if not form.is_valid():
+        #TODO: show error message of incorrect passcode in the next page
+        return HttpResponse("Invalid request")
+
+    form.save_and_commit()
     
     return HttpResponseRedirect(reverse('assignment', kwargs={'assignment_id': assignment_id}))
 
