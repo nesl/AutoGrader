@@ -63,13 +63,6 @@ def assignment(request, assignment_id):
     if not user.has_perm('view_assignment', course):
         return HttpResponse("Not enough privilege")
 
-    # handle POST the request
-    if request.method == 'POST':
-        form = AssignmentSubmissionForm(
-                request.POST, request.FILES, user=user, assignment=assignment)
-        if form.is_valid():
-            form.save_and_commit()
-
     # retrieve team status
     team = team_helper.get_beloned_team(user, assignment)
     num_team_members = team_helper.get_num_team_members(team)
@@ -85,6 +78,13 @@ def assignment(request, assignment_id):
         user_team_member = team_helper.get_specific_team_member(team, user)
         if user_team_member is not None and user_team_member.is_leader:
             passcode = team.passcode
+
+    # handle POST the request
+    if team is not None and request.method == 'POST':
+        form = AssignmentSubmissionForm(
+                request.POST, request.FILES, user=user, team=team, assignment=assignment)
+        if form.is_valid():
+            form.save_and_commit()
 
     # compute remaining time for submission
     now = timezone.now()
@@ -115,36 +115,38 @@ def assignment(request, assignment_id):
         can_submit, reason_of_cannot_submit = True, None
 
     # render the submission form
-    submission_form = (AssignmentSubmissionForm(user=user, assignment=assignment)
+    submission_form = (AssignmentSubmissionForm(user=user, team=team, assignment=assignment)
             if can_submit else None)
 
     # retrieve submission lists
     submission_lists = {}
     if not user.has_perm('modify_assignment', course):
-        submission_lists['student'] = Submission.objects.filter(
-                student_id=user, assignment_id=assignment).order_by('-id')[:10]
+        if not team:
+            submission_lists['team'] = None
+        else:
+            submission_lists['team'] = Submission.objects.filter(
+                    team_id=team, assignment_id=assignment).order_by('-id')[:10]
     else:
-        students = [o.user_id for o in CourseUserList.objects.filter(course_id=course)]
+        teams = Team.objects.filter(assignment_id=assignment)
         graded_list = []
         grading_list = []
         
-        for student in students:
-            sub = grading.get_last_fully_graded_submission(student, assignment)
+        for team in teams:
+            sub = grading.get_last_fully_graded_submission(team, assignment)
             if sub:
                 graded_list.append(sub)
             
-            sub = grading.get_last_grading_submission(student, assignment)
+            sub = grading.get_last_grading_submission(team, assignment)
             if sub:
                 grading_list.append(sub)
-
 
         submission_lists['graded'] = graded_list
         submission_lists['grading'] = grading_list
 
     # score distribution
     is_deadline_passed = assignment.is_deadline_passed()
-    enrollment, contributors, score_statistics = score_distribution.get_class_statistics(
-            assignment=assignment, include_hidden=is_deadline_passed)
+    _, num_attempting_teams, score_statistics = score_distribution.get_class_statistics(
+                assignment=assignment, include_hidden=is_deadline_passed)
 
     assignment_tasks_with_file_list = zip(assignment_tasks, assignment_task_files_list)
 
@@ -170,8 +172,9 @@ def assignment(request, assignment_id):
             'now': now,
             'time_remaining': time_remaining,
             # score distribution
-            'num_contributed_students': contributors,
+            'num_attempting_teams': num_attempting_teams,
             'score_statistics': score_statistics,
+            'submission_unit': 'student' if assignment.num_max_team_members == 1 else 'team',
             # submission section
             'submission_lists': submission_lists,
     }
@@ -272,7 +275,7 @@ def assignment_join_team(request, assignment_id):
         #TODO: show error message of incorrect passcode in the next page
         return HttpResponse("Invalid request")
 
-    form.save_and_commit()
+    form.save()
     
     return HttpResponseRedirect(reverse('assignment', kwargs={'assignment_id': assignment_id}))
 

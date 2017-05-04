@@ -218,6 +218,7 @@ class AssignmentSubmissionForm(Form):
           - assignment: which assignment the user submit the codes to
         """
         user = kwargs.pop('user')
+        team = kwargs.pop('team')
         assignment = kwargs.pop('assignment')
         super(AssignmentSubmissionForm, self).__init__(*args, **kwargs)
 
@@ -244,6 +245,7 @@ class AssignmentSubmissionForm(Form):
 
         # set up variables to be used
         self.user = user
+        self.team = team
         self.assignment = assignment
         self.file_fields = file_fields
 
@@ -268,6 +270,7 @@ class AssignmentSubmissionForm(Form):
         """
         submission = Submission(
                 student_id=self.user,
+                team_id=self.team,
                 assignment_id=self.assignment,
                 submission_time=timezone.now(),
                 grading_result=0.,
@@ -298,3 +301,51 @@ class AssignmentSubmissionForm(Form):
             file_schema.create_empty_task_grading_status_schema_files(grading_task)
 
         return submission
+
+
+class JoinTeamForm(Form):
+    """
+    JoinTeamForm receives the passcode and put the user to that team. Since the validation and
+    the save logic (i.e., putting the user in the team) cannot be decoupled, the save() method
+    will be a no-operation.
+    """
+
+    error_messages = {
+        'wrong_passcode': 'Incorrect passcode.',
+        'pass_deadline': 'Assignment deadline has already passed.',
+        'no_capacity': 'No empty spot in the team.',
+    }
+
+    def __init__(self, *args, **kwargs):
+        """
+        Constructor:
+          - user: the user who submits the codes
+          - assignment: which assignment the user submit the codes to
+        """
+        user = kwargs.pop('user')
+        assignment = kwargs.pop('assignment')
+        super(JoinTeamForm, self).__init__(*args, **kwargs)
+
+        self.fields['team_passcode'] = forms.CharField(required=True, max_length=20)
+
+        # set up variables to be used
+        self.user = user
+        self.assignment = assignment
+
+    def clean(self):
+        # check passcode
+        team = team_helper.check_passcode(self.cleaned_data['team_passcode'])
+        if team is None:
+            raise forms.ValidationError(self.error_messages['wrong_passcode'],
+                    code='wrong_passcode')
+
+        # a student cannot join a team after passing the deadline
+        if self.assignment.is_deadline_passed():
+            raise forms.ValidationError(self.error_messages['pass_deadline'],
+                    code='pass_deadline')
+
+        if not team_helper.add_users_to_team(team, [self.user]):
+            raise forms.ValidationError(self.error_messages['no_capacity'],
+                    code='no_capacity')
+
+        return self.cleaned_data

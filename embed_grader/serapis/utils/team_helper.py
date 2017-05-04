@@ -2,6 +2,8 @@ import random
 
 from serapis.models import *
 
+from serapis.utils import user_info_helper
+
 
 def _generate_passcode(team):
     return str(team.id * 100000 + random.randint(0, 99999))
@@ -116,3 +118,18 @@ def get_specific_team_member(team, user):
     """
     team_member_list = TeamMember.objects.filter(team_id=team, user_id=user)
     return team_member_list[0] if team_member_list else None
+
+def get_team_member_full_name_list(team):
+    """
+    Return:
+      name_list: A string
+    """
+    return ', '.join([user_info_helper.get_first_last_name(tm.user_id) for tm
+            in TeamMember.objects.filter(team_id=team)])
+
+def get_team_member_first_name_list(team):
+    """
+    Return:
+      name_list: A string
+    """
+    return ', '.join([tm.user_id.first_name for tm in TeamMember.objects.filter(team_id=team)])
