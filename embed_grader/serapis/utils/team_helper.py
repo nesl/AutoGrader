@@ -108,3 +108,11 @@ def get_team_members(team):
       team_members: A list of team members
     """
     return [tm for tm in TeamMember.objects.filter(team_id=team)]
+
+def get_specific_team_member(team, user):
+    """
+    Return:
+      team_member: A TeamMember object, the specified team member
+    """
+    team_member_list = TeamMember.objects.filter(team_id=team, user_id=user)
+    return team_member_list[0] if team_member_list else None

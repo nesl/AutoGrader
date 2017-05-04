@@ -80,6 +80,12 @@ def assignment(request, assignment_id):
         team, _ = team_helper.create_team(assignment=assignment, users=[user])
         num_team_members = 1
 
+    passcode = None
+    if team is not None:
+        user_team_member = team_helper.get_specific_team_member(team, user)
+        if user_team_member is not None and user_team_member.is_leader:
+            passcode = team.passcode
+
     # compute remaining time for submission
     now = timezone.now()
     time_remaining = _display_remaining_time(assignment.deadline - now)
@@ -100,6 +106,8 @@ def assignment(request, assignment_id):
         can_submit, reason_of_cannot_submit = True, None
     elif assignment.is_deadline_passed():
         can_submit, reason_of_cannot_submit = False, 'Deadline has passed'
+    elif team is None:
+        can_submit, reason_of_cannot_submit = False, 'You have to create or join a team first'
     elif not user_info_helper.all_submission_graded_on_assignment(user, assignment):
         can_submit, reason_of_cannot_submit = (
                 False, 'Please wait until current submission if fully graded')
@@ -155,6 +163,7 @@ def assignment(request, assignment_id):
             # team info
             'team': team,
             'num_team_members': num_team_members,
+            'passcode': passcode,
             # form
             'submission_form': submission_form,
             'reason_of_cannot_submit': reason_of_cannot_submit,

@@ -139,6 +139,11 @@
         {% else %}
           there are {{num_team_members}} people in your team.
         {% endif %}
+        </p>
+
+        {% if passcode %}
+          <p>Give the passcode to your team mates to allow them join your team: <b>{{passcode}}</b></p>
+        {% endif %}
       {% endif %}
     {% endif %}
 
@@ -166,10 +171,10 @@
     {% else %}
       <p>{{num_contributed_students}} student(s) have tried this assignment so far</p>
       <p><span style="font-weight: bold;">Mean: </span>{{score_statistics.mean_score}}</p>
-      <p><span style="font-weight: bold;">Highest Score: </span> {{score_statistics.max_score}}</p>
-      <p><span style="font-weight: bold;">1st Quantile: </span> {{score_statistics.first_quantile}}</p>
-      <p><span style="font-weight: bold;">Median: </span> {{score_statistics.median_score}}</p>
-      <p><span style="font-weight: bold;">3rd Quantile: </span> {{score_statistics.third_quantile}}</p>
+      <p><span style="font-weight: bold;">Highest Score: </span>{{score_statistics.max_score}}</p>
+      <p><span style="font-weight: bold;">1st Quantile: </span>{{score_statistics.first_quantile}}</p>
+      <p><span style="font-weight: bold;">Median: </span>{{score_statistics.median_score}}</p>
+      <p><span style="font-weight: bold;">3rd Quantile: </span>{{score_statistics.third_quantile}}</p>
     {% endif %}
 
     <hr/>
@@ -182,7 +187,7 @@
       {% else %}
         <table class="table table-striped table-hover table-sm">
           <tr><thead class="thead-default">
-              {% submission_table_schema  status 30%  score 20%  submission_time 30%  detail_button 20% as table_schema %}
+            {% submission_table_schema  status 30%  score 20%  submission_time 30%  detail_button 20% as table_schema %}
           </thead></tr>
           {% for submission in submission_lists.student %}
             <tr>{% submission_table_row table_schema submission myuser %}</tr>
