@@ -243,6 +243,8 @@ def task_grading_detail(request, task_grading_id):
 def submissions_full_log(request):
     user = User.objects.get(username=request.user)
 
+    #TODO: submission objects should be queried by teams. Put as a todo because submission_full_log
+    # view is going to be remodeled.
     submission_list = Submission.objects.filter(student_id=user).order_by('-id')
     
     template_context = {
@@ -271,6 +273,8 @@ def student_submission_full_log(request):
     submission_list = []
     for assign in assignment_list:
         #TODO: why do we want to exclude the instructor herself?
+        #TODO: submission objects should be queried by teams. Put as a todo because
+        # student_submission_full_log view is going to be remodeled.
         assign_submissions = Submission.objects.filter(assignment_id=assign).exclude(student_id=user)
         submission_list.extend(assign_submissions)
 
