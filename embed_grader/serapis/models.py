@@ -15,6 +15,8 @@ from guardian.shortcuts import assign_perm
 
 from ckeditor_uploader.fields import RichTextUploadingField
 
+from serapis.utils import team_helper
+
 
 class UserProfile(models.Model):
     #Connect to built-in User model, which already has firstname, lastname, email and password
@@ -361,8 +363,9 @@ class Submission(models.Model):
         return self.student_id.first_name + " " + self.student_id.last_name + ", " + str(self.id)
 
     def can_access_file_by_user(self, user):
-        return (user.has_perm('modify_assignment', self.assignment_id.course_id)
-                or user == self.student_id)
+        if user.has_perm('modify_assignment', self.assignment_id.course_id):
+            return True;
+        return self.team == team_helper.get_belonged_team(user, self.assignment_id)
 
     def retrieve_task_grading_status_and_score_sum(self, include_hidden):
         """
