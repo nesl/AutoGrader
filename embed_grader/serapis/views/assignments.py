@@ -294,6 +294,9 @@ def view_assignment_team_list(request, assignment_id):
     if not user.has_perm('modify_assignment', course):
         return HttpResponse("Not enough privilege")
 
+    if assignment.num_max_team_members == 1:
+        return HttpResponse("Not a team-based assignment")
+
     teams = Team.objects.filter(assignment_id=assignment)
     team_bundles = []
     for team in teams:

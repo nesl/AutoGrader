@@ -229,7 +229,9 @@
       {% endif %} {# not submission_lists.grading and not submission_lists.graded #}
 
       <div>
-        <a class="btn btn-primary" href="{% url 'view-assignment-team-list' assignment.id %}">View team list</a>
+        {% if assignment.num_max_team_members > 1 %}
+          <a class="btn btn-primary" href="{% url 'view-assignment-team-list' assignment.id %}">View team list</a>
+        {% endif %}
         <a class="btn btn-primary" href="{% url 'regrade' assignment.id %}">Regrade interface</a>
         {% if assignment.is_deadline_passed %}
           <a class="btn btn-primary" href="{% url 'assignment-run-final-grade' assignment.id %}">Run final grading</a>
