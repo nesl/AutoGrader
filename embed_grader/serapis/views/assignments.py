@@ -297,6 +297,10 @@ def view_assignment_team_list(request, assignment_id):
     if assignment.num_max_team_members == 1:
         return HttpResponse("Not a team-based assignment")
 
+    #TODO: The original plan of view_assignment_team_list view is that each student is represented
+    # as a box in the table, and instructors can drag and drop the boxes to arrange students to
+    # different teams.
+
     teams = Team.objects.filter(assignment_id=assignment)
     team_bundles = []
     for team in teams:
