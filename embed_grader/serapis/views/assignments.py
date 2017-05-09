@@ -262,5 +262,4 @@ def delete_assignment(request, assignment_id):
 
     assignment.delete()
 
-    return HttpResponseRedirect(
-            reverse('course', kwargs={'course_id': course.id}))
+    return HttpResponseRedirect(reverse('course', kwargs={'course_id': course.id}))

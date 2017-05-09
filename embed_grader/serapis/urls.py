@@ -38,6 +38,7 @@ urlpatterns = [
     url(r'^course/(?P<course_id>[0-9]+)/membership/$', courses.membership, name='membership'),
     url(r'^create-course/$', courses.create_course, name='create-course'),
     url(r'^modify-course/(?P<course_id>[0-9]+)/$', courses.modify_course, name='modify-course'),
+    url(r'^delete-course/(?P<course_id>[0-9]+)/$', courses.delete_course, name='delete-course'),
     url(r'^enroll-course/$', courses.enroll_course, name='enroll-course'),
     url(r'^unenroll-course/(?P<course_id>[0-9]+)/$', courses.unenroll_course, name='unenroll-course'),
 
