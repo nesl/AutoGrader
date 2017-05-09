@@ -37,7 +37,12 @@
       <br/>
       <br/>
       <h2 class="page-header">Danger zone</h2>
-      <a class="btn btn-danger" href="{% url 'course' course.id %}">Delete assignment</a>
+      <a class="btn btn-danger" href="{% url 'delete-assignment' assignment.id %}" onclick="return double_check_delete_assignment()">Delete assignment</a>
+      <script>
+        function double_check_delete_assignment() {
+          return confirm("Are you sure you want to permanently remove this assignment? All the student submissions will be removed as well");
+        }
+      </script>
     {% endif %}
   </div>
 {% endblock %}

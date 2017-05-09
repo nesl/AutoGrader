@@ -46,6 +46,7 @@ urlpatterns = [
     url(r'^assignment-run_final-grade/(?P<assignment_id>[0-9]+)/$', assignments.assignment_run_final_grade, name='assignment-run-final-grade'),
     url(r'^create-assignment/(?P<course_id>[0-9]+)/$', assignments.create_assignment, name='create-assignment'),
     url(r'^modify-assignment/(?P<assignment_id>[0-9]+)/$', assignments.modify_assignment, name='modify-assignment'),
+    url(r'^delete-assignment/(?P<assignment_id>[0-9]+)/$', assignments.delete_assignment, name='delete-assignment'),
     url(r'^create-assignment-task/(?P<assignment_id>[0-9]+)/$', tasks.create_assignment_task, name='create-assignment-task'),
     url(r'^modify-assignment-task/(?P<task_id>[0-9]+)/$', tasks.modify_assignment_task, name='modify-assignment-task'),
 
