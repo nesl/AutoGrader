@@ -49,6 +49,7 @@ urlpatterns = [
     url(r'^delete-assignment/(?P<assignment_id>[0-9]+)/$', assignments.delete_assignment, name='delete-assignment'),
     url(r'^create-assignment-task/(?P<assignment_id>[0-9]+)/$', tasks.create_assignment_task, name='create-assignment-task'),
     url(r'^modify-assignment-task/(?P<task_id>[0-9]+)/$', tasks.modify_assignment_task, name='modify-assignment-task'),
+    url(r'^delete-assignment-task/(?P<task_id>[0-9]+)/$', tasks.delete_assignment_task, name='delete-assignment-task'),
 
     ## Submissions
     url(r'^submission/(?P<submission_id>[0-9]+)/$', submissions.submission, name='submission'),
