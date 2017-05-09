@@ -229,15 +229,15 @@
       {% endif %} {# not submission_lists.grading and not submission_lists.graded #}
 
       <div>
+        <a class="btn btn-primary" href="{% url 'view-assignment-team-list' assignment.id %}">View team list</a>
         <a class="btn btn-primary" href="{% url 'regrade' assignment.id %}">Regrade interface</a>
         {% if assignment.is_deadline_passed %}
           <a class="btn btn-primary" href="{% url 'assignment-run-final-grade' assignment.id %}">Run final grading</a>
         {% else %}
-          <a class="btn btn-primary" href="{% url 'assignment-run-final-grade' assignment.id %}" onclick="double_check_fun_final_grade()">Run final grading</a>
+          <a class="btn btn-primary" href="{% url 'assignment-run-final-grade' assignment.id %}" onclick="return double_check_fun_final_grade()">Run final grading</a>
           <script>
             function double_check_fun_final_grade() {
-              if (confirm("The assignment deadline is not passed yet, meaning some students may be still working on the assignment. Do you still want to proceed final grading?"))
-                window.location.replace("{% url 'assignment-run-final-grade' assignment.id %}");
+              return confirm("The assignment deadline is not passed yet, meaning some students may be still working on the assignment. Do you still want to proceed final grading?");
             }
           </script>
         {% endif %}
