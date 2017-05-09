@@ -43,7 +43,7 @@ def check_passcode(passcode):
     team_list = Team.objects.filter(passcode=passcode)
     return team_list[0] if team_list else None
 
-def get_beloned_team(user, assignment):
+def get_belonged_team(user, assignment):
     """
     Parameter:
       user: A User object
@@ -107,9 +107,11 @@ def get_num_team_members(team):
 def get_team_members(team):
     """
     Return:
-      team_members: A list of team members
+      team_members: A list of team members. The first member is the leader.
     """
-    return [tm for tm in TeamMember.objects.filter(team_id=team)]
+    # Since the first member is assumed to be the leader when the team is created, sorting by 
+    # object id and accessing the first object can retrieve the team leader.
+    return [tm for tm in TeamMember.objects.filter(team_id=team).order_by('id')]
 
 def get_specific_team_member(team, user):
     """
@@ -125,11 +127,12 @@ def get_team_member_full_name_list(team):
       name_list: A string
     """
     return ', '.join([user_info_helper.get_first_last_name(tm.user_id) for tm
-            in TeamMember.objects.filter(team_id=team)])
+            in TeamMember.objects.filter(team_id=team).order_by('id')])
 
 def get_team_member_first_name_list(team):
     """
     Return:
       name_list: A string
     """
-    return ', '.join([tm.user_id.first_name for tm in TeamMember.objects.filter(team_id=team)])
+    return ', '.join([tm.user_id.first_name for tm
+            in TeamMember.objects.filter(team_id=team).order_by('id')])

@@ -64,7 +64,7 @@ def assignment(request, assignment_id):
         return HttpResponse("Not enough privilege")
 
     # retrieve team status
-    team = team_helper.get_beloned_team(user, assignment)
+    team = team_helper.get_belonged_team(user, assignment)
     num_team_members = team_helper.get_num_team_members(team)
 
     # if the user does not belong to any team yet it's an individual assignment, just create the
@@ -278,6 +278,67 @@ def assignment_join_team(request, assignment_id):
     form.save()
     
     return HttpResponseRedirect(reverse('assignment', kwargs={'assignment_id': assignment_id}))
+
+
+@login_required(login_url='/login/')
+def view_assignment_team_list(request, assignment_id):
+    user = User.objects.get(username=request.user)
+    user_profile = UserProfile.objects.get(user=user)
+
+    try:
+        assignment = Assignment.objects.get(id=assignment_id)
+    except Assignment.DoesNotExist:
+        return HttpResponse("Assignment cannot be found.")
+
+    course = assignment.course_id
+    if not user.has_perm('modify_assignment', course):
+        return HttpResponse("Not enough privilege")
+
+    teams = Team.objects.filter(assignment_id=assignment)
+    team_bundles = []
+    for team in teams:
+        team_members = team_helper.get_team_members(team)
+        team_member_names = [user_info_helper.get_first_last_name(tm.user_id)
+                for tm in team_members]
+        team_bundle = {
+                'team': team,
+                'leader_name': team_member_names[0],
+                'teammate_names': team_member_names[1:],
+        }
+        team_bundles.append(team_bundle)
+
+    template_context = {
+            'myuser': user,
+            'user_profile': user_profile,
+            'course': course,
+            'assignment': assignment,
+            'team_bundles': team_bundles,
+    }
+
+    return render(request, 'serapis/assignment_team_list.html', template_context)
+
+
+@login_required(login_url='/login/')
+def delete_team(request, assignment_id, team_id):
+    user = User.objects.get(username=request.user)
+
+    try:
+        assignment = Assignment.objects.get(id=assignment_id)
+        team = Team.objects.get(id=team_id)
+    except Assignment.DoesNotExist:
+        return HttpResponse("Assignment or team cannot be found.")
+    
+    course = assignment.course_id
+    if not user.has_perm('modify_assignment', course):
+        return HttpResponse("Not enough privilege")
+
+    if team.assignment_id != assignment:
+        return HttpResponse("Invalid request")
+
+    team.delete()
+
+    return HttpResponseRedirect(
+            reverse('view-assignment-team-list', kwargs={'assignment_id': assignment_id}))
 
 
 def _create_or_modify_assignment(request, course_id, assignment):
