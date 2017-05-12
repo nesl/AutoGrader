@@ -33,9 +33,16 @@ def _create_or_modify_course(request, course):
     user = User.objects.get(username=request.user)
     user_profile = UserProfile.objects.get(user=user)
 
-    if not user.has_perm('serapis.create_course'):
-        return HttpResponse("Not enough privilege.")
-    
+    # permission check
+    if course is None:  # create mode
+        if not user.has_perm('serapis.create_course'):
+            return HttpResponse("Not enough privilege.")
+    else:  # modify mode
+        if not user.has_perm('modify_course', course):
+            return HttpResponse("Not enough privilege")
+
+    mode = 'modify' if course else 'create'
+
     if request.method == 'POST':
         form = CourseCreationForm(request.POST, instance=course, user=user)
         if form.is_valid():
@@ -43,8 +50,6 @@ def _create_or_modify_course(request, course):
             return HttpResponseRedirect(reverse('course', kwargs={'course_id': course.id}))
     else:
         form = CourseCreationForm(instance=course, user=user)
-
-    mode = 'modify' if course else 'create'
 
     template_context = {
             'myuser': request.user,
@@ -69,6 +74,23 @@ def modify_course(request, course_id):
         return HttpResponse("Course cannot be found.")
 
     return _create_or_modify_course(request, course)
+
+
+@login_required(login_url='/login/')
+def delete_course(request, course_id):
+    try:
+        course = Course.objects.get(id=course_id)
+    except Course.DoesNotExist:
+        return HttpResponse("Course cannot be found.")
+
+    user = User.objects.get(username=request.user)
+
+    if not user.has_perm('modify_course', course):
+        return HttpResponse("Not enough privilege")
+
+    course.delete()
+
+    return HttpResponseRedirect(reverse('homepage'))
 
 
 @login_required(login_url='/login/')

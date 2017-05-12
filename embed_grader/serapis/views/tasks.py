@@ -44,7 +44,7 @@ def _create_or_modify_assignment_task(request, assignment_id, assignment_task):
     if not user.has_perm('modify_assignment', course):
         return HttpResponse("Not enough privilege")
     
-    mode = 'update' if assignment_task else 'create'
+    mode = 'modify' if assignment_task else 'create'
 
     if request.method == 'POST':
         form = AssignmentTaskForm(request.POST, request.FILES,
@@ -63,6 +63,7 @@ def _create_or_modify_assignment_task(request, assignment_id, assignment_task):
             'form': form,
             'course': course,
             'assignment': assignment,
+            'assignment_task': assignment_task,
     }
     return render(request, 'serapis/create_or_modify_assignment_task.html', template_context)
 
@@ -88,3 +89,24 @@ def modify_assignment_task(request, task_id):
             assignment_id=task.assignment_id.id,
             assignment_task=task,
     )
+
+    
+@login_required(login_url='/login/')
+def delete_assignment_task(request, task_id):
+    try:
+        task = AssignmentTask.objects.get(id=task_id)
+    except AssignmentTask.DoesNotExist:
+        return HttpResponse("Assignment task cannot be found")
+
+    assignment = task.assignment_id
+    course = assignment.course_id
+
+    user = User.objects.get(username=request.user)
+
+    if not user.has_perm('modify_assignment', course):
+        return HttpResponse("Not enough privilege")
+    
+    task.delete()
+
+    return HttpResponseRedirect(
+            reverse('assignment', kwargs={'assignment_id': assignment.id}))
