@@ -8,12 +8,15 @@ from django.forms import Textarea
 from django.forms.widgets import HiddenInput
 from django.core.exceptions import ValidationError
 
+from django.db import transaction
+
 from django.utils.translation import gettext as _
 
 from datetimewidget.widgets import DateTimeWidget, DateWidget, TimeWidget
 
 from serapis.models import *
 from serapis.utils import grading
+from serapis.utils import team_helper
 
 from datetime import timedelta
 
@@ -150,6 +153,11 @@ class CourseEnrollmentForm(Form):
         return course_user_list
 
 class CourseDropForm(Form):
+    """
+    CourseDropForm assumes that the passed user and course instances are valid, meaning that
+    it is expected the check of the user belongs to the course has been proceeded in views.
+    """
+
     error_messages = {
         'course_not_enrolled': "You cannot drop a class you have not enrolled."
     }
@@ -159,17 +167,20 @@ class CourseDropForm(Form):
         self.course = kwargs.pop('course')
         super(CourseDropForm, self).__init__(*args, **kwargs)
 
-    def clean(self):
-        if CourseUserList.objects.filter(user_id=self.user, course_id=self.course).count() == 0:
-            raise forms.ValidationError(self.error_messages['course_not_enrolled'],
-                code='course_not_enrolled')
-        return self.cleaned_data
-
     def save(self, commit=True):
         raise Exception('Deprecated method')
 
     def save_and_commit(self):
-        CourseUserList.objects.filter(user_id=self.user, course_id=self.course).delete()
+        with transaction.atomic():
+            assignment_list = Assignment.objects.filter(course_id=self.course)
+            for assignment in assignment_list:
+                team = team_helper.get_belonged_team(self.user, assignment)
+                if team is not None:
+                    team_helper.remove_users_from_team(team=team, users=[self.user])
+
+            CourseUserList.objects.filter(user_id=self.user, course_id=self.course).delete()
+
+        #TODO: remove instruction privileges
         # if len(cu_list) > 0 && cu_list[0].role < 20:
         #     instructor_group_name = str(course.id) + "_Instructor_Group"
     

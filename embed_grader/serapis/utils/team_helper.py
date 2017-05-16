@@ -1,5 +1,7 @@
 import random
 
+from django.db import transaction
+
 from serapis.models import *
 
 from serapis.utils import user_info_helper
