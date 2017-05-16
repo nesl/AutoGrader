@@ -57,7 +57,7 @@ def get_belonged_team(user, assignment):
 def delete_team(team):
     team.delete()
 
-def add_users_to_team(assignment, team, users):
+def add_users_to_team(team, users):
     """
     Add users to an existing team. These users have to be followers.
 
@@ -65,6 +65,7 @@ def add_users_to_team(assignment, team, users):
       team: A Team object
       users: A list of User
     """
+    assignment = team.assignment_id
     if len(TeamMember.objects.filter(team_id=team)) + len(users) > assignment.num_max_team_members:
         raise Exception('Maximum number of team members exceeds')
 
@@ -73,7 +74,7 @@ def add_users_to_team(assignment, team, users):
             if TeamMember.objects.filter(team_id=team, user_id=user):
                 raise Exception('Some users have had belonged team')
             TeamMember.objects.create(team_id=team, user_id=user,
-                    assignment_id=team.assignment_id, is_leader=False)
+                    assignment_id=assignment, is_leader=False)
 
     return True
             
