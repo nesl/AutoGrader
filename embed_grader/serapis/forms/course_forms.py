@@ -158,10 +158,6 @@ class CourseDropForm(Form):
     it is expected the check of the user belongs to the course has been proceeded in views.
     """
 
-    error_messages = {
-        'course_not_enrolled': "You cannot drop a class you have not enrolled."
-    }
-
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user')
         self.course = kwargs.pop('course')
