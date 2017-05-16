@@ -401,3 +401,22 @@ def modify_assignment(request, assignment_id):
 
     return _create_or_modify_assignment(
             request=request, course_id=assignment.course_id.id, assignment=assignment)
+
+    
+@login_required(login_url='/login/')
+def delete_assignment(request, assignment_id):
+    try:
+        assignment = Assignment.objects.get(id=assignment_id)
+    except Assignment.DoesNotExist:
+        return HttpResponse("Cannot find the assignment.")
+
+    user = User.objects.get(username=request.user)
+    
+    course = assignment.course_id
+
+    if not user.has_perm('create_assignment', course):
+        return HttpResponse("Not enough privilege")
+
+    assignment.delete()
+
+    return HttpResponseRedirect(reverse('course', kwargs={'course_id': course.id}))
