@@ -57,7 +57,7 @@ def get_belonged_team(user, assignment):
 def delete_team(team):
     team.delete()
 
-def add_users_to_team(team, users):
+def add_users_to_team(assignment, team, users):
     """
     Add users to an existing team. These users have to be followers.
 
@@ -74,6 +74,8 @@ def add_users_to_team(team, users):
                 raise Exception('Some users have had belonged team')
             TeamMember.objects.create(team_id=team, user_id=user,
                     assignment_id=team.assignment_id, is_leader=False)
+
+    return True
             
 def remove_users_from_team(team, users):
     """

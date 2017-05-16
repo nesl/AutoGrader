@@ -116,7 +116,9 @@
             <li>Create a team and become a leader <a onclick="double_check_create_team()">Click here</a></li>
             <li>
               <form action="{% url 'assignment-join-team' assignment.id %}" method="post" class="form" id="join_team_form">
-              Enter a team passcode to join a new team <input class="form-control" id="id_team_passcode" name="team_passcode" placeholder="Passcode" type="text" style="width: 150px; display: inline-block;"/>
+              Enter a team passcode to join a new team <input class="form-control" id="id_team_passcode" name="team_passcode" placeholder="Passcode" type="text" style="width: 150px; display: inline-block;">
+                {% csrf_token %}
+              </form>
               <a onclick="double_check_join_team()">Click here</a>
             </li>
           </ul>

@@ -344,8 +344,11 @@ class JoinTeamForm(Form):
             raise forms.ValidationError(self.error_messages['pass_deadline'],
                     code='pass_deadline')
 
-        if not team_helper.add_users_to_team(team, [self.user]):
+        if not team_helper.add_users_to_team(self.assignment, team, [self.user]):
             raise forms.ValidationError(self.error_messages['no_capacity'],
                     code='no_capacity')
 
         return self.cleaned_data
+
+    def save(self):
+        pass
