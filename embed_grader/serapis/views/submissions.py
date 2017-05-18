@@ -36,21 +36,23 @@ def submission(request, submission_id):
         return HttpResponse("Submission cannot be found")
 
     user = User.objects.get(username=request.user)
-    assignment = submission.assignment_id
-    course = assignment.course_id
+    assignment = submission.assignment_fk
+    course = assignment.course_fk
 
     if not user.has_perm('view_assignment',course):
         return HttpResponse("Not enough privilege")
 
-    author = User.objects.get(username=submission.student_id)
+    author = User.objects.get(username=submission.student_fk)
     if not user.has_perm('modify_assignment',course):
         if author.username != user.username:
             return HttpResponse("Not enough privilege")
     submitter_name = user_info_helper.get_first_last_name(author)
-    team_member_names = team_helper.get_team_member_full_name_list(submission.team_id)
+    print(submission)
+    print(submission.team_fk)
+    team_member_names = team_helper.get_team_member_full_name_list(submission.team_fk)
 
     task_grading_status_list = TaskGradingStatus.objects.filter(
-            submission_id=submission_id).order_by('assignment_task_id')
+            submission_fk=submission_id).order_by('assignment_task_fk')
     now = timezone.now()
     can_see_hidden_cases_and_feedback_details = (
             assignment.viewing_scope_by_user(user) == Assignment.VIEWING_SCOPE_FULL)
@@ -95,22 +97,22 @@ def task_grading_detail(request, task_grading_id):
         return HttpResponse("Task grading detail cannot be found")
 
     user = User.objects.get(username=request.user)
-    submission = task_grading_status.submission_id
-    assignment = submission.assignment_id
-    course = assignment.course_id
+    submission = task_grading_status.submission_fk
+    assignment = submission.assignment_fk
+    course = assignment.course_fk
     if not user.has_perm('view_assignment', course):
         print("not enrolled")
         return HttpResponse("Not enough privilege")
 
-    author = submission.student_id
+    author = submission.student_fk
     if not user.has_perm('modify_assignment', course):
         if author != user:
             print("Not author")
             return HttpResponse("Not enough privilege")
     submitter_name = user_info_helper.get_first_last_name(author)
-    team_member_names = team_helper.get_team_member_full_name_list(submission.team_id)
+    team_member_names = team_helper.get_team_member_full_name_list(submission.team_fk)
 
-    assignment_task = task_grading_status.assignment_task_id
+    assignment_task = task_grading_status.assignment_task_fk
     if not assignment_task.can_access_grading_details_by_user(user):
         print("cannot view detail")
         return HttpResponse("Not enough privilege")
@@ -245,7 +247,7 @@ def submissions_full_log(request):
 
     #TODO: submission objects should be queried by teams. Put as a todo because submission_full_log
     # view is going to be remodeled.
-    submission_list = Submission.objects.filter(student_id=user).order_by('-id')
+    submission_list = Submission.objects.filter(student_fk=user).order_by('-id')
     
     template_context = {
         'myuser': user,
@@ -262,12 +264,12 @@ def student_submission_full_log(request):
     user = User.objects.get(username=request.user)
     if not user.has_perm('serapis.view_hardware_type'):
         return HttpResponse("Not enough privilege")
-    courses_as_instructor = [o.course_id for o in 
-            CourseUserList.objects.filter(user_id=user).exclude(role=CourseUserList.ROLE_STUDENT)]
+    courses_as_instructor = [o.course_fk for o in 
+            CourseUserList.objects.filter(user_fk=user).exclude(role=CourseUserList.ROLE_STUDENT)]
 
     assignment_list = []
     for course in courses_as_instructor:
-        course_assignments = Assignment.objects.filter(course_id=course)
+        course_assignments = Assignment.objects.filter(course_fk=course)
         assignment_list.extend(course_assignments)
 
     submission_list = []
@@ -275,7 +277,7 @@ def student_submission_full_log(request):
         #TODO: why do we want to exclude the instructor herself?
         #TODO: submission objects should be queried by teams. Put as a todo because
         # student_submission_full_log view is going to be remodeled.
-        assign_submissions = Submission.objects.filter(assignment_id=assign).exclude(student_id=user)
+        assign_submissions = Submission.objects.filter(assignment_fk=assign).exclude(student_fk=user)
         submission_list.extend(assign_submissions)
 
     template_context = {
@@ -295,7 +297,7 @@ def regrade(request, assignment_id):
     user = User.objects.get(username=request.user)
     user_profile = UserProfile.objects.get(user=user)
 
-    course = assignment.course_id
+    course = assignment.course_fk
     if not user.has_perm('modify_assignment', course):
         return HttpResponse("Not enough privilege")
 
@@ -317,7 +319,7 @@ def regrade(request, assignment_id):
             'user_profile': user_profile,
             'previous_commit_result': previous_commit_result,
             'form': form,
-            'course': assignment.course_id,
+            'course': assignment.course_fk,
             'assignment': assignment,
     }
     return render(request, 'serapis/regrade.html', template_context)

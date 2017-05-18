@@ -59,7 +59,7 @@ def testbed_show_summary_report(request):
         testbed.grading_deadline = timezone.now()
         flag_ask_status = True
     testbed.ip_address = ip_port
-    testbed.testbed_type_id = testbed_type
+    testbed.testbed_type_fk = testbed_type
     
     if flag_ask_status:
         try:

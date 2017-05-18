@@ -8,7 +8,7 @@ def get_last_first_name(user):
     return user.last_name + ' ' + user.first_name
 
 def all_submission_graded_on_assignment(user, assignment):
-    query = Submission.objects.filter(student_id=user, assignment_id=assignment)
+    query = Submission.objects.filter(student_fk=user, assignment_fk=assignment)
     if query.count() == 0:
         return True
     

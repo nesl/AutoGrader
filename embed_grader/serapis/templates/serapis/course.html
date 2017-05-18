@@ -47,8 +47,8 @@
               {% for assignment in assignment_list %}
                   <tr>
                       <td><a href="{% url 'assignment' assignment.id %}">{{ assignment.name }}</a></td>
-                      {% if assignment.testbed_type_id %}
-                          <td>{{ assignment.testbed_type_id.name }}</td>
+                      {% if assignment.testbed_type_fk %}
+                          <td>{{ assignment.testbed_type_fk.name }}</td>
                       {% else %}
                           <td>To be assigned</td>
                       {% endif %}

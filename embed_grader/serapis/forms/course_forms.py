@@ -80,7 +80,7 @@ class CourseCreationForm(ModelForm):
                     quarter=quarter,
             )
             course_user_list = CourseUserList.objects.create(
-                    user_id=self.user, course_id=course, role=CourseUserList.ROLE_INSTRUCTOR)
+                    user_fk=self.user, course_fk=course, role=CourseUserList.ROLE_INSTRUCTOR)
 
             # permission: create groups, add group permissions
             #TODO: don't hardcode strings here
@@ -130,7 +130,7 @@ class CourseEnrollmentForm(Form):
 
     def clean(self):
         course = self.cleaned_data.get("course_select")
-        if CourseUserList.objects.filter(user_id=self.user, course_id=course).count():
+        if CourseUserList.objects.filter(user_fk=self.user, course_fk=course).count():
             raise forms.ValidationError(self.error_messages['course_already_enrolled'],
                 code='course_already_enrolled')
         return self.cleaned_data
@@ -138,8 +138,8 @@ class CourseEnrollmentForm(Form):
     def save(self, commit=True):
         course = self.cleaned_data['course_select']
         course_user_list = CourseUserList(
-                user_id=self.user,
-                course_id=course,
+                user_fk=self.user,
+                course_fk=course,
                 role=CourseUserList.ROLE_STUDENT
         )
         
@@ -168,13 +168,13 @@ class CourseDropForm(Form):
 
     def save_and_commit(self):
         with transaction.atomic():
-            assignment_list = Assignment.objects.filter(course_id=self.course)
+            assignment_list = Assignment.objects.filter(course_fk=self.course)
             for assignment in assignment_list:
                 team = team_helper.get_belonged_team(self.user, assignment)
                 if team is not None:
                     team_helper.remove_users_from_team(team=team, users=[self.user])
 
-            CourseUserList.objects.filter(user_id=self.user, course_id=self.course).delete()
+            CourseUserList.objects.filter(user_fk=self.user, course_fk=self.course).delete()
 
         #TODO: remove instruction privileges
         # if len(cu_list) > 0 && cu_list[0].role < 20:

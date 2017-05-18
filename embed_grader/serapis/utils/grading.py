@@ -111,7 +111,7 @@ def get_last_fully_graded_submission(team, assignment):
       a Submission object which is the last fully graded submission
     """
     submission_list = Submission.objects.filter(
-            team_id=team, assignment_id=assignment).order_by('-id')
+            team_fk=team, assignment_fk=assignment).order_by('-id')
     for s in submission_list:
         if s.is_fully_graded(include_hidden=True):
             return s
@@ -123,7 +123,7 @@ def get_last_grading_submission(team, assignment):
       a Submission object which hasn't fully graded yet
     """
     submission_list = Submission.objects.filter(
-            team_id=team, assignment_id=assignment).order_by('-id')
+            team_fk=team, assignment_fk=assignment).order_by('-id')
     for s in submission_list:
         if not s.is_fully_graded(include_hidden=True):
             return s
@@ -135,7 +135,7 @@ def get_last_submission(team, assignment):
         user's latest submission, regardless of fully graded or not
     """
     submission_list = Submission.objects.filter(
-        team_id=team, assignment_id=assignment).order_by('-id')
+        team_fk=team, assignment_fk=assignment).order_by('-id')
     if len(submission_list) > 0:
         return submission_list[0]
     return None
@@ -148,4 +148,4 @@ def get_last_submission(team, assignment):
 
 #     """
 
-#     submission_list = Submission.objects.filter(student_id=author, assignment_id=assignment)
+#     submission_list = Submission.objects.filter(student_fk=author, assignment_fk=assignment)

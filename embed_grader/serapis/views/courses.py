@@ -106,7 +106,7 @@ def course(request, course_id):
     if not user.has_perm('view_course', course):
         return HttpResponse("Not enough privilege.")
 
-    assignment_list = Assignment.objects.filter(course_id=course_id).order_by('-id')
+    assignment_list = Assignment.objects.filter(course_fk=course_id).order_by('-id')
 
     if not user.has_perm('modify_course', course):
         assignment_list = [a for a in assignment_list if a.is_released()]
@@ -144,7 +144,7 @@ def unenroll_course(request, course_id):
     user = User.objects.get(username=request.user)
     course = Course.objects.get(id=course_id)
 
-    course_enrolled = (CourseUserList.objects.filter(user_id=user, course_id=course).count() > 0)
+    course_enrolled = (CourseUserList.objects.filter(user_fk=user, course_fk=course).count() > 0)
     
     if not course_enrolled:
         template_context = {
@@ -186,9 +186,9 @@ def membership(request, course_id):
     instructors = []
     assistants = []
     user_enrolled = []
-    cu_list = CourseUserList.objects.filter(course_id=course)
+    cu_list = CourseUserList.objects.filter(course_fk=course)
     for cu in cu_list:
-        member = UserProfile.objects.get(user=cu.user_id)
+        member = UserProfile.objects.get(user=cu.user_fk)
 
         if cu.role == CourseUserList.ROLE_INSTRUCTOR:
             instructors.append(member)
