@@ -26,7 +26,8 @@
     </div>
 
     <h3 class="page-header">Submission Detail</h3>
-    <h5>Student: {{ author.first_name }} {{ author.last_name }}</h5>
+    <h5>Author(s): {{ team_member_names }}</h5>
+    <h5>Submitted by: {{ submitter_name }}</h5>
     <h5>Submission time: {{ submission.submission_time }}</h5>
     <h5>Submission ID: {{ submission.id }}</h5>
     <h5>Score: {% show_score student_score total_score %}</h5>
@@ -34,7 +35,8 @@
       {% for f in submission_file_list %}
         <a href="{{ MEDIA_URL }}{{ f.file_field.url }}" class="btn btn-primary" style="font-size:12px;
             background:white; color:SteelBlue; border-color:SteelBlue">
-          <span class="glyphicon glyphicon-download-alt"></span>{{f.filename}}</a>
+          <span class="glyphicon glyphicon-download-alt"></span>{{f.filename}}
+        </a>
       {%endfor%}
     <h5>
       

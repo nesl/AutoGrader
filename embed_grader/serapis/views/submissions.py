@@ -25,6 +25,7 @@ from serapis.forms.submission_forms import *
 from serapis.utils import grading
 from serapis.utils import file_schema
 from serapis.utils import user_info_helper
+from serapis.utils import team_helper
 
 
 @login_required(login_url='/login/')
@@ -45,6 +46,8 @@ def submission(request, submission_id):
     if not user.has_perm('modify_assignment',course):
         if author.username != user.username:
             return HttpResponse("Not enough privilege")
+    submitter_name = user_info_helper.get_first_last_name(author)
+    team_member_names = team_helper.get_team_member_full_name_list(submission.team_id)
 
     task_grading_status_list = TaskGradingStatus.objects.filter(
             submission_id=submission_id).order_by('assignment_task_id')
@@ -72,7 +75,8 @@ def submission(request, submission_id):
         'submission': submission,
         'assignment': assignment,
         'course': course,
-        'author': author,
+        'submitter_name': submitter_name,
+        'team_member_names': team_member_names,
         'student_score': sum_student_score,
         'total_score': sum_total_score,
         'submission_file_list': submission_file_list,
@@ -103,12 +107,13 @@ def task_grading_detail(request, task_grading_id):
         if author != user:
             print("Not author")
             return HttpResponse("Not enough privilege")
+    submitter_name = user_info_helper.get_first_last_name(author)
+    team_member_names = team_helper.get_team_member_full_name_list(submission.team_id)
 
     assignment_task = task_grading_status.assignment_task_id
     if not assignment_task.can_access_grading_details_by_user(user):
         print("cannot view detail")
         return HttpResponse("Not enough privilege")
-
 
     if task_grading_status.grading_status != TaskGradingStatus.STAT_FINISH:
         return HttpResponse("Detail is not ready")
@@ -131,7 +136,7 @@ def task_grading_detail(request, task_grading_id):
         output_full_log.append({
             'field_name': f,
             'content': content,
-            'url':url,
+            'url': url,
         })
 
     if task_grading_status.grading_detail:
@@ -222,7 +227,8 @@ def task_grading_detail(request, task_grading_id):
         'course': course,
         'assignment': assignment,
         'submission': submission,
-        'author': author,
+        'submitter_name': submitter_name,
+        'team_member_names': team_member_names,
         'grading': task_grading_status,
         'assignment_task': assignment_task,
         'output_log': output_full_log,
@@ -237,6 +243,8 @@ def task_grading_detail(request, task_grading_id):
 def submissions_full_log(request):
     user = User.objects.get(username=request.user)
 
+    #TODO: submission objects should be queried by teams. Put as a todo because submission_full_log
+    # view is going to be remodeled.
     submission_list = Submission.objects.filter(student_id=user).order_by('-id')
     
     template_context = {
@@ -265,6 +273,8 @@ def student_submission_full_log(request):
     submission_list = []
     for assign in assignment_list:
         #TODO: why do we want to exclude the instructor herself?
+        #TODO: submission objects should be queried by teams. Put as a todo because
+        # student_submission_full_log view is going to be remodeled.
         assign_submissions = Submission.objects.filter(assignment_id=assign).exclude(student_id=user)
         submission_list.extend(assign_submissions)
 

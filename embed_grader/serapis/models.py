@@ -162,9 +162,10 @@ class Assignment(models.Model):
     release_time = models.DateTimeField()
     deadline = models.DateTimeField()
     problem_statement = RichTextUploadingField(blank=True)
+    num_max_team_members = models.IntegerField()
 
     # testbed related
-    testbed_type_id = models.ForeignKey(TestbedType, on_delete=models.CASCADE, null=True, blank=True)
+    testbed_type_id = models.ForeignKey(TestbedType, null=True, blank=True)
     num_testbeds = models.IntegerField(default=0, null=True, blank=True)
 
     def __str__(self):
@@ -298,7 +299,6 @@ class AssignmentTask(models.Model):
                 return []
 
 
-
 class AssignmentTaskFileSchema(models.Model):
     class Meta:
         unique_together = ('assignment_id', 'field')
@@ -316,6 +316,27 @@ class AssignmentTaskFile(models.Model):
     file = models.FileField(upload_to='AssignmentTaskFile_file')
 
 
+class Team(models.Model):
+    assignment_id = models.ForeignKey(Assignment, on_delete=models.CASCADE)
+    passcode = models.CharField(max_length=20, unique=True)
+    
+    def __str__(self):
+        return str(self.id)
+
+
+class TeamMember(models.Model):
+    class Meta:
+        unique_together = ('assignment_id', 'user_id')
+
+    assignment_id = models.ForeignKey(Assignment, on_delete=models.CASCADE)
+    team_id = models.ForeignKey(Team, on_delete=models.CASCADE)
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    is_leader = models.BooleanField()
+
+    def __str__(self):
+        return 'team%d-%s' % (self.team_id.id, self.user_id) 
+
+
 class Submission(models.Model):
     STAT_RECEIVED = 0
     STAT_GRADING = 10
@@ -329,6 +350,7 @@ class Submission(models.Model):
     )
 
     student_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    team_id = models.ForeignKey(Team, on_delete=models.CASCADE)
     assignment_id = models.ForeignKey(Assignment, on_delete=models.CASCADE)
     submission_time = models.DateTimeField()
     grading_result = models.FloatField()
@@ -337,10 +359,6 @@ class Submission(models.Model):
 
     def __str__(self):
         return self.student_id.first_name + " " + self.student_id.last_name + ", " + str(self.id)
-
-    def can_access_file_by_user(self, user):
-        return (user.has_perm('modify_assignment', self.assignment_id.course_id)
-                or user == self.student_id)
 
     def retrieve_task_grading_status_and_score_sum(self, include_hidden):
         """

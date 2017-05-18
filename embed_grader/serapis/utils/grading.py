@@ -105,37 +105,37 @@ def get_length_by_filename(filename):
         return get_length(f.read())
 
    
-def get_last_fully_graded_submission(author, assignment):
+def get_last_fully_graded_submission(team, assignment):
     """
     Return:
       a Submission object which is the last fully graded submission
     """
     submission_list = Submission.objects.filter(
-            student_id=author, assignment_id=assignment).order_by('-id')
+            team_id=team, assignment_id=assignment).order_by('-id')
     for s in submission_list:
         if s.is_fully_graded(include_hidden=True):
             return s
     return None
 
-def get_last_grading_submission(author, assignment):
+def get_last_grading_submission(team, assignment):
     """
     Return:
       a Submission object which hasn't fully graded yet
     """
     submission_list = Submission.objects.filter(
-            student_id=author, assignment_id=assignment).order_by('-id')
+            team_id=team, assignment_id=assignment).order_by('-id')
     for s in submission_list:
         if not s.is_fully_graded(include_hidden=True):
             return s
     return None
 
-def get_last_submission(author, assignment):
+def get_last_submission(team, assignment):
     """
     Return:
         user's latest submission, regardless of fully graded or not
     """
     submission_list = Submission.objects.filter(
-        student_id=author, assignment_id=assignment).order_by('-id')
+        team_id=team, assignment_id=assignment).order_by('-id')
     if len(submission_list) > 0:
         return submission_list[0]
     return None

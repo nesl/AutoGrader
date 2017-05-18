@@ -7,7 +7,7 @@ from django import template
 from django.utils.html import format_html
 
 from serapis.models import *
-from serapis.utils import user_info_helper
+from serapis.utils import team_helper
 
 
 register = template.Library()
@@ -15,20 +15,20 @@ register = template.Library()
 
 @register.simple_tag
 def show_score(achieved_score, total_score):
-	try:
-		achieved_score = str(round(float(achieved_score), 2))
-	except:
-		pass
+    try:
+        achieved_score = str(round(float(achieved_score), 2))
+    except:
+        pass
 
-	try:
-		total_score = str(round(float(total_score), 2))
-	except:
-		pass
-	
-	background_color = ('green'
-			if achieved_score != '0.0' and achieved_score == total_score else 'darkred')
-	return format_html('<span class="badge" style="background:%s; width:100px;">%s / %s</span>' % (
-			background_color, achieved_score, total_score))
+    try:
+        total_score = str(round(float(total_score), 2))
+    except:
+        pass
+    
+    background_color = ('green'
+            if achieved_score != '0.0' and achieved_score == total_score else 'darkred')
+    return format_html('<span class="badge" style="background:%s; width:100px;">%s / %s</span>' % (
+            background_color, achieved_score, total_score))
 
 def show_status(status):
     try:
@@ -44,7 +44,7 @@ class SubmissionTableSchemaNode(template.Node):
     SCHEMA_SCORE = 'score'
     SCHEMA_SUBMISSION_TIME = 'submission_time'
     SCHEMA_DETAIL_BUTTON = 'detail_button'
-    SCHEMA_AUTHOR_NAME = 'author_name'
+    SCHEMA_AUTHOR_NAMES = 'author_names'
 
     QUALIFIED_SCHEMA = [
             SCHEMA_ASSIGNMENT,
@@ -52,7 +52,7 @@ class SubmissionTableSchemaNode(template.Node):
             SCHEMA_SCORE,
             SCHEMA_SUBMISSION_TIME,
             SCHEMA_DETAIL_BUTTON,
-            SCHEMA_AUTHOR_NAME,
+            SCHEMA_AUTHOR_NAMES,
     ]
 
     def __init__(self, schema_list, width_attr_list, var_name):
@@ -114,7 +114,7 @@ class RenderSubmissionTableRow:
                 SubmissionTableSchemaNode.SCHEMA_SCORE: self._get_content_score,
                 SubmissionTableSchemaNode.SCHEMA_SUBMISSION_TIME: self._get_content_submission_time,
                 SubmissionTableSchemaNode.SCHEMA_DETAIL_BUTTON: self._get_content_detail_button,
-                SubmissionTableSchemaNode.SCHEMA_AUTHOR_NAME: self._get_content_author_name,
+                SubmissionTableSchemaNode.SCHEMA_AUTHOR_NAMES: self._get_content_author_names,
         }
         self.submission = submission
         self.user = user
@@ -189,8 +189,8 @@ class RenderSubmissionTableRow:
                 + 'width:90px; color:SteelBlue; border-color:SteelBlue">'
                 + '<span class="glyphicon glyphicon-file"></span>&nbsp;Detail</a>') % url_str
 
-    def _get_content_author_name(self):
-        return user_info_helper.get_first_last_name(self.submission.student_id)
+    def _get_content_author_names(self):
+        return team_helper.get_team_member_first_name_list(self.submission.team_id)
 
     def _render_task_status(self, text, background_color, task_id_for_url):
         if not task_id_for_url:

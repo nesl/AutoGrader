@@ -4,8 +4,11 @@
 {% load submission_tags %}
 
 {% block css %}
-<link href="{% static "serapis/sidebar.css" %}" rel="stylesheet">
-<link href="{% static "serapis/custom.css" %}" rel="stylesheet">
+  <link href="{% static "serapis/sidebar.css" %}" rel="stylesheet">
+  <link href="{% static "serapis/custom.css" %}" rel="stylesheet">
+{% endblock %}
+
+{% block page-specific-css %}
 {% endblock %}
 
 

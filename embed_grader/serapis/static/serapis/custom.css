@@ -5,3 +5,7 @@
 .bottom-buffer{
     margin-bottom: 20px;
 }
+
+a:hover {
+  cursor: pointer;
+}

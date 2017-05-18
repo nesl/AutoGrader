@@ -26,6 +26,7 @@ from serapis.models import *
 from serapis.utils import grading
 from serapis.utils import user_info_helper
 from serapis.utils import score_distribution
+from serapis.utils import team_helper
 from serapis.forms.assignment_forms import *
 
 
@@ -62,16 +63,34 @@ def assignment(request, assignment_id):
     if not user.has_perm('view_assignment', course):
         return HttpResponse("Not enough privilege")
 
-    now = timezone.now()
-    time_remaining = _display_remaining_time(assignment.deadline - now)
+    # retrieve team status
+    team = team_helper.get_belonged_team(user, assignment)
+    num_team_members = team_helper.get_num_team_members(team)
 
-    # Handle POST the request
-    if request.method == 'POST':
+    # if the user does not belong to any team yet it's an individual assignment, just create the
+    # one-person team
+    if team is None and assignment.num_max_team_members == 1:
+        team, _ = team_helper.create_team(assignment=assignment, users=[user])
+        num_team_members = 1
+
+    passcode = None
+    if team is not None:
+        user_team_member = team_helper.get_specific_team_member(team, user)
+        if user_team_member is not None and user_team_member.is_leader:
+            passcode = team.passcode
+
+    # handle POST the request
+    if team is not None and request.method == 'POST':
         form = AssignmentSubmissionForm(
-                request.POST, request.FILES, user=user, assignment=assignment)
+                request.POST, request.FILES, user=user, team=team, assignment=assignment)
         if form.is_valid():
             form.save_and_commit()
 
+    # compute remaining time for submission
+    now = timezone.now()
+    time_remaining = _display_remaining_time(assignment.deadline - now)
+
+    # retrieve task status
     can_see_hidden_cases = (
             assignment.viewing_scope_by_user(user) == Assignment.VIEWING_SCOPE_FULL)
 
@@ -87,60 +106,77 @@ def assignment(request, assignment_id):
         can_submit, reason_of_cannot_submit = True, None
     elif assignment.is_deadline_passed():
         can_submit, reason_of_cannot_submit = False, 'Deadline has passed'
+    elif team is None:
+        can_submit, reason_of_cannot_submit = False, 'You have to create or join a team first'
     elif not user_info_helper.all_submission_graded_on_assignment(user, assignment):
         can_submit, reason_of_cannot_submit = (
                 False, 'Please wait until current submission if fully graded')
     else:
         can_submit, reason_of_cannot_submit = True, None
 
-    submission_form = (AssignmentSubmissionForm(user=user, assignment=assignment)
+    # render the submission form
+    submission_form = (AssignmentSubmissionForm(user=user, team=team, assignment=assignment)
             if can_submit else None)
 
+    # retrieve submission lists
     submission_lists = {}
     if not user.has_perm('modify_assignment', course):
-        submission_lists['student'] = Submission.objects.filter(
-                student_id=user, assignment_id=assignment).order_by('-id')[:10]
+        if not team:
+            submission_lists['team'] = None
+        else:
+            submission_lists['team'] = Submission.objects.filter(
+                    team_id=team, assignment_id=assignment).order_by('-id')[:10]
     else:
-        students = [o.user_id for o in CourseUserList.objects.filter(course_id=course)]
+        teams = Team.objects.filter(assignment_id=assignment)
         graded_list = []
         grading_list = []
         
-        for student in students:
-            sub = grading.get_last_fully_graded_submission(student, assignment)
+        for team in teams:
+            sub = grading.get_last_fully_graded_submission(team, assignment)
             if sub:
                 graded_list.append(sub)
             
-            sub = grading.get_last_grading_submission(student, assignment)
+            sub = grading.get_last_grading_submission(team, assignment)
             if sub:
                 grading_list.append(sub)
-
 
         submission_lists['graded'] = graded_list
         submission_lists['grading'] = grading_list
 
+    # score distribution
     is_deadline_passed = assignment.is_deadline_passed()
-    enrollment, contributors, score_statistics = score_distribution.get_class_statistics(
-            assignment=assignment, include_hidden=is_deadline_passed)
+    _, num_attempting_teams, score_statistics = score_distribution.get_class_statistics(
+                assignment=assignment, include_hidden=is_deadline_passed)
 
     assignment_tasks_with_file_list = zip(assignment_tasks, assignment_task_files_list)
 
 
     template_context = {
+            # user
             'myuser': request.user,
             'user_profile': user_profile,
+            # assignment/course
             'course': course,
             'assignment': assignment,
-            'submission_form': submission_form,
-            'reason_of_cannot_submit': reason_of_cannot_submit,
-            'submission_lists': submission_lists,
-            'assignment_tasks': assignment_tasks_with_file_list,
+            # assignment task section
             'public_points': public_points,
             'total_points': total_points,
+            'assignment_tasks': assignment_tasks_with_file_list,
+            # team info
+            'team': team,
+            'num_team_members': num_team_members,
+            'passcode': passcode,
+            # form
+            'submission_form': submission_form,
+            'reason_of_cannot_submit': reason_of_cannot_submit,
             'now': now,
             'time_remaining': time_remaining,
-            'total_student_num': enrollment,
-            'num_contributed_students': contributors,
+            # score distribution
+            'num_attempting_teams': num_attempting_teams,
             'score_statistics': score_statistics,
+            'submission_unit': 'student' if assignment.num_max_team_members == 1 else 'team',
+            # submission section
+            'submission_lists': submission_lists,
     }
 
     return render(request, 'serapis/assignment.html', template_context)
@@ -191,6 +227,127 @@ def assignment_run_final_grade(request, assignment_id):
     return HttpResponseRedirect(reverse('assignment', kwargs={'assignment_id': assignment_id}))
 
 
+@login_required(login_url='/login/')
+def assignment_create_team(request, assignment_id):
+    user = User.objects.get(username=request.user)
+
+    try:
+        assignment = Assignment.objects.get(id=assignment_id)
+    except Assignment.DoesNotExist:
+        return HttpResponse("Assignment cannot be found.")
+
+    course = assignment.course_id
+    if not user.has_perm('view_assignment', course):
+        return HttpResponse("Not enough privilege")
+
+    if assignment.is_deadline_passed():
+        return HttpResponse("Deadline is passed")
+
+    team_helper.create_team(assignment, [user])
+    
+    return HttpResponseRedirect(reverse('assignment', kwargs={'assignment_id': assignment_id}))
+
+
+@login_required(login_url='/login/')
+def assignment_join_team(request, assignment_id):
+    user = User.objects.get(username=request.user)
+
+    try:
+        assignment = Assignment.objects.get(id=assignment_id)
+    except Assignment.DoesNotExist:
+        return HttpResponse("Assignment cannot be found.")
+
+    course = assignment.course_id
+    if not user.has_perm('view_assignment', course):
+        return HttpResponse("Not enough privilege")
+
+    if assignment.is_deadline_passed():
+        return HttpResponse("Deadline is passed")
+
+    if team_helper.get_belonged_team(user, assignment) is not None:
+        return HttpResponse("Already involved in some team")
+
+    if request.method != 'POST':
+        return HttpResponse("Invalid request")
+
+    form = JoinTeamForm(request.POST, user=user, assignment=assignment)
+    if not form.is_valid():
+        #TODO: show error message of incorrect passcode in the next page
+        return HttpResponse("Invalid request")
+
+    form.save()
+    
+    return HttpResponseRedirect(reverse('assignment', kwargs={'assignment_id': assignment_id}))
+
+
+@login_required(login_url='/login/')
+def view_assignment_team_list(request, assignment_id):
+    user = User.objects.get(username=request.user)
+    user_profile = UserProfile.objects.get(user=user)
+
+    try:
+        assignment = Assignment.objects.get(id=assignment_id)
+    except Assignment.DoesNotExist:
+        return HttpResponse("Assignment cannot be found.")
+
+    course = assignment.course_id
+    if not user.has_perm('modify_assignment', course):
+        return HttpResponse("Not enough privilege")
+
+    if assignment.num_max_team_members == 1:
+        return HttpResponse("Not a team-based assignment")
+
+    #TODO: The original plan of view_assignment_team_list view is that each student is represented
+    # as a box in the table, and instructors can drag and drop the boxes to arrange students to
+    # different teams.
+
+    teams = Team.objects.filter(assignment_id=assignment)
+    team_bundles = []
+    for team in teams:
+        team_members = team_helper.get_team_members(team)
+        team_member_names = [user_info_helper.get_first_last_name(tm.user_id)
+                for tm in team_members]
+        team_bundle = {
+                'team': team,
+                'leader_name': team_member_names[0],
+                'teammate_names': team_member_names[1:],
+        }
+        team_bundles.append(team_bundle)
+
+    template_context = {
+            'myuser': user,
+            'user_profile': user_profile,
+            'course': course,
+            'assignment': assignment,
+            'team_bundles': team_bundles,
+    }
+
+    return render(request, 'serapis/assignment_team_list.html', template_context)
+
+
+@login_required(login_url='/login/')
+def delete_team(request, assignment_id, team_id):
+    user = User.objects.get(username=request.user)
+
+    try:
+        assignment = Assignment.objects.get(id=assignment_id)
+        team = Team.objects.get(id=team_id)
+    except Assignment.DoesNotExist:
+        return HttpResponse("Assignment or team cannot be found.")
+    
+    course = assignment.course_id
+    if not user.has_perm('modify_assignment', course):
+        return HttpResponse("Not enough privilege")
+
+    if team.assignment_id != assignment:
+        return HttpResponse("Invalid request")
+
+    team.delete()
+
+    return HttpResponseRedirect(
+            reverse('view-assignment-team-list', kwargs={'assignment_id': assignment_id}))
+
+
 def _create_or_modify_assignment(request, course_id, assignment):
     """
     if assignment is None, it is in creating mode, otherwise it is in updating mode
@@ -212,7 +369,7 @@ def _create_or_modify_assignment(request, course_id, assignment):
     if request.method == 'POST':
         form = AssignmentForm(request.POST, course=course, instance=assignment)
         if form.is_valid():
-            assignment = form.save()
+            assignment = form.save_and_commit()
             return HttpResponseRedirect(reverse('assignment',
                 kwargs={'assignment_id': assignment.id}))
     else:

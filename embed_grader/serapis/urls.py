@@ -45,6 +45,10 @@ urlpatterns = [
     ## Assignment pages
     url(r'^assignment/(?P<assignment_id>[0-9]+)/$', assignments.assignment, name='assignment'),
     url(r'^assignment-run_final-grade/(?P<assignment_id>[0-9]+)/$', assignments.assignment_run_final_grade, name='assignment-run-final-grade'),
+    url(r'^assignment-create-team/(?P<assignment_id>[0-9]+)/$', assignments.assignment_create_team, name='assignment-create-team'),
+    url(r'^assignment-join-team/(?P<assignment_id>[0-9]+)/$', assignments.assignment_join_team, name='assignment-join-team'),
+    url(r'^view-assignment-team-list/(?P<assignment_id>[0-9]+)/$', assignments.view_assignment_team_list, name='view-assignment-team-list'),
+    url(r'^delete-team/(?P<assignment_id>[0-9]+)/(?P<team_id>[0-9]+)/$', assignments.delete_team, name='delete-team'),
     url(r'^create-assignment/(?P<course_id>[0-9]+)/$', assignments.create_assignment, name='create-assignment'),
     url(r'^modify-assignment/(?P<assignment_id>[0-9]+)/$', assignments.modify_assignment, name='modify-assignment'),
     url(r'^delete-assignment/(?P<assignment_id>[0-9]+)/$', assignments.delete_assignment, name='delete-assignment'),

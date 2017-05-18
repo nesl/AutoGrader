@@ -1,22 +1,24 @@
 import os.path
 
+from datetime import timedelta
+
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.http import *
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.encoding import smart_str
+from django.contrib.auth.models import User, Group
 
-from datetime import timedelta
 from serapis.models import *
 
-from wsgiref.util import FileWrapper
-
-from django.contrib.auth.models import User, Group
 from guardian.decorators import permission_required_or_403
 from guardian.compat import get_user_model
 from guardian.shortcuts import assign_perm
 
+from wsgiref.util import FileWrapper
+
+from serapis.utils import team_helper
 
 
 # Note: please keep the function name as in the convention of <model>_<attribute>.
@@ -130,7 +132,7 @@ def submission_file_file(request):
     file_to_download = submission_file[0]
     submission = file_to_download.submission_id
 
-    if submission.can_access_file_by_user(user):
+    if submission_helper.can_submission_be_accessed_by_user(submission, user):
         return _make_http_response_for_file_download(file_to_download.file.path)
     else:
         return HttpResponseForbidden()

@@ -18,6 +18,7 @@ from serapis.models import *
 from serapis.utils import grading
 from serapis.utils import file_schema
 from serapis.utils import user_info_helper
+from serapis.utils import team_helper
 
 from django.utils import timezone
 from datetime import timedelta
@@ -26,6 +27,7 @@ from datetime import timedelta
 class AssignmentForm(ModelForm):
     error_messages = {
         'time_conflict': 'Release time must be earlier than deadline.',
+        'invalid_num_members': 'Number of team members has to be more than or equal to 2.',
         'invalid_schema': 'Schema can only contain 0-9, a-z, \'.\', and \'_\'.',
     }
 
@@ -43,6 +45,13 @@ class AssignmentForm(ModelForm):
             'deadline': DateTimeWidget(bootstrap_version=3, options=date_time_options),
         }
 
+    TEAM_OPTION_INDIVIDUAL = '0'
+    TEAM_OPTION_TEAM = '1'
+    TEAM_CHOICES = (
+            (TEAM_OPTION_INDIVIDUAL, 'Individual assignment'),
+            (TEAM_OPTION_TEAM, 'Team assignment'),
+    )
+
     def __init__(self, *args, **kwargs):
         """
         Constructor:
@@ -52,6 +61,10 @@ class AssignmentForm(ModelForm):
         super(AssignmentForm, self).__init__(*args, **kwargs)
 
         assignment = kwargs.get('instance')  # None if in creating mode, otherwise updating mode
+        if assignment and assignment.course_id != self.course:
+            raise Exception('The passed assignment does not belong to the course')
+
+        self.mode = 'modify' if assignment else 'create'
 
         # add three more input boxes for schema
         schema_file_info = [
@@ -71,6 +84,26 @@ class AssignmentForm(ModelForm):
                     help_text="Use ; to separate multiple schema names.",
                     initial=initial_val,
             )
+        
+        num_max_team_members = assignment.num_max_team_members if assignment else 1
+        initial_team_choice_val, initial_num_member_val = (
+                (AssignmentForm.TEAM_OPTION_INDIVIDUAL, 2) if num_max_team_members == 1
+                else (AssignmentForm.TEAM_OPTION_TEAM, num_max_team_members))
+
+        self.fields['team_choice'] = forms.ChoiceField(
+                required=True,
+                widget=forms.RadioSelect,
+                choices=AssignmentForm.TEAM_CHOICES,
+                initial=initial_team_choice_val,
+        )
+        self.fields['num_max_team_members'] = forms.IntegerField(
+                required=False,
+                initial=initial_num_member_val,
+                validators=[MinValueValidator(2)]
+        )
+
+        #TODO: field order
+        
 
     def clean(self):
         # the order release time and deadline should be in order
@@ -79,6 +112,19 @@ class AssignmentForm(ModelForm):
         if rt and dl and rt >= dl:
             raise forms.ValidationError(self.error_messages['time_conflict'],
                 code='time_conflict')
+
+        # team choice
+        if self.cleaned_data['team_choice'] == AssignmentForm.TEAM_OPTION_INDIVIDUAL:
+            self.cleaned_data['num_max_team_members'] = 1
+        else:
+            if 'num_max_team_members' not in self.cleaned_data:
+                # Since field 'num_max_team_members' is optional, the data is not saved in
+                # self.cleaned_data if its format is not correct.
+                raise forms.ValidationError(self.error_messages['invalid_num_members'],
+                    code='invalid_num_members')
+            
+            self.cleaned_data['num_max_team_members'] = int(
+                    self.cleaned_data['num_max_team_members'])
 
         return self.cleaned_data
 
@@ -124,11 +170,19 @@ class AssignmentForm(ModelForm):
         return schema_name_list
 
     def save(self, commit=True):
+         raise Exception('Deprecated method')
+
+    def save_and_commit(self):
+        """
+        Return:
+          assignment
+        """
         assignment = super(AssignmentForm, self).save(commit=False)
         assignment.course_id = self.course
-        if commit:
-            assignment.save()
-        
+        assignment.num_max_team_members = self.cleaned_data['num_max_team_members']
+        assignment.save()
+
+        # file schemas
         SchemaClass_n_new_schema_name = [
                 (AssignmentTaskFileSchema, self.cleaned_data['assignment_task_file_schema']),
                 (SubmissionFileSchema, self.cleaned_data['submission_file_schema']),
@@ -164,6 +218,7 @@ class AssignmentSubmissionForm(Form):
           - assignment: which assignment the user submit the codes to
         """
         user = kwargs.pop('user')
+        team = kwargs.pop('team')
         assignment = kwargs.pop('assignment')
         super(AssignmentSubmissionForm, self).__init__(*args, **kwargs)
 
@@ -190,6 +245,7 @@ class AssignmentSubmissionForm(Form):
 
         # set up variables to be used
         self.user = user
+        self.team = team
         self.assignment = assignment
         self.file_fields = file_fields
 
@@ -214,6 +270,7 @@ class AssignmentSubmissionForm(Form):
         """
         submission = Submission(
                 student_id=self.user,
+                team_id=self.team,
                 assignment_id=self.assignment,
                 submission_time=timezone.now(),
                 grading_result=0.,
@@ -244,3 +301,54 @@ class AssignmentSubmissionForm(Form):
             file_schema.create_empty_task_grading_status_schema_files(grading_task)
 
         return submission
+
+
+class JoinTeamForm(Form):
+    """
+    JoinTeamForm receives the passcode and put the user to that team. Since the validation and
+    the save logic (i.e., putting the user in the team) cannot be decoupled, the save() method
+    will be a no-operation.
+    """
+
+    error_messages = {
+        'wrong_passcode': 'Incorrect passcode.',
+        'pass_deadline': 'Assignment deadline has already passed.',
+        'no_capacity': 'No empty spot in the team.',
+    }
+
+    def __init__(self, *args, **kwargs):
+        """
+        Constructor:
+          - user: the user who submits the codes
+          - assignment: which assignment the user submit the codes to
+        """
+        user = kwargs.pop('user')
+        assignment = kwargs.pop('assignment')
+        super(JoinTeamForm, self).__init__(*args, **kwargs)
+
+        self.fields['team_passcode'] = forms.CharField(required=True, max_length=20)
+
+        # set up variables to be used
+        self.user = user
+        self.assignment = assignment
+
+    def clean(self):
+        # check passcode
+        team = team_helper.check_passcode(self.cleaned_data['team_passcode'])
+        if team is None:
+            raise forms.ValidationError(self.error_messages['wrong_passcode'],
+                    code='wrong_passcode')
+
+        # a student cannot join a team after passing the deadline
+        if self.assignment.is_deadline_passed():
+            raise forms.ValidationError(self.error_messages['pass_deadline'],
+                    code='pass_deadline')
+
+        if not team_helper.add_users_to_team(team, [self.user]):
+            raise forms.ValidationError(self.error_messages['no_capacity'],
+                    code='no_capacity')
+
+        return self.cleaned_data
+
+    def save(self):
+        pass
