@@ -39,7 +39,7 @@ def _create_or_modify_assignment_task(request, assignment_id, assignment_task):
     user = User.objects.get(username=request.user)
     user_profile = UserProfile.objects.get(user=user)
     
-    course = assignment.course_id
+    course = assignment.course_fk
 
     if not user.has_perm('modify_assignment', course):
         return HttpResponse("Not enough privilege")
@@ -86,7 +86,7 @@ def modify_assignment_task(request, task_id):
 
     return _create_or_modify_assignment_task(
             request=request,
-            assignment_id=task.assignment_id.id,
+            assignment_id=task.assignment_fk.id,
             assignment_task=task,
     )
 
@@ -98,8 +98,8 @@ def delete_assignment_task(request, task_id):
     except AssignmentTask.DoesNotExist:
         return HttpResponse("Assignment task cannot be found")
 
-    assignment = task.assignment_id
-    course = assignment.course_id
+    assignment = task.assignment_fk
+    course = assignment.course_fk
 
     user = User.objects.get(username=request.user)
 

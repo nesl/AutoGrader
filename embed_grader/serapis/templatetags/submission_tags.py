@@ -118,7 +118,7 @@ class RenderSubmissionTableRow:
         }
         self.submission = submission
         self.user = user
-        self.include_hidden = (submission.assignment_id.viewing_scope_by_user(user)
+        self.include_hidden = (submission.assignment_fk.viewing_scope_by_user(user)
                 == Assignment.VIEWING_SCOPE_FULL)
         self.result = format_html(
                 ''.join(['<td>' + schema_to_function[sch]() + '</td>'
@@ -128,19 +128,19 @@ class RenderSubmissionTableRow:
         return self.result
 
     def _get_content_assignment(self):
-        assignment = self.submission.assignment_id
+        assignment = self.submission.assignment_fk
         return '<a href="%s">%s</a>' % (
                 reverse('assignment', kwargs={'assignment_id': assignment.id}), assignment.name)
 
     def _get_content_status(self):
-        (all_assignment_tasks, _) = (self.submission.assignment_id
+        (all_assignment_tasks, _) = (self.submission.assignment_fk
                 .retrieve_assignment_tasks_and_score_sum(include_hidden=True))
         (task_grading_status_list, _, _) = (
                 self.submission.retrieve_task_grading_status_and_score_sum(self.include_hidden))
         
         atid_2_task_grading_status = {}
         for task_grading_status in task_grading_status_list:
-            atid = task_grading_status.assignment_task_id.id
+            atid = task_grading_status.assignment_task_fk.id
             atid_2_task_grading_status[atid] = task_grading_status
 
         status_2_text = {
@@ -190,7 +190,7 @@ class RenderSubmissionTableRow:
                 + '<span class="glyphicon glyphicon-file"></span>&nbsp;Detail</a>') % url_str
 
     def _get_content_author_names(self):
-        return team_helper.get_team_member_first_name_list(self.submission.team_id)
+        return team_helper.get_team_member_first_name_list(self.submission.team_fk)
 
     def _render_task_status(self, text, background_color, task_id_for_url):
         if not task_id_for_url:

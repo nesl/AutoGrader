@@ -165,7 +165,10 @@ def testbed_type(request, testbed_type_id):
         return HttpResponse("Testbed type not found")
 
     testbed_type_form = TestbedTypeForm()
-    template_context = { "myuser": request.user, "testbed_type_form": testbed_type_form }
+    template_context = {
+            "myuser": request.user,
+            "testbed_type_form": testbed_type_form,
+    }
 
     return HttpResponse("Under construction")
 

@@ -33,7 +33,7 @@ class AssignmentForm(ModelForm):
 
     class Meta:
         model = Assignment
-        fields = ['name', 'release_time', 'deadline', 'problem_statement', 'testbed_type_id',
+        fields = ['name', 'release_time', 'deadline', 'problem_statement', 'testbed_type_fk',
                 'num_testbeds']
         date_time_options = {
                 'format': 'mm/dd/yyyy hh:ii',
@@ -61,7 +61,7 @@ class AssignmentForm(ModelForm):
         super(AssignmentForm, self).__init__(*args, **kwargs)
 
         assignment = kwargs.get('instance')  # None if in creating mode, otherwise updating mode
-        if assignment and assignment.course_id != self.course:
+        if assignment and assignment.course_fk != self.course:
             raise Exception('The passed assignment does not belong to the course')
 
         self.mode = 'modify' if assignment else 'create'
@@ -178,7 +178,7 @@ class AssignmentForm(ModelForm):
           assignment
         """
         assignment = super(AssignmentForm, self).save(commit=False)
-        assignment.course_id = self.course
+        assignment.course_fk = self.course
         assignment.num_max_team_members = self.cleaned_data['num_max_team_members']
         assignment.save()
 
@@ -189,7 +189,7 @@ class AssignmentForm(ModelForm):
                 (TaskGradingStatusFileSchema, self.cleaned_data['task_grading_status_file_schema']),
         ]
         for SchemaClass, new_schema_name_list in SchemaClass_n_new_schema_name:
-            old_schema = SchemaClass.objects.filter(assignment_id=assignment)
+            old_schema = SchemaClass.objects.filter(assignment_fk=assignment)
             old_schema_name_list = [sch.field for sch in old_schema]
 
             # remove out-dated schema in database
@@ -200,7 +200,7 @@ class AssignmentForm(ModelForm):
             # add new schema to database
             for n_name in new_schema_name_list:
                 if n_name not in old_schema_name_list:
-                    SchemaClass.objects.create(assignment_id=assignment, field=n_name)
+                    SchemaClass.objects.create(assignment_fk=assignment, field=n_name)
 
         return assignment
 
@@ -227,7 +227,7 @@ class AssignmentSubmissionForm(Form):
                 (AssignmentTask.MODE_PUBLIC, 'Debug+Public'),
                 (AssignmentTask.MODE_FEEDBACK, 'Debug+Public+Feedback'),
         ]
-        if user.has_perm('modify_assignment', assignment.course_id):  # an instructor
+        if user.has_perm('modify_assignment', assignment.course_fk):  # an instructor
             execution_scope_choice.append(
                     (AssignmentTask.MODE_HIDDEN, 'Debug+Public+Feedback+Hidden'))
         self.fields['execution_scope'] = forms.ChoiceField(
@@ -250,7 +250,7 @@ class AssignmentSubmissionForm(Form):
         self.file_fields = file_fields
 
     def clean(self):
-        if not self.user.has_perm('modify_assignment', self.assignment.course_id):  # a student
+        if not self.user.has_perm('modify_assignment', self.assignment.course_fk):  # a student
             # a student cannot submit after passing the deadline
             if self.assignment.is_deadline_passed():
                 raise forms.ValidationError(self.error_messages['pass_deadline'],
@@ -269,9 +269,9 @@ class AssignmentSubmissionForm(Form):
           - submission
         """
         submission = Submission(
-                student_id=self.user,
-                team_id=self.team,
-                assignment_id=self.assignment,
+                student_fk=self.user,
+                team_fk=self.team,
+                assignment_fk=self.assignment,
                 submission_time=timezone.now(),
                 grading_result=0.,
                 status=Submission.STAT_GRADING,
@@ -291,8 +291,8 @@ class AssignmentSubmissionForm(Form):
         now = timezone.now()
         for assignment_task in assignment_tasks:
             grading_task = TaskGradingStatus.objects.create(
-                submission_id=submission,
-                assignment_task_id=assignment_task,
+                submission_fk=submission,
+                assignment_task_fk=assignment_task,
                 grading_status=TaskGradingStatus.STAT_PENDING,
                 execution_status=TaskGradingStatus.EXEC_UNKNOWN,
                 status_update_time=now,

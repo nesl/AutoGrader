@@ -130,7 +130,7 @@ def submission_file_file(request):
         print('Warning: find 2 or more records with this file name')
 
     file_to_download = submission_file[0]
-    submission = file_to_download.submission_id
+    submission = file_to_download.submission_fk
 
     if submission_helper.can_submission_be_accessed_by_user(submission, user):
         return _make_http_response_for_file_download(file_to_download.file.path)
@@ -172,7 +172,7 @@ def task_grading_status_file_file(request):
     if len(task_grading_status_file_list) >= 2:
         print('Warning: find 2 or more records with this file name')
 
-    task_grading_status = task_grading_status_file_list[0].task_grading_status_id
+    task_grading_status = task_grading_status_file_list[0].task_grading_status_fk
     if task_grading_status.can_access_grading_details_by_user(user):
         return _make_http_response_for_file_download(task_grading_status_file_list[0].file.path)
     else:
@@ -194,7 +194,7 @@ def assignment_task_file_file(request):
         print('Warning: find 2 or more records with this file name')
 
     assignment_task_file = assignment_task_file_list[0]
-    assignment_task = assignment_task_file.assignment_task_id 
+    assignment_task = assignment_task_file.assignment_task_fk 
     if assignment_task.can_access_grading_details_by_user(user):
         return _make_http_response_for_file_download(assignment_task_file.file.path)
     else:

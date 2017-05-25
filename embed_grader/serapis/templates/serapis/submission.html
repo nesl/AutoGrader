@@ -54,11 +54,11 @@
       </tr>
       {% for t in task_grading_status_list %}
         <tr>
-          <td>{{ t.assignment_task_id.brief_description }}</td>
+          <td>{{ t.assignment_task_fk.brief_description }}</td>
           <td>{{ t.get_grading_status_display }}</td>
-          <td>{% show_score t.points t.assignment_task_id.points %}</td>
+          <td>{% show_score t.points t.assignment_task_fk.points %}</td>
           
-          {% if t.assignment_task_id.mode == AssignmentTask.MODE_FEEDBACK and not can_see_feedback_details %}
+          {% if t.assignment_task_fk.mode == AssignmentTask.MODE_FEEDBACK and not can_see_feedback_details %}
             <td>N/A</td>
           {% else %}
             <td>

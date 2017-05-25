@@ -16,8 +16,8 @@ admin.site.register(Assignment)
 
 class CourseUserListAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
-        user = obj.user_id
-        course = obj.course_id
+        user = obj.user_fk
+        course = obj.course_fk
 
         instructor_group_name = str(course.id) + "_Instructor_Group"
         student_group_name = str(course.id) + "_Student_Group"

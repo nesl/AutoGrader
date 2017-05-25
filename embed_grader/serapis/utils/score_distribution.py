@@ -14,7 +14,7 @@ def get_class_statistics(assignment, include_hidden):
 
     # list of all teams enrolled in this class
     #TODO: exclude the instructor in the statistics
-    team_list = Team.objects.filter(assignment_id=assignment)
+    team_list = Team.objects.filter(assignment_fk=assignment)
 
     last_submission_score_list = []
     for team in team_list:

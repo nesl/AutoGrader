@@ -14,7 +14,7 @@ Terminology:
 
 
 def _get_schema_name(SchemaClass, assignment):
-    schema_list = SchemaClass.objects.filter(assignment_id=assignment)
+    schema_list = SchemaClass.objects.filter(assignment_fk=assignment)
     return [sch.field for sch in schema_list]
 
 def get_assignment_task_file_schema_names(assignment):
@@ -28,7 +28,7 @@ def get_task_grading_status_file_schema_names(assignment):
 
 
 def _get_dict_schema_name_to_schema_files(SchemaClass, assignment, schema_file_list, enforce_check):
-    schema_list = SchemaClass.objects.filter(assignment_id=assignment)
+    schema_list = SchemaClass.objects.filter(assignment_fk=assignment)
 
     if enforce_check:
         if len(schema_list) != len(schema_file_list):
@@ -36,7 +36,7 @@ def _get_dict_schema_name_to_schema_files(SchemaClass, assignment, schema_file_l
 
     schema_id_2_schema_file = {}
     for schema_file in schema_file_list:
-        schema_id_2_schema_file[schema_file.file_schema_id.id] = schema_file
+        schema_id_2_schema_file[schema_file.file_schema_fk.id] = schema_file
 
     dict_schema_file = {}
     for schema in schema_list:
@@ -51,8 +51,8 @@ def get_dict_schema_name_to_assignment_task_schema_files(assignment_task, enforc
     Returns:
       dict_schema_name_2_schema_file: dict of str -> AssignmentTaskFile
     """
-    assignment = assignment_task.assignment_id
-    schema_file_list = AssignmentTaskFile.objects.filter(assignment_task_id=assignment_task)
+    assignment = assignment_task.assignment_fk
+    schema_file_list = AssignmentTaskFile.objects.filter(assignment_task_fk=assignment_task)
     return _get_dict_schema_name_to_schema_files(
             AssignmentTaskFileSchema, assignment, schema_file_list, enforce_check)
 
@@ -63,8 +63,8 @@ def get_dict_schema_name_to_submission_schema_files(submission, enforce_check=Tr
     Returns:
       dict_schema_name_2_schema_file: dict of str -> SubmissionFile
     """
-    assignment = submission.assignment_id
-    schema_file_list = SubmissionFile.objects.filter(submission_id=submission)
+    assignment = submission.assignment_fk
+    schema_file_list = SubmissionFile.objects.filter(submission_fk=submission)
     return _get_dict_schema_name_to_schema_files(
             SubmissionFileSchema, assignment, schema_file_list, enforce_check)
 
@@ -75,20 +75,20 @@ def get_dict_schema_name_to_task_grading_status_schema_files(task_grading_status
     Returns:
       dict_schema_name_2_schema_file: dict of str -> TaskGradingStatusFile
     """
-    assignment = task_grading_status.assignment_task_id.assignment_id
+    assignment = task_grading_status.assignment_task_fk.assignment_fk
     schema_file_list = TaskGradingStatusFile.objects.filter(
-            task_grading_status_id=task_grading_status)
+            task_grading_status_fk=task_grading_status)
     return _get_dict_schema_name_to_schema_files(
             TaskGradingStatusFileSchema, assignment, schema_file_list, enforce_check)
 
 
 def create_empty_task_grading_status_schema_files(task_grading_status):
-    assignment = task_grading_status.assignment_task_id.assignment_id
-    schema_list = TaskGradingStatusFileSchema.objects.filter(assignment_id=assignment)
+    assignment = task_grading_status.assignment_task_fk.assignment_fk
+    schema_list = TaskGradingStatusFileSchema.objects.filter(assignment_fk=assignment)
     for sch in schema_list:
         TaskGradingStatusFile.objects.create(
-                task_grading_status_id=task_grading_status,
-                file_schema_id=sch,
+                task_grading_status_fk=task_grading_status,
+                file_schema_fk=sch,
                 file=None,
         )
 
@@ -117,25 +117,25 @@ def _save_dict_schema_name_to_files(schema_name_2_schema_files, schema_name_2_fi
             schema_file = create_schema_file_func(obj, schema, cur_file)
 
 def _create_assignment_task_file(assignment_task, schema, file):
-    return AssignmentTaskFile.objects.create(assignment_task_id=assignment_task,
-            file_schema_id=schema, file=file)
+    return AssignmentTaskFile.objects.create(assignment_task_fk=assignment_task,
+            file_schema_fk=schema, file=file)
 
 def _create_submission_file(submission, schema, file):
-    return SubmissionFile.objects.create(submission_id=submission,
-            file_schema_id=schema, file=file)
+    return SubmissionFile.objects.create(submission_fk=submission,
+            file_schema_fk=schema, file=file)
 
 def _create_task_grading_status_file(task_grading_status, schema, file):
-    return TaskGradingStatusFile.objects.create(task_grading_status_id=task_grading_status,
-            file_schema_id=schema, file=file)
+    return TaskGradingStatusFile.objects.create(task_grading_status_fk=task_grading_status,
+            file_schema_fk=schema, file=file)
 
 def _get_assignment_task_file_schema(assignment, field_name):
-    return AssignmentTaskFileSchema.objects.get(assignment_id=assignment, field=field_name)
+    return AssignmentTaskFileSchema.objects.get(assignment_fk=assignment, field=field_name)
 
 def _get_submission_file_schema(assignment, field_name):
-    return SubmissionFileSchema.objects.get(assignment_id=assignment, field=field_name)
+    return SubmissionFileSchema.objects.get(assignment_fk=assignment, field=field_name)
 
 def _get_task_grading_status_file_schema(assignment, field_name):
-    return TaskGradingStatusFileSchema.objects.get(assignment_id=assignment, field=field_name)
+    return TaskGradingStatusFileSchema.objects.get(assignment_fk=assignment, field=field_name)
 
 def save_dict_schema_name_to_assignment_task_files(
         assignment_task, dict_sch_name_2_assignment_task_files, enforce_check=True):
@@ -151,7 +151,7 @@ def save_dict_schema_name_to_assignment_task_files(
             schema_name_2_schema_files=schema_name_2_schema_files,
             schema_name_2_files=dict_sch_name_2_assignment_task_files,
             enforce_check=enforce_check,
-            assignment=assignment_task.assignment_id,
+            assignment=assignment_task.assignment_fk,
             get_schema_func=_get_assignment_task_file_schema,
             obj=assignment_task,
             create_schema_file_func=_create_assignment_task_file,
@@ -171,7 +171,7 @@ def save_dict_schema_name_to_submission_files(
             schema_name_2_schema_files=schema_name_2_schema_files,
             schema_name_2_files=dict_sch_name_2_submission_files,
             enforce_check=enforce_check,
-            assignment=submission.assignment_id,
+            assignment=submission.assignment_fk,
             get_schema_func=_get_submission_file_schema,
             obj=submission,
             create_schema_file_func=_create_submission_file,
@@ -191,7 +191,7 @@ def save_dict_schema_name_to_task_grading_status_files(
             schema_name_2_schema_files=schema_name_2_schema_files,
             schema_name_2_files=dict_sch_name_2_task_grading_status_files,
             enforce_check=enforce_check,
-            assignment=task_grading_status.assignment_task_id.assignment_id,
+            assignment=task_grading_status.assignment_task_fk.assignment_fk,
             get_schema_func=_get_task_grading_status_file_schema,
             obj=task_grading_status,
             create_schema_file_func=_create_task_grading_status_file,

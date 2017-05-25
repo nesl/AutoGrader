@@ -66,26 +66,26 @@ class Command(BaseCommand):
 
     def _grade(self, testbed, task):
         TaskGradingStatusFile.objects.filter(
-                task_grading_status_id=task).update(file=None)
+                task_grading_status_fk=task).update(file=None)
 
         self._printMessage('Send job for grading: task %d, sub=%s, hw_task=%s, hw=%s, course=%s' % (
             task.id,
-            task.submission_id,
-            task.assignment_task_id,
-            task.submission_id.assignment_id,
-            task.submission_id.assignment_id.course_id.course_code))
+            task.submission_fk,
+            task.assignment_task_fk,
+            task.submission_fk.assignment_fk,
+            task.submission_fk.assignment_fk.course_fk.course_code))
 
         try:
-            submission = task.submission_id
+            submission = task.submission_fk
             files = self._schemaFiles2postFiles(file_schema
                     .get_dict_schema_name_to_submission_schema_files(submission))
             
-            assignment_task = task.assignment_task_id
+            assignment_task = task.assignment_task_fk
             files.update(self._schemaFiles2postFiles(file_schema
                     .get_dict_schema_name_to_assignment_task_schema_files(assignment_task)))
 
             data = {
-                    'execution_time': task.assignment_task_id.execution_duration,
+                    'execution_time': task.assignment_task_fk.execution_duration,
                     'secret_code': testbed.secret_code,
             }
 
@@ -178,8 +178,8 @@ class Command(BaseCommand):
                 # We choose a task whose belonged submission has the smallest execution scope.
                 task_list = (TaskGradingStatus.objects
                         .filter(grading_status=TaskGradingStatus.STAT_PENDING,
-                            assignment_task_id__assignment_id__testbed_type_id=testbed.testbed_type_id)
-                        .order_by('submission_id__task_scope', 'submission_id', 'id'))
+                            assignment_task_fk__assignment_fk__testbed_type_fk=testbed.testbed_type_fk)
+                        .order_by('submission_fk__task_scope', 'submission_fk', 'id'))
 
                 if task_list.count() == 0:
                     # next testbed
@@ -187,7 +187,7 @@ class Command(BaseCommand):
 
                 chosen_task = task_list[0]
 
-                duration = (chosen_task.assignment_task_id.execution_duration
+                duration = (chosen_task.assignment_task_fk.execution_duration
                         + K_GRADING_GRACE_PERIOD_SEC)
                 testbed.grade_task(chosen_task, duration, force_detach_currently_graded_task=True)
 
@@ -205,8 +205,8 @@ class Command(BaseCommand):
                     grading_task.grading_status = TaskGradingStatus.STAT_FINISH
                     grading_task.points = 0.0
                 else:
-                    assignment_task = grading_task.assignment_task_id
-                    submission = grading_task.submission_id
+                    assignment_task = grading_task.assignment_task_fk
+                    submission = grading_task.submission_fk
                     grading_script_path = assignment_task.grading_script.path
                     cmd = ['python3', grading_script_path]
                     schema_files = {}
@@ -240,33 +240,33 @@ class Command(BaseCommand):
                 self._printMessage(
                         'Graded task=%d, status=%s, pts=%f, sub=%s, hw_task=%s, hw=%s' % (
                                 grading_task.id, grading_task.get_grading_status_display(),
-                                grading_task.points, grading_task.submission_id,
-                                grading_task.assignment_task_id,
-                                grading_task.submission_id.assignment_id))
+                                grading_task.points, grading_task.submission_fk,
+                                grading_task.assignment_task_fk,
+                                grading_task.submission_fk.assignment_fk))
 
                 num_graded_tasks = len(TaskGradingStatus.objects.filter(
                         Q(grading_status=TaskGradingStatus.STAT_FINISH)
                         | Q(grading_status=TaskGradingStatus.STAT_INTERNAL_ERROR),
-                        submission_id=grading_task.submission_id))
+                        submission_fk=grading_task.submission_fk))
                 num_assignment_tasks = len(TaskGradingStatus.objects.filter(
-                        submission_id=grading_task.submission_id))
+                        submission_fk=grading_task.submission_fk))
                 self._printMessage('num_graded_tasks=%d, num_assignment_tasks=%d' % (
                         num_graded_tasks, num_assignment_tasks))
                 if num_graded_tasks == num_assignment_tasks:
-                    submission = grading_task.submission_id
+                    submission = grading_task.submission_fk
                     submission.status = Submission.STAT_GRADED
                     submission.save()
 
                     # send email to the student
                     subject = 'Your submission has been graded (ID:%d)' % submission.id
                     context = {
-                            'user': submission.student_id,
+                            'user': submission.student_fk,
                             'submission': submission,
-                            'assignment': submission.assignment_id,
+                            'assignment': submission.assignment_fk,
                     }
                     send_mail_helper.send_by_template(
                             subject=subject,
-                            recipient_email_list=[submission.student_id.email],
+                            recipient_email_list=[submission.student_fk.email],
                             template_path='serapis/email/grading_done_email.html',
                             context_dict=context,
                     )

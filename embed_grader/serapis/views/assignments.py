@@ -59,7 +59,7 @@ def assignment(request, assignment_id):
     except Assignment.DoesNotExist:
         return HttpResponse("Assignment cannot be found.")
 
-    course = assignment.course_id
+    course = assignment.course_fk
     if not user.has_perm('view_assignment', course):
         return HttpResponse("Not enough privilege")
 
@@ -125,9 +125,9 @@ def assignment(request, assignment_id):
             submission_lists['team'] = None
         else:
             submission_lists['team'] = Submission.objects.filter(
-                    team_id=team, assignment_id=assignment).order_by('-id')[:10]
+                    team_fk=team, assignment_fk=assignment).order_by('-id')[:10]
     else:
-        teams = Team.objects.filter(assignment_id=assignment)
+        teams = Team.objects.filter(assignment_fk=assignment)
         graded_list = []
         grading_list = []
         
@@ -191,7 +191,7 @@ def assignment_run_final_grade(request, assignment_id):
     except Assignment.DoesNotExist:
         return HttpResponse("Assignment cannot be found.")
 
-    course = assignment.course_id
+    course = assignment.course_fk
     if not user.has_perm('modify_assignment', course):
         return HttpResponse("Not enough privilege")
 
@@ -200,21 +200,21 @@ def assignment_run_final_grade(request, assignment_id):
     assignment_tasks = assignment.retrieve_assignment_tasks_by_accumulative_scope(
             AssignmentTask.MODE_HIDDEN)
 
-    students = [o.user_id for o in CourseUserList.objects.filter(course_id=course)]
+    students = [o.user_fk for o in CourseUserList.objects.filter(course_fk=course)]
     for student in students:
         submission = grading.get_last_submission(student, assignment)
         if submission is None:
             continue
         
-        graded_task_obj_for_submission = TaskGradingStatus.objects.filter(submission_id=submission)
-        graded_task_for_submission = [t.assignment_task_id for t in graded_task_obj_for_submission]
+        graded_task_obj_for_submission = TaskGradingStatus.objects.filter(submission_fk=submission)
+        graded_task_for_submission = [t.assignment_task_fk for t in graded_task_obj_for_submission]
         task_to_be_added = [t for t in assignment_tasks if t not in graded_task_for_submission]
 
         with transaction.atomic():
             for task in task_to_be_added:
                 grading_task = TaskGradingStatus.objects.create(
-                    submission_id=submission,
-                    assignment_task_id=task,
+                    submission_fk=submission,
+                    assignment_task_fk=task,
                     grading_status=TaskGradingStatus.STAT_PENDING,
                     execution_status=TaskGradingStatus.EXEC_UNKNOWN,
                     status_update_time=now,
@@ -236,7 +236,7 @@ def assignment_create_team(request, assignment_id):
     except Assignment.DoesNotExist:
         return HttpResponse("Assignment cannot be found.")
 
-    course = assignment.course_id
+    course = assignment.course_fk
     if not user.has_perm('view_assignment', course):
         return HttpResponse("Not enough privilege")
 
@@ -257,7 +257,7 @@ def assignment_join_team(request, assignment_id):
     except Assignment.DoesNotExist:
         return HttpResponse("Assignment cannot be found.")
 
-    course = assignment.course_id
+    course = assignment.course_fk
     if not user.has_perm('view_assignment', course):
         return HttpResponse("Not enough privilege")
 
@@ -290,7 +290,7 @@ def view_assignment_team_list(request, assignment_id):
     except Assignment.DoesNotExist:
         return HttpResponse("Assignment cannot be found.")
 
-    course = assignment.course_id
+    course = assignment.course_fk
     if not user.has_perm('modify_assignment', course):
         return HttpResponse("Not enough privilege")
 
@@ -301,11 +301,11 @@ def view_assignment_team_list(request, assignment_id):
     # as a box in the table, and instructors can drag and drop the boxes to arrange students to
     # different teams.
 
-    teams = Team.objects.filter(assignment_id=assignment)
+    teams = Team.objects.filter(assignment_fk=assignment)
     team_bundles = []
     for team in teams:
         team_members = team_helper.get_team_members(team)
-        team_member_names = [user_info_helper.get_first_last_name(tm.user_id)
+        team_member_names = [user_info_helper.get_first_last_name(tm.user_fk)
                 for tm in team_members]
         team_bundle = {
                 'team': team,
@@ -335,11 +335,11 @@ def delete_team(request, assignment_id, team_id):
     except Assignment.DoesNotExist:
         return HttpResponse("Assignment or team cannot be found.")
     
-    course = assignment.course_id
+    course = assignment.course_fk
     if not user.has_perm('modify_assignment', course):
         return HttpResponse("Not enough privilege")
 
-    if team.assignment_id != assignment:
+    if team.assignment_fk != assignment:
         return HttpResponse("Invalid request")
 
     team.delete()
@@ -400,7 +400,7 @@ def modify_assignment(request, assignment_id):
         return HttpResponse("Cannot find the assignment.")
 
     return _create_or_modify_assignment(
-            request=request, course_id=assignment.course_id.id, assignment=assignment)
+            request=request, course_id=assignment.course_fk.id, assignment=assignment)
 
     
 @login_required(login_url='/login/')
@@ -412,7 +412,7 @@ def delete_assignment(request, assignment_id):
 
     user = User.objects.get(username=request.user)
     
-    course = assignment.course_id
+    course = assignment.course_fk
 
     if not user.has_perm('create_assignment', course):
         return HttpResponse("Not enough privilege")
