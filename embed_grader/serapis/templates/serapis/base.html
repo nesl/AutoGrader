@@ -1,143 +1,145 @@
 {% load staticfiles %}
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="description" content="">
-        <meta name="author" content="">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
 
-        <title>NESL Embed Autograder</title>
+    <title>NESL Embed Autograder</title>
 
-        <!-- Bootstrap Core CSS -->
-        <link href="{% static 'bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
-        <link href="{% static 'bootstrap/css/bootstrap-datetimepicker.css' %}" rel="stylesheet">
-        <link href="https://code.jquery.com/ui/1.11.1/themes/smoothness/jquery-ui.css" rel="stylesheet">
+    <!-- Bootstrap Core CSS -->
+    <link href="{% static 'bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+    <link href="{% static 'bootstrap/css/bootstrap-datetimepicker.css' %}" rel="stylesheet">
+    <link href="https://code.jquery.com/ui/1.11.1/themes/smoothness/jquery-ui.css" rel="stylesheet">
 
-        <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
-        <link href="https://cdn.datatables.net/1.10.12/css/dataTables.bootstrap.min.css" rel="stylesheet">
-
-
-        <!-- Fonts from Font Awesome and Google Fonts-->
-        <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet">
-        <link href='https://fonts.googleapis.com/css?family=Varela+Round' rel='stylesheet' type='text/css'>
-        <link href='https://fonts.googleapis.com/css?family=Titillium+Web:400,300,600' rel='stylesheet' type='text/css'>
-
-        <!-- JQuery -->
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-
-        <script src="//code.jquery.com/jquery-1.12.3.js"></script>
-        <script src="https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
-        <script src="https://cdn.datatables.net/1.10.12/js/dataTables.bootstrap.min.js"></script>
-
-        <script src="https://code.jquery.com/ui/1.11.1/jquery-ui.js"></script>
-
-        <script src="{% static 'serapis/jquery.formset.js' %}"></script>
-        <!-- Bootstrap Core JavaScript -->
-        <script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
-        <script src="{% static 'bootstrap/js/moment.js' %}"></script>
-        <script src="{% static 'bootstrap/js/bootstrap-datetimepicker.js' %}"></script>
-
-        {{ form.media }}
-
-        <!-- CSS specific to Embed Autograder page-->
-        {% block css %}
-        {% endblock %}
-
-        <!-- Custom CSS -->
-        {# TODO: move to .css file #}
-        <style>
-        body {
-          min-width: 1000px;
-          padding-top: 50px;
-          padding-bottom: 70px;
-          /* Required padding for .navbar-fixed-top. Remove if using .navbar-static-top. Change if height of navigation changes. */
-        }
-
-        .main-content {
-          margin-top: 50px;
-          margin-left: 5%;
-          width: 85%;
-        }
-
-        table {
-          text-align: center;
-        }
-
-        table tr th{
-          text-align: center;
-        }
-        </style>
-
-        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-        <!--[if lt IE 9]>
-            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
-            <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
-        <![endif]-->
-        {% block js %}
-        {% endblock %}
-
-    </head>
-
-    <body>
-        {% block navbar %}
-        <!-- Navigation -->
-        <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-            <div class="container">
-                <!-- Brand and toggle get grouped for better mobile display -->
-                <div class="navbar-header">
-                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
-                        <span class="sr-only">Toggle navigation</span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                    </button>
-                    <a class="navbar-brand" href="{% url 'homepage' %}">Embed Autograder</a>
-                </div>
+    <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/1.10.12/css/dataTables.bootstrap.min.css" rel="stylesheet">
 
 
-                <a href="{% url 'logout' %}" class="navbar-brand pull-right">
-                  <span class="glyphicon glyphicon-log-out"></span> Logout
-                </a>
-                <span class="navbar-brand pull-right" style="font-size:14px; color:white">Hi, {{ myuser.username }}</span>
+    <!-- Fonts from Font Awesome and Google Fonts-->
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet">
+    <link href='https://fonts.googleapis.com/css?family=Varela+Round' rel='stylesheet' type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Titillium+Web:400,300,600' rel='stylesheet' type='text/css'>
 
+    <!-- JQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 
-                <!-- Collect the nav links, forms, and other content for toggling -->
-                <div class="collapse navbar-collapse">
-                    <ul class="nav navbar-nav">
-											<li><a href="{% url 'about' %}">About & Contact</a></li>
-                    </ul>
-                </div>
-                <!-- /.navbar-collapse -->
+    <script src="//code.jquery.com/jquery-1.12.3.js"></script>
+    <script src="https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.12/js/dataTables.bootstrap.min.js"></script>
 
-            </div>
-            <!-- /.container -->
+    <script src="https://code.jquery.com/ui/1.11.1/jquery-ui.js"></script>
 
-            <!-- Sidebar Block -->
-            {% block nav %}
-            {% endblock %}
-        </nav>
-        {% endblock %}
-        <!-- Page Content -->
-        {% block content %}
-        {% endblock %}
+    <script src="{% static 'serapis/jquery.formset.js' %}"></script>
+    <!-- Bootstrap Core JavaScript -->
+    <script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'bootstrap/js/moment.js' %}"></script>
+    <script src="{% static 'bootstrap/js/bootstrap-datetimepicker.js' %}"></script>
 
-        <!-- Footer -->
-        <div class="navbar navbar-default navbar-fixed-bottom">
+    {{ form.media }}
+
+    <!-- CSS specific to Embed Autograder page-->
+    {% block css %}
+    {% endblock %}
+
+    <!-- Custom CSS -->
+    {# TODO: move to .css file #}
+    <style>
+      body {
+        min-width: 1000px;
+        padding-top: 50px;
+        padding-bottom: 70px;
+        /* Required padding for .navbar-fixed-top. Remove if using .navbar-static-top. Change if height of navigation changes. */
+      }
+
+      .main-content {
+        margin-top: 50px;
+        margin-left: 5%;
+        width: 85%;
+      }
+
+      table {
+        text-align: center;
+      }
+
+      table tr th{
+        text-align: center;
+      }
+    </style>
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+      <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    {% block js %}
+    {% endblock %}
+
+  </head>
+
+  <body>
+    {% block navbar %}
+      <!-- Navigation -->
+      <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
         <div class="container">
-            <p class="navbar-text pull-left">© 2016 NESL •
-                <a href="http://nesl.ee.ucla.edu/privacy">Privacy</a>
-                <span>•</span>
-                <a href="http://nesl.ee.ucla.edu/terms">Terms</a>
-            </p>
-            <div class="navbar-text pull-right">
-                <i class="glyphicon glyphicon-calendar" aria-hidden="true"></i>
-                <a href="#Top"><span class="glyphicon-class glyphicon glyphicon-chevron-up"></span>Back to top</a>
-            </div>
-        </div>
-        <!-- End Footer -->
+          <!-- Brand and toggle get grouped for better mobile display -->
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="{% url 'homepage' %}">Embed Autograder</a>
+          </div>
 
-    </body>
+
+          <a href="{% url 'logout' %}" class="navbar-brand pull-right">
+            <span class="glyphicon glyphicon-log-out"></span> Logout
+          </a>
+          <span class="navbar-brand pull-right" style="font-size:14px; color:white">Hi, {{ myuser.username }}</span>
+
+
+          <!-- Collect the nav links, forms, and other content for toggling -->
+          <div class="collapse navbar-collapse">
+            <ul class="nav navbar-nav">
+              <li><a href="{% url 'about' %}">About & Contact</a></li>
+            </ul>
+          </div>
+          <!-- /.navbar-collapse -->
+
+        </div>
+        <!-- /.container -->
+
+        <!-- Sidebar Block -->
+        {% block nav %}
+        {% endblock %}
+      </nav>
+    {% endblock %}
+    <!-- Page Content -->
+    {% block content %}
+    {% endblock %}
+
+    <!-- Footer -->
+    <div class="navbar navbar-default navbar-fixed-bottom">
+      <div class="container">
+        <p class="navbar-text pull-left">© 2016 NES
+          &bull;
+          <a href="http://nesl.ee.ucla.edu/privacy">Privacy</a>
+          &bull;
+          <a href="http://nesl.ee.ucla.edu/terms">Terms</a>
+        </p>
+        <div class="navbar-text pull-right">
+          <i class="glyphicon glyphicon-calendar" aria-hidden="true"></i>
+          <a href="#Top"><span class="glyphicon-class glyphicon glyphicon-chevron-up"></span>Back to top</a>
+        </div>
+      </div>
+    </div>
+    <!-- End Footer -->
+
+  </body>
 </html>

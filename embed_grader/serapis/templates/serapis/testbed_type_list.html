@@ -7,39 +7,39 @@
 {% endblock %}
 
 {% block profile-usertitle-job %}
-  <br>
+  <br/>
 {% endblock %}
 
 {% block testbed-type-list-active %}active{% endblock %}
 
 {% block main-content %}
-    <div class="main-content">
-        <h1 class="page-header">Testbed Type Gallery (instructor only)</h1>
+  <div class="main-content">
+    <h1 class="page-header">Testbed Type Gallery (instructor only)</h1>
 
-        {% if not testbed_type_list %}
-            <p>No testbed type has been added.</p>
-        {% else %}
-            <div class="table-responsive">
-            <table class="table table-hover">
-                <tr>
-                    <th>Name</th>
-                </tr>
-                {% for testbed_type in testbed_type_list %}
-                <tr>
-                    <td><a href="{% url 'testbed-type' testbed_type.id %}">{{ testbed_type.name }}</a></td>
-                </tr>
-                {% endfor %}
-            </table>
-            </div>
-            <!--end table-->
+    {% if not testbed_type_list %}
+      <p>No testbed type has been added.</p>
+    {% else %}
+      <div class="table-responsive">
+      <table class="table table-hover">
+        <tr>
+          <th>Name</th>
+        </tr>
+        {% for testbed_type in testbed_type_list %}
+        <tr>
+          <td><a href="{% url 'testbed-type' testbed_type.id %}">{{ testbed_type.name }}</a></td>
+        </tr>
+        {% endfor %}
+      </table>
+      </div>
+      <!--end table-->
 
-        {% endif %}
+    {% endif %}
 
-        <p>
-            <a href="{% url 'create-testbed-type' %}" class="btn btn-primary">Create a New Testbed Type</a>
-            <!-- <a href="{% url 'hardware-type-list' %}" class="btn btn-default">View Hardware Type List</a> -->
-        </p>
+    <p>
+      <a href="{% url 'create-testbed-type' %}" class="btn btn-primary">Create a New Testbed Type</a>
+      <!-- <a href="{% url 'hardware-type-list' %}" class="btn btn-default">View Hardware Type List</a> -->
+    </p>
 
-    </div>
+  </div>
 
 {% endblock %}
