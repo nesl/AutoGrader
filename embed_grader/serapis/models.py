@@ -355,7 +355,9 @@ class Submission(models.Model):
     submission_time = models.DateTimeField()
     grading_result = models.FloatField()
     status = models.IntegerField(choices=SUBMISSION_STATES, default=STAT_RECEIVED)
-    task_scope = models.IntegerField()
+    task_scope = models.IntegerField()  # enum of AssignmentTask.EVAL_MODES
+    num_graded_tasks = models.IngegerField()
+    num_total_tasks = models.IngegerField()
 
     def __str__(self):
         return self.student_fk.first_name + " " + self.student_fk.last_name + ", " + str(self.id)
@@ -569,6 +571,7 @@ class Testbed(models.Model):
             self.secret_code = str(timezone.now())
             self.save()
 
+            #TODO: use submission_helper.update_task_grading_status
             chosen_task.grading_status = TaskGradingStatus.STAT_EXECUTING
             chosen_task.status_update_time = timezone.now()
             chosen_task.points = 0.
@@ -596,13 +599,13 @@ class Testbed(models.Model):
                 
         with transaction.atomic():
             if task:
+                #TODO: use submission_helper.update_task_grading_status
                 task.grading_status = TaskGradingStatus.STAT_PENDING
                 task.save()
             self.task_being_graded = None
             self.status = set_status
             self.secret_code = ''
             self.save()
-
 
     def finish_grading(self, task_execution_status):
         task = self.task_being_graded
@@ -612,6 +615,7 @@ class Testbed(models.Model):
         with transaction.atomic():
             now = timezone.now()
 
+            #TODO: use submission_helper.update_task_grading_status
             task.grading_status = TaskGradingStatus.STAT_OUTPUT_TO_BE_CHECKED
             task.execution_status = task_execution_status
             task.status_update_time = now
