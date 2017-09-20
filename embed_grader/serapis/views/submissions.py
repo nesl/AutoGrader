@@ -47,8 +47,6 @@ def submission(request, submission_id):
         if author.username != user.username:
             return HttpResponse("Not enough privilege")
     submitter_name = user_info_helper.get_first_last_name(author)
-    print(submission)
-    print(submission.team_fk)
     team_member_names = team_helper.get_team_member_full_name_list(submission.team_fk)
 
     task_grading_status_list = TaskGradingStatus.objects.filter(
