@@ -19,7 +19,6 @@ from serapis.utils import grading
 from serapis.utils import file_schema
 from serapis.utils import user_info_helper
 from serapis.utils import team_helper
-from serapis.utils import submission_helper
 
 from django.utils import timezone
 from datetime import timedelta
@@ -277,8 +276,6 @@ class AssignmentSubmissionForm(Form):
                 grading_result=0.,
                 status=Submission.STAT_GRADING,
                 task_scope=self.cleaned_data['execution_scope'],
-                num_graded_tasks=0,
-                num_total_tasks=0,
         )
         submission.save()
 
@@ -291,8 +288,15 @@ class AssignmentSubmissionForm(Form):
         # dispatch grading tasks
         assignment_tasks = self.assignment.retrieve_assignment_tasks_by_accumulative_scope(
                 self.cleaned_data['execution_scope'])
+        now = timezone.now()
         for assignment_task in assignment_tasks:
-            submission_helper.create_task_grading_status(submission, assignment_task)
+            grading_task = TaskGradingStatus.objects.create(
+                submission_fk=submission,
+                assignment_task_fk=assignment_task,
+                grading_status=TaskGradingStatus.STAT_PENDING,
+                execution_status=TaskGradingStatus.EXEC_UNKNOWN,
+                status_update_time=now,
+            )
 
             file_schema.create_empty_task_grading_status_schema_files(grading_task)
 

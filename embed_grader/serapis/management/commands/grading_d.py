@@ -17,7 +17,6 @@ from django.db.models import Q
 from serapis.models import *
 from serapis.utils import file_schema
 from serapis.utils import send_mail_helper
-from serapis.utils import submission_helper
 
 
 K_TESTBED_INVALIDATION_OFFLINE_SEC = 30
@@ -203,11 +202,8 @@ class Command(BaseCommand):
                     grading_status=TaskGradingStatus.STAT_OUTPUT_TO_BE_CHECKED)
             for grading_task in grading_task_list:
                 if grading_task.execution_status == TaskGradingStatus.EXEC_SEG_FAULT:
-                    submission_helper.update_task_grading_status(
-                            grading_task,
-                            grading_status=TaskGradingStatus.STAT_FINISH,
-                            points=0.0,
-                    )
+                    grading_task.grading_status = TaskGradingStatus.STAT_FINISH
+                    grading_task.points = 0.0
                 else:
                     assignment_task = grading_task.assignment_task_fk
                     submission = grading_task.submission_fk
@@ -230,22 +226,17 @@ class Command(BaseCommand):
                         normalized_score = min(1., max(0., normalized_score))
                         grading_task.grading_detail.save(
                                 'description.txt', ContentFile(result_pack['detail']))
-                        points = assignment_task.points * normalized_score
-                        submission_helper.update_task_grading_status(
-                                grading_task,
-                                grading_status=TaskGradingStatus.STAT_FINISH,
-                                points=points,
-                                status_update_time=timezone.now(),
-                        )
+                        grading_task.grading_status = TaskGradingStatus.STAT_FINISH
+                        grading_task.points = assignment_task.points * normalized_score
                     except (ValueError):
-                        submission_helper.update_task_grading_status(
-                                grading_task,
-                                grading_status=TaskGradingStatus.STAT_PENDING,
-                                grading_task.points=0.0,
-                        )
+                        #grading_task.grading_status = TaskGradingStatus.STAT_INTERNAL_ERROR
+                        grading_task.grading_status = TaskGradingStatus.STAT_PENDING
+                        grading_task.points = 0.0
                         exc_type, exc_value, exc_tb = sys.exc_info()
                         traceback.print_exception(exc_type, exc_value, exc_tb)
 
+                grading_task.status_update_time = timezone.now()
+                grading_task.save()
                 self._printMessage(
                         'Graded task=%d, status=%s, pts=%f, sub=%s, hw_task=%s, hw=%s' % (
                                 grading_task.id, grading_task.get_grading_status_display(),

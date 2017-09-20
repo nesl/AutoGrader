@@ -14,7 +14,6 @@ from datetimewidget.widgets import DateTimeWidget, DateWidget, TimeWidget
 
 from serapis.models import *
 from serapis.utils import grading
-from serapis.utils import submission_helper
 
 from datetime import timedelta
 
@@ -152,11 +151,9 @@ class RegradeForm(Form):
             task_grading_status_list = TaskGradingStatus.objects.filter(submission_fk=s)
             for task_grading in task_grading_status_list:
                 if task_grading.assignment_task_fk in assignment_task_set:
-                    submission_helper.update_task_grading_status(
-                            task_grading,
-                            grading_status=TaskGradingStatus.STAT_PENDING,
-                            points=0.,
-                    )
+                    task_grading.grading_status = TaskGradingStatus.STAT_PENDING
+                    task_grading.points = 0.
+                    task_grading.save()
                     affected_task_grading_status.add(task_grading)
         num_affected_task_grading_status = len(affected_task_grading_status)
 
