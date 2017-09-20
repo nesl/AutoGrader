@@ -243,7 +243,7 @@ class Command(BaseCommand):
                         submission_helper.update_task_grading_status(
                                 grading_task,
                                 grading_status=TaskGradingStatus.STAT_PENDING,
-                                grading_task.points=0.0,
+                                points=0.0,
                         )
                         exc_type, exc_value, exc_tb = sys.exc_info()
                         traceback.print_exception(exc_type, exc_value, exc_tb)

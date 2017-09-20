@@ -292,8 +292,7 @@ class AssignmentSubmissionForm(Form):
         assignment_tasks = self.assignment.retrieve_assignment_tasks_by_accumulative_scope(
                 self.cleaned_data['execution_scope'])
         for assignment_task in assignment_tasks:
-            submission_helper.create_task_grading_status(submission, assignment_task)
-
+            grading_task= submission_helper.create_task_grading_status(submission, assignment_task)
             file_schema.create_empty_task_grading_status_schema_files(grading_task)
 
         return submission

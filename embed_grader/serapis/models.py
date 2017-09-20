@@ -356,8 +356,8 @@ class Submission(models.Model):
     grading_result = models.FloatField()
     status = models.IntegerField(choices=SUBMISSION_STATES, default=STAT_RECEIVED)
     task_scope = models.IntegerField()  # enum of AssignmentTask.EVAL_MODES
-    num_graded_tasks = models.IngegerField()
-    num_total_tasks = models.IngegerField()
+    num_graded_tasks = models.IntegerField()
+    num_total_tasks = models.IntegerField()
 
     def __str__(self):
         return self.student_fk.first_name + " " + self.student_fk.last_name + ", " + str(self.id)
