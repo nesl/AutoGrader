@@ -3,6 +3,7 @@ from django.utils import timezone
 
 from serapis.models import *
 from serapis.utils import file_schema
+from serapis.utils import testbed_helper
 
 
 class ReturnDutOutputForm(forms.Form):
@@ -29,7 +30,8 @@ class ReturnDutOutputForm(forms.Form):
         Return:
           (task_grading_status, testbed)
         """
-        self.testbed.finish_grading(task_execution_status=TaskGradingStatus.EXEC_OK)
+        testbed_helper.finish_grading(
+                self.testbed, task_execution_status=TaskGradingStatus.EXEC_OK)
 
         schema_name_2_files = {}
         for schema_name in self.schema_names:
