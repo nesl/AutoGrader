@@ -1,0 +1,69 @@
+{% extends 'serapis/base.html' %}
+{% load staticfiles %}
+
+{% block css %}
+  <link href="{% static "serapis/signin.css" %}" rel="stylesheet">
+{% endblock %}
+
+{% block js %}
+  <script src="{% static 'serapis/js/registration.js' %}"></script>
+{% endblock %}
+
+{% block navbar %}
+  <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <div class="container">
+      <!-- Brand and toggle get grouped for better mobile display -->
+      <div class="navbar-header">
+        <a class="navbar-brand" href="/">Embed Autograder</a>
+      </div>
+    </div>
+    <!-- /.container -->
+
+    <!-- Sidebar Block -->
+    {% block nav %}
+    {% endblock %}
+  </nav>
+{% endblock %}
+
+
+{% block content %}
+  <div class="container">
+  {% if form.errors %}
+    <div class="alert alert-danger">
+      {{ form.errors }}
+    </div>
+  {% endif %}
+
+  <div class="container">
+    <div class="form-register">
+      <h2 class="form-signin-heading">Account information</h2>
+      <p><b>Username:</b> {{ user.username }}</p>
+      <p><b>Full name:</b> {{ user.first_name }} {{ user.last_name}}</p>
+      <p><b>Email:</b> {{ user.email }}</p>
+      <p><b>University ID:</b> {{ user_profile.uid }}</p>
+      <hr/>
+
+      <h2 class="form-signin-heading">Change password</h2>
+      <form role="form" action="{% url 'user-account' %}" method="post">
+        {% csrf_token %}
+        <div class="form-group">
+          <label for="old_password" class="control-label">Old password</label>
+          <input type="password" id="id_old_password" name="old_password" placeholder="Old password" class="form-control" required />
+        </div>
+        <div class="form-group">
+          <label for="id_new_password1" class="control-label">Password</label>
+          <input type="password" id="id_new_password1" name="new_password1" placeholder="New password" class="form-control" required />
+          <span class="help-block">Must be at least 8 characters long and constain at least one letter and one digit</span>
+        </div>
+        <div class="form-group">
+          <label for="id_new_password2" class="control-label">Confirm Password</label>
+          <input type="password" id="id_new_password2" name="new_password2" placeholder="Re-enter password" class="form-control" required />
+        </div>
+        <div class="form-group">
+          <button type="submit" class="btn btn-primary btn-block">Change password</button>
+          <a href="{% url 'homepage' %}" class="btn btn-block">Cancel</a>
+        </div>
+      </form> <!-- /form -->
+    </div>
+  </div> <!-- ./container -->
+{% endblock %}

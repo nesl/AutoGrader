@@ -3,6 +3,8 @@ import random
 
 from django.contrib.auth import authenticate, login, logout, context_processors
 from django.contrib.auth.models import Permission
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 
 from django.utils import timezone
 from datetime import timedelta
@@ -84,3 +86,14 @@ def new_activation(request, user_id):
 
 def logout_view(request):
     logout(request)
+
+
+@login_required(login_url='/login/')
+def user_account(request):
+    user = User.objects.get(username=request.user)
+    user_profile = UserProfile.objects.get(user=user)
+    template_context = {
+            'myuser': user,
+            'user_profile': user_profile,
+    }
+    return render(request, 'serapis/user_account.html', template_context)
