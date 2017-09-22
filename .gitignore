@@ -17,9 +17,6 @@ __pycache__
 #No SSL files
 *.no_ssl
 
-#Django migrations folder
-embed_grader/serapis/migrations
-
 #App secret
 embed_grader/embed_grader/config.py
 
