@@ -99,7 +99,7 @@ def user_account(request):
     else:
         previous_form = UserChangePasswordForm(request.POST, user=user)
         if previous_form.is_valid():
-            form.save_and_commit()
+            previous_form.save_and_commit()
             return HttpResponseRedirect(reverse('homepage'))
         error_text = previous_form.errors.as_text()
         error_lines = error_text.split('\n')

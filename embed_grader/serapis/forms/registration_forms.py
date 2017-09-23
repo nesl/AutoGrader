@@ -150,3 +150,4 @@ class UserChangePasswordForm(forms.Form):
     def save_and_commit(self):
         new_password = self.cleaned_data.get('new_password1')
         self.user.set_password(new_password)
+        self.user.save()
