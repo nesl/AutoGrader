@@ -28,13 +28,12 @@
 
 {% block content %}
   <div class="container">
-  {% if form.errors %}
-    <div class="alert alert-danger">
-      {{ form.errors }}
-    </div>
-  {% endif %}
+    {% if form.errors %}
+      <div class="alert alert-danger">
+        {{ form.errors }}
+      </div>
+    {% endif %}
 
-  <div class="container">
     <form class="form-register" role="form" action="{% url 'registration' %}" method="post">
       {% csrf_token %}
       <h2 class="form-signin-heading">Sign Up</h2>

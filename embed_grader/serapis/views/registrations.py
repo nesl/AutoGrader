@@ -92,8 +92,30 @@ def logout_view(request):
 def user_account(request):
     user = User.objects.get(username=request.user)
     user_profile = UserProfile.objects.get(user=user)
+
+    if request.method != 'POST':
+        previous_form = None
+        error_message = None
+    else:
+        previous_form = UserChangePasswordForm(request.POST, user=user)
+        if previous_form.is_valid():
+            form.save_and_commit()
+            return HttpResponseRedirect(reverse('homepage'))
+        error_text = previous_form.errors.as_text()
+        error_lines = error_text.split('\n')
+        error_target = error_lines[0][2:]
+        error_description = error_lines[1][4:]
+        if error_target == '__all__':
+            error_message = error_description
+        else:
+            error_message = '%s: %s' % (error_target, error_description)
+        
+    new_form = UserChangePasswordForm(user=user)
+
     template_context = {
             'myuser': user,
             'user_profile': user_profile,
+            'error_message': error_message,
+            'form': new_form,
     }
     return render(request, 'serapis/user_account.html', template_context)

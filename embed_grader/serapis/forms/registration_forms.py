@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import authenticate
 
 from django import forms
 from django.forms import Form, ModelForm
@@ -18,9 +19,22 @@ from serapis.utils import grading
 
 from datetime import timedelta
 
+PASSWORD_MIN_LENGTH = 8
+
+
+def _get_password_error_msg(password):
+    """
+    Return (error_description, error_code). Return None if there's no error
+    """
+    # At least one letter and one digit
+    if not any(c.isalpha() for c in password):
+        return ("The new password must contain at least one letter", 'no_letter_in_password')
+    if not any(c.isdigit() for c in password):
+        return ("The new password must contain at least one digit", 'no_digit_in_password')
+    return None
+
 
 class UserRegistrationForm(UserCreationForm):
-    PASSWORD_MIN_LENGTH = 8
     UID_LENGTH = 9
 
     class Meta:
@@ -56,15 +70,12 @@ class UserRegistrationForm(UserCreationForm):
     def clean_password1(self):
         password1 = self.cleaned_data.get("password1")
 
-        # At least one letter and one digit
-        first_isalpha = password1[0].isalpha()
-        if not any(c.isalpha() for c in password1):
-            raise forms.ValidationError("The new password must contain at least one letter",
-                    code='no_letter_in_password')
-        if not any(c.isdigit() for c in password1):
-            raise forms.ValidationError("The new password must contain at least one digit",
-                    code='no_digit_in_password')
-        return password1
+        response = _get_password_error_msg(password1)
+        if response is None:
+            return password1
+
+        error_description, error_code = response
+        raise forms.ValidationError(error_description, code=error_code)
 
     def clean_password2(self):
         password1 = self.cleaned_data.get("password1")
@@ -89,3 +100,53 @@ class UserRegistrationForm(UserCreationForm):
         return user, user_profile
 
 
+class UserChangePasswordForm(forms.Form):
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user')
+        super(UserChangePasswordForm, self).__init__(*args, **kwargs)
+
+        self.fields['old_password'] = forms.CharField(
+                label="Original password",
+                widget=forms.PasswordInput,
+        )
+        self.fields['new_password1'] = forms.CharField(
+                label="New password",
+                widget=forms.PasswordInput,
+                min_length=PASSWORD_MIN_LENGTH,
+                help_text="Must be at least 8 characters long and constain at least one letter and one digit",
+        )
+        self.fields['new_password2'] = forms.CharField(
+                label="New password confirmation",
+                widget=forms.PasswordInput,
+                help_text="Enter the same password as above",
+        )
+        self.user = user
+    
+    def clean_new_password1(self):
+        new_password1 = self.cleaned_data.get("new_password1")
+
+        response = _get_password_error_msg(new_password1)
+        if response is None:
+            return new_password1
+
+        error_description, error_code = response
+        raise forms.ValidationError(error_description, code=error_code)
+    
+    def clean_new_password2(self):
+        new_password1 = self.cleaned_data.get('new_password1')
+        new_password2 = self.cleaned_data.get('new_password2')
+        if new_password1 and new_password1 != new_password2:
+            raise forms.ValidationError(self.error_messages['password_mismatch'],
+                code='password_mismatch')
+        return new_password2
+
+    def clean(self):
+        old_password = self.cleaned_data.get('old_password')
+        if authenticate(username=self.user.username, password=old_password) is None:
+            raise forms.ValidationError("Incorrect old password", code='incorrect_old_password')
+
+        return self.cleaned_data
+
+    def save_and_commit(self):
+        new_password = self.cleaned_data.get('new_password1')
+        self.user.set_password(new_password)
