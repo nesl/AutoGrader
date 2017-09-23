@@ -39,36 +39,13 @@
     <script src="{% static 'bootstrap/js/moment.js' %}"></script>
     <script src="{% static 'bootstrap/js/bootstrap-datetimepicker.js' %}"></script>
 
+    <link href="{% static "serapis/base.css" %}" rel="stylesheet">
+
     {{ form.media }}
 
     <!-- CSS specific to Embed Autograder page-->
     {% block css %}
     {% endblock %}
-
-    <!-- Custom CSS -->
-    {# TODO: move to .css file #}
-    <style>
-      body {
-        min-width: 1000px;
-        padding-top: 50px;
-        padding-bottom: 70px;
-        /* Required padding for .navbar-fixed-top. Remove if using .navbar-static-top. Change if height of navigation changes. */
-      }
-
-      .main-content {
-        margin-top: 50px;
-        margin-left: 5%;
-        width: 85%;
-      }
-
-      table {
-        text-align: center;
-      }
-
-      table tr th{
-        text-align: center;
-      }
-    </style>
 
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -96,7 +73,6 @@
             </button>
             <a class="navbar-brand" href="{% url 'homepage' %}">Embed Autograder</a>
           </div>
-
 
           <a href="{% url 'logout' %}" class="navbar-brand pull-right">
             <span class="glyphicon glyphicon-log-out"></span> Logout

@@ -136,18 +136,3 @@ Licensed under MIT
   max-height: 0;
   -webkit-transition: all 0.5s ease-out;
 }
-
-.username {
-  color: white;
-  text-decoration: underline;
-}
-
-.username a {
-  color: white;
-  text-decoration: underline;
-}
-
-.username a:hover {
-  color: #ddd;
-  text-decoration: none;
-}

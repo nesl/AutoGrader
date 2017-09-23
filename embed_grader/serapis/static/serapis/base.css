@@ -1,0 +1,36 @@
+body {
+  /* Required padding for .navbar-fixed-top. Remove if using .navbar-static-top. Change if height of navigation changes. */
+  min-width: 1000px;
+  padding-top: 50px;
+  padding-bottom: 70px;
+}
+
+.main-content {
+  margin-top: 50px;
+  margin-left: 5%;
+  width: 85%;
+}
+
+table {
+  text-align: center;
+}
+
+table tr th {
+  text-align: center;
+}
+
+/* navbar specific */
+.username {
+  color: white;
+  text-decoration: underline;
+}
+
+.username a {
+  color: white;
+  text-decoration: underline;
+}
+
+.username a:hover {
+  color: #ddd;
+  text-decoration: none;
+}
