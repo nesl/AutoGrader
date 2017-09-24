@@ -28,13 +28,12 @@
 
 {% block content %}
   <div class="container">
-  {% if form.errors %}
-    <div class="alert alert-danger">
-      {{ form.errors }}
-    </div>
-  {% endif %}
+    {% if form.errors %}
+      <div class="alert alert-danger">
+        {{ form.errors }}
+      </div>
+    {% endif %}
 
-  <div class="container">
     <form class="form-register" role="form" action="{% url 'registration' %}" method="post">
       {% csrf_token %}
       <h2 class="form-signin-heading">Sign Up</h2>
@@ -70,11 +69,9 @@
       <div class="form-group">
         <label for="id_password2" class="control-label">Confirm Password</label>
         <input type="password" id="id_password2" name="password2" placeholder="Re-enter password" class="form-control" required />
-        <span class="help-block" id="password2-message"></span>
       </div>
       <div class="form-group">
         <button type="submit" class="btn btn-primary btn-block">Register</button>
-        <input type="hidden" name="next" value="/registration/">
       </div>
     </form> <!-- /form -->
   </div> <!-- ./container -->
