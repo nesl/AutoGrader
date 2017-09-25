@@ -27,7 +27,8 @@
 
     <h3 class="page-header">Grading Detail</h3>
 
-    <h5>Student: {{ author.first_name }} {{ author.last_name }}</h5>
+    <h5>Author(s): {{ team_member_names }}</h5>
+    <h5>Submitted by: {{ submitter_name }}</h5>
     <h5>Submission time: {{ submission.submission_time }}</h5>
     <h5>Submission ID: {{ submission.id }}</h5>
     <h5>Task case: {{ assignment_task.brief_description }}</h5>
