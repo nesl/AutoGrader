@@ -26,6 +26,7 @@ from serapis.utils import grading
 from serapis.utils import file_schema
 from serapis.utils import user_info_helper
 from serapis.utils import team_helper
+from serapis.utils.visualizer_manager import VisualizerManager
 
 
 @login_required(login_url='/login/')
@@ -47,8 +48,6 @@ def submission(request, submission_id):
         if author.username != user.username:
             return HttpResponse("Not enough privilege")
     submitter_name = user_info_helper.get_first_last_name(author)
-    print(submission)
-    print(submission.team_fk)
     team_member_names = team_helper.get_team_member_full_name_list(submission.team_fk)
 
     task_grading_status_list = TaskGradingStatus.objects.filter(
@@ -122,24 +121,18 @@ def task_grading_detail(request, task_grading_id):
 
     now = timezone.now()
 
-    output_files = file_schema.get_dict_schema_name_to_task_grading_status_schema_files(task_grading_status,True)
-    output_full_log = []  # A list of {field_name, content}
+    output_files = file_schema.get_dict_schema_name_to_task_grading_status_schema_files(
+            task_grading_status, enforce_check=True)
+    #output_full_log = []  # A list of {field_name, content}
 
-    for f in output_files:
-        raw_content = output_files[f].file.read()
-        url = output_files[f].file.url
-        if len(raw_content) == 0:
-            content = '(Empty file)'
-        else:
-            try:
-                content = raw_content.decode('ascii')
-            except:
-                content = '(The file includes non-ascii characters)'
-        output_full_log.append({
-            'field_name': f,
-            'content': content,
-            'url': url,
-        })
+    visualizer_manager = VisualizerManager()
+
+    for field_name in output_files:
+        file = output_files[field_name].file
+        raw_content = file.read()
+        url = file.url
+        visualizer_manager.add_file(field_name, raw_content, url)
+    output_visualizations = visualizer_manager.get_visualizations_for_template()
 
     if task_grading_status.grading_detail:
         feedback = task_grading_status.grading_detail.read()
@@ -224,6 +217,7 @@ def task_grading_detail(request, task_grading_id):
     # plot_pack = {'time': plot_time, 'data': plot_data, 'labels': plot_labels}
     # js_plot_pack_string = json.dumps(plot_pack)
 
+    print(output_visualizations)
     template_context = {
         'myuser': request.user,
         'course': course,
@@ -233,7 +227,7 @@ def task_grading_detail(request, task_grading_id):
         'team_member_names': team_member_names,
         'grading': task_grading_status,
         'assignment_task': assignment_task,
-        'output_log': output_full_log,
+        'output_visualizations': output_visualizations,
         'feedback': feedback,
         # 'js_plot_pack_string': js_plot_pack_string,
     }
