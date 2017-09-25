@@ -114,7 +114,7 @@ def get_last_fully_graded_submission(team, assignment):
     """
     submission_list = Submission.objects.filter(
             team_fk=team, assignment_fk=assignment,
-            num_graded_tasks__eq=F('num_total_tasks'),
+            num_graded_tasks__exact=F('num_total_tasks'),
     ).order_by('-id')
     return submission_list[0] if len(submission_list) > 0 else None
 
