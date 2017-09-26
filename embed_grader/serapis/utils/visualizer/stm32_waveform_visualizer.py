@@ -1,6 +1,5 @@
 import json
 import re
-import random
 
 from serapis.utils.visualizer.visualizer_base import VisualizerBase
 from embed_grader import settings
@@ -42,7 +41,7 @@ class STM32WaveformVisualizer(VisualizerBase):
 
     """
 
-    def __init__(self, raw_content):
+    def __init__(self, raw_content, visualizer_id):
         if len(raw_content) == 0:
             self.template_context = {
                     'con_visualize': False,
@@ -57,7 +56,7 @@ class STM32WaveformVisualizer(VisualizerBase):
                         'plain_text': '(Parsing error: The file includes non-ascii characters)'
                 }
 
-            self.template_context = self._parse_content(content)
+            self.template_context = self._parse_content(content, visualizer_id)
             if self.template_context is None:
                 plain_text = '\n'.join([
                     '(Parsing error: file format is not correct. Show original content below)',
@@ -92,7 +91,7 @@ class STM32WaveformVisualizer(VisualizerBase):
     def get_template_context(self):
         return self.template_context
 
-    def _parse_content(self, content):
+    def _parse_content(self, content, visualizer_id):
         try:
             lines = content.strip().split('\n')
             num_total_lines = len(lines)
@@ -126,7 +125,7 @@ class STM32WaveformVisualizer(VisualizerBase):
                 plot_configs.append({
                     'label': terms[0],
                     'pins': [int(x) for x in terms[1:]],
-                    'id': 'waveform%d' % line_idx,
+                    'id': 'waveform%d-%d' % (visualizer_id, line_idx),
                 })
                 line_idx += 1
 
@@ -161,7 +160,7 @@ class STM32WaveformVisualizer(VisualizerBase):
             return {
                     'can_visualize': True,
                     'plot_series_json': plot_series_json,
-                    'visualizer_id': 'vis%d' % random.randint(0, 1000000)
+                    'visualizer_id': 'vis%d' % visualizer_id,
             }
             
         except:

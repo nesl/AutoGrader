@@ -3,7 +3,7 @@ from serapis.utils.visualizer.visualizer_base import VisualizerBase
 
 class PlainTextVisualizer(VisualizerBase):
     
-    def __init__(self, raw_content):
+    def __init__(self, raw_content, visualizer_id):
         if len(raw_content) == 0:
             content = '(Empty file)'
         else:

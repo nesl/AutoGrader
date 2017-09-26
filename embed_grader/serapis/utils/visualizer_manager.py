@@ -6,7 +6,8 @@ class VisualizerManager(object):
         self.visualizations = []
 
     def add_file(self, field_name, raw_content, url):
-        visualizer = self._get_visualizer(field_name, raw_content)
+        visualizer = self._get_visualizer(field_name, raw_content,
+                visualizer_id=len(self.visualizations))
         self._update_list(self.js_files, visualizer.get_js_files() or [])
         self._update_list(self.css_files, visualizer.get_css_files() or [])
         self.visualizations.append({
@@ -40,10 +41,11 @@ class VisualizerManager(object):
             if o not in target_list:
                 target_list.append(o)
 
-    def _get_visualizer(self, field_name, raw_content):
+    def _get_visualizer(self, field_name, raw_content, visualizer_id):
+        params = (raw_content, visualizer_id)
         if field_name.endswith('waveform'):
             from serapis.utils.visualizer.stm32_waveform_visualizer import STM32WaveformVisualizer
-            return STM32WaveformVisualizer(raw_content)
+            return STM32WaveformVisualizer(*params)
         else:
             from serapis.utils.visualizer.plain_text_visualizer import PlainTextVisualizer
-            return PlainTextVisualizer(raw_content)
+            return PlainTextVisualizer(*params)

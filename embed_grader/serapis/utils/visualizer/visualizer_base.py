@@ -3,9 +3,11 @@ from django.template import Context
 
 
 class VisualizerBase(object):
-    def __init__(self, raw_content):
+    
+    def __init__(self, raw_content, visualizer_id):
         """
-        Process raw_content which is the content of a file to be visualized
+        Process raw_content which is the content of a file to be visualized. visualizer_id is
+        guaranteed to be unique across different visualizers.
         """
         pass
 
