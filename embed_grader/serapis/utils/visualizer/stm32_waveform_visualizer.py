@@ -3,7 +3,7 @@ import re
 import random
 
 from serapis.utils.visualizer.visualizer_base import VisualizerBase
-
+from embed_grader import settings
 
 class STM32WaveformVisualizer(VisualizerBase):
     """
@@ -78,6 +78,7 @@ class STM32WaveformVisualizer(VisualizerBase):
                 "https://www.amcharts.com/lib/3/xy.js",
                 "https://www.amcharts.com/lib/3/plugins/export/export.min.js",
                 "https://www.amcharts.com/lib/3/themes/light.js",
+                settings.STATIC_URL + "serapis/js/visualizers/stm32_waveform_visualizer_helper.js",
         ]
     
     def get_css_files(self):
