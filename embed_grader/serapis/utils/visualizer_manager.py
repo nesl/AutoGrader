@@ -43,7 +43,7 @@ class VisualizerManager(object):
 
     def _get_visualizer(self, field_name, raw_content, visualizer_id):
         params = (raw_content, visualizer_id)
-        if field_name.endswith('waveform'):
+        if field_name.endswith('.stm32.waveform'):
             from serapis.utils.visualizer.stm32_waveform_visualizer import STM32WaveformVisualizer
             return STM32WaveformVisualizer(*params)
         else:
