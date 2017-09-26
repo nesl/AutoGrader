@@ -1,16 +1,14 @@
 class VisualizerManager(object):
 
     def __init__(self):
-        self.js_files = set()
-        self.css_files = set()
+        self.js_files = []
+        self.css_files = []
         self.visualizations = []
 
     def add_file(self, field_name, raw_content, url):
-        from serapis.utils.visualizer.plain_text_visualizer import PlainTextVisualizer
-        visualizer = PlainTextVisualizer(raw_content)
-
-        self.js_files.update(visualizer.get_js_files())
-        self.css_files.update(visualizer.get_css_files())
+        visualizer = self._get_visualizer(field_name, raw_content)
+        self._update_list(self.js_files, visualizer.get_js_files() or [])
+        self._update_list(self.css_files, visualizer.get_css_files() or [])
         self.visualizations.append({
             'field_name': field_name,
             'html': visualizer.get_html(),
@@ -19,13 +17,15 @@ class VisualizerManager(object):
 
     def get_js_files(self):
         """
-        Return a set object indicating all the javascript files that the visualizers requests
+        Return a list indicating all the javascript files that the visualizers request. Note
+        the list preserves the order that each visualizer requests
         """
         return self.js_files
 
     def get_css_files(self):
         """
-        Return a set object indicating all the css files that the visualizers requests
+        Return a list indicating all the css files that the visualizers request. Note the list
+        preserves the order that each visualizer requests
         """
         return self.css_files
 
@@ -34,3 +34,16 @@ class VisualizerManager(object):
         Return a list of dictionaries, which always include 'field_name', 'html', and 'url'
         """
         return self.visualizations
+
+    def _update_list(self, target_list, supplement_list):
+        for o in supplement_list:
+            if o not in target_list:
+                target_list.append(o)
+
+    def _get_visualizer(self, field_name, raw_content):
+        if field_name.endswith('waveform'):
+            from serapis.utils.visualizer.stm32_waveform_visualizer import STM32WaveformVisualizer
+            return STM32WaveformVisualizer(raw_content)
+        else:
+            from serapis.utils.visualizer.plain_text_visualizer import PlainTextVisualizer
+            return PlainTextVisualizer(raw_content)

@@ -13,6 +13,18 @@
 
 {% block submissions-active %}active{% endblock %}
 
+{% block page-specific-css %}
+  {% for css in css_files %}
+    <link rel="stylesheet" href="{{css}}" type="text/css" media="all" />
+  {% endfor %}
+{% endblock %}
+
+{% block page-specific-js %}
+  {% for js in js_files %}
+    <script src={{js}}></script>
+  {% endfor %}
+{% endblock %}
+
 {% block main-content %}
   <div class="main-content">
     <div class="top-buffer">
@@ -51,80 +63,6 @@
       <p style="white-space:pre; font-size:13px; font-family:monospace">{{output.content}}</p>
     {% endfor %}
 
-
-      <!-- Generating Waveform -->
-      <!-- <script src="https://www.amcharts.com/lib/3/amcharts.js"></script>
-      <script src="https://www.amcharts.com/lib/3/serial.js"></script>
-      <script src="https://www.amcharts.com/lib/3/xy.js"></script>
-      <script src="https://www.amcharts.com/lib/3/plugins/export/export.min.js"></script>
-      <link rel="stylesheet" href="https://www.amcharts.com/lib/3/plugins/export/export.css" type="text/css" media="all"/>
-      <script src="https://www.amcharts.com/lib/3/themes/light.js"></script>
-      <div id="waveform3" style="width:100%; height:300px;"></div>
-      <div id="waveform4" style="width:100%; height:300px;"></div>
-      <div id="waveform0" style="width:100%; height:300px;"></div>
-      <div id="waveform1" style="width:100%; height:300px;"></div>
-      <div id="waveform2" style="width:100%; height:300px;"></div> -->
-
-      <!-- <script type="text/javascript">
-      {% autoescape off %}
-      var plot_pack = {{ js_plot_pack_string }};
-      {% endautoescape %}
-
-      charts = []
-      for (var cid = 0; cid < plot_pack.data.length; cid++) {
-        waveform_data = [];
-        for (var i = 0; i < plot_pack.data[cid].length; i++){
-        waveform_data.push({
-          "tick": plot_pack.time[i],
-          "value": plot_pack.data[cid][i]
-        });
-        }
-        max_tick = plot_pack.time[i-1]
-
-        gid = "g" + cid;
-        charts[cid] = AmCharts.makeChart("waveform" + cid, {
-        "type": "xy",
-        "titles": [{"text": plot_pack.labels[cid]}],
-        "theme": "light",
-        "autoMarginOffset": 25,
-        "dataProvider": waveform_data,
-        "graphs": [{
-          "id": gid,
-          "balloonText": "[[tick]]<br><b>[[value]]</b>",
-          "type": "step",
-          "lineThickness": 2,
-          "bullet": "square",
-          "bulletAlpha": 0,
-          "bulletSize": 4,
-          "bulletBorderAlpha": 0,
-          //"valueField": "value"
-          "xField": "tick",
-          "yField": "value",
-        }],
-        "valueAxes": [
-          {
-            "axisAlpha":0,
-          },
-          {
-            "axisAlpha": 0,
-            "title": "Time in Ticks",
-            "position": "bottom",
-            "maximum": max_tick,
-          }
-        ],
-        "chartScrollbar": {},
-        "chartCursor": {},
-        "export": {
-          "enabled": true
-        }
-        });
-
-        //function zoomChart() {
-        //  charts[cid].zoomToIndexes(0, 20);
-        //}
-        //charts[cid].addListener("dataUpdated", zoomChart);
-      }
-      </script> -->
   </div>
     
 {% endblock %}

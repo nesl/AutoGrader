@@ -14,10 +14,10 @@ class PlainTextVisualizer(VisualizerBase):
         self.template_context = {'content': content}
 
     def get_js_files(self):
-        return set()
+        return None
     
     def get_css_files(self):
-        return set()
+        return None
 
     def get_template_path(self):
         return 'serapis/visualizers/plain_text_visualizer.html'

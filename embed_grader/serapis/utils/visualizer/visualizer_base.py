@@ -11,13 +11,15 @@ class VisualizerBase(object):
 
     def get_js_files(self):
         """
-        Return a set object with strings, indicating the required javascript files
+        Return a list of strings, indicating the required javascript files. Note the order matters
+        because one javascript file may depend on another one.
         """
         pass
     
     def get_css_files(self):
         """
-        Return a set object with strings, indicating the required css files
+        Return a list of strings, indicating the required css files. Note the order matters because
+        one css file may depend on another one
         """
         pass
 
