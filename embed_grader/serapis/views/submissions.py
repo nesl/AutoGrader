@@ -26,6 +26,7 @@ from serapis.utils import grading
 from serapis.utils import file_schema
 from serapis.utils import user_info_helper
 from serapis.utils import team_helper
+from serapis.utils.visualizer_manager import VisualizerManager
 
 
 @login_required(login_url='/login/')
@@ -47,8 +48,6 @@ def submission(request, submission_id):
         if author.username != user.username:
             return HttpResponse("Not enough privilege")
     submitter_name = user_info_helper.get_first_last_name(author)
-    print(submission)
-    print(submission.team_fk)
     team_member_names = team_helper.get_team_member_full_name_list(submission.team_fk)
 
     task_grading_status_list = TaskGradingStatus.objects.filter(
@@ -122,107 +121,24 @@ def task_grading_detail(request, task_grading_id):
 
     now = timezone.now()
 
-    output_files = file_schema.get_dict_schema_name_to_task_grading_status_schema_files(task_grading_status,True)
-    output_full_log = []  # A list of {field_name, content}
+    output_files = file_schema.get_dict_schema_name_to_task_grading_status_schema_files(
+            task_grading_status, enforce_check=True)
 
-    for f in output_files:
-        raw_content = output_files[f].file.read()
-        url = output_files[f].file.url
-        if len(raw_content) == 0:
-            content = '(Empty file)'
-        else:
-            try:
-                content = raw_content.decode('ascii')
-            except:
-                content = '(The file includes non-ascii characters)'
-        output_full_log.append({
-            'field_name': f,
-            'content': content,
-            'url': url,
-        })
+    visualizer_manager = VisualizerManager()
+
+    for field_name in output_files:
+        file = output_files[field_name].file
+        raw_content = file.read()
+        url = file.url
+        visualizer_manager.add_file(field_name, raw_content, url)
+    js_files = visualizer_manager.get_js_files()
+    css_files = visualizer_manager.get_css_files()
+    output_visualizations = visualizer_manager.get_visualizations_for_template()
 
     if task_grading_status.grading_detail:
         feedback = task_grading_status.grading_detail.read()
     else:
         feedback = '(feedback unavailable...)'
-
-    # if not grading.output_file:
-    #     print('Something serious wrong. output file cannot be found in TaskGradingStatus ID=%d' % grading.id)
-    #     return HttpResponse("Please contact PI (TaskGradingStatus ID=%d)" % grading.id)
-
-    # with open(assignment_task.test_input.path, 'r') as f:
-    #     lines = f.readlines()
-    # lines = [l.strip().split(',') for l in lines]
-    # in_events = [(float(l[1]), int(l[2])) for l in lines if int(l[0]) == 68]
-    # if not in_events:
-    #     in_events = [(0.0, 0)]
-    # elif in_events[0][0] != 0:
-    #     in_events[0:0] = [(0.0, 0)]
-
-    # with open(grading.output_file.path, 'r') as f:
-    #     lines = f.readlines()
-    # lines = [l.strip().split(',') for l in lines]
-    # out_events = [(float(l[1]), int(l[2])) for l in lines if int(l[0]) == 68]
-    # if not out_events:
-    #     out_events = [(0.0, 0)]
-    # elif out_events[0][0] != 0:
-    #     out_events[0:0] = [(0.0, 0)]
-
-    # #TODO: remove the assumption of 1 sec = 5000 ticks
-    # session_length = assignment_task.execution_duration * 5000.0
-    #
-    # #TODO: now only assume 13 input pins and 2 output pins, which we should generalize this part
-    # events = []
-    # in_idx = 0
-    # out_idx = 0
-    # in_last_val = 0
-    # out_last_val = 0
-    # while in_idx < len(in_events) or out_idx < len(out_events):
-    #     if in_idx == len(in_events):
-    #         cur_time = out_events[out_idx][0]
-    #         out_last_val = out_events[out_idx][1]
-    #         out_idx += 1
-    #     elif out_idx == len(out_events):
-    #         cur_time = in_events[in_idx][0]
-    #         in_last_val = in_events[in_idx][1]
-    #         in_idx += 1
-    #     else:
-    #         cur_time = min(in_events[in_idx][0], out_events[out_idx][0])
-    #         if in_events[in_idx][0] == cur_time:
-    #             in_last_val = in_events[in_idx][1]
-    #             in_idx += 1
-    #         if out_events[out_idx][0] == cur_time:
-    #             out_last_val = out_events[out_idx][1]
-    #             out_idx += 1
-    #     cur_val = in_last_val | (out_last_val) << 13
-    #     events.append((cur_time, cur_val))
-    # events.append((session_length + 0.01, cur_val))
-    #
-    # plot_time = []
-    # plot_data = [[] for _ in range(3 + 2)]
-    # plot_labels = [
-    #         'D6-D2 (period)',
-    #         'D13-D7 (ratio)',
-    #         'D1 (req)',
-    #         'D14 (hardware PWM)',
-    #         'D0 (software PWM)']
-    # bit_lens = [5, 7, 1, 1, 1]
-    # for i in range(len(events) - 1):
-    #     plot_time.append(events[i][0])
-    #     v = events[i][1]
-    #     for j in range(5):
-    #         mask = (1 << bit_lens[j]) - 1
-    #         plot_data[j].append(v & mask)
-    #         v >>= bit_lens[j]
-    #
-    #     plot_time.append(events[i+1][0] - 0.01)
-    #     v = events[i][1]
-    #     for j in range(5):
-    #         mask = (1 << bit_lens[j]) - 1
-    #         plot_data[j].append(v & mask)
-    #         v >>= bit_lens[j]
-    # plot_pack = {'time': plot_time, 'data': plot_data, 'labels': plot_labels}
-    # js_plot_pack_string = json.dumps(plot_pack)
 
     template_context = {
         'myuser': request.user,
@@ -233,9 +149,10 @@ def task_grading_detail(request, task_grading_id):
         'team_member_names': team_member_names,
         'grading': task_grading_status,
         'assignment_task': assignment_task,
-        'output_log': output_full_log,
+        'js_files': js_files,
+        'css_files': css_files,
+        'output_visualizations': output_visualizations,
         'feedback': feedback,
-        # 'js_plot_pack_string': js_plot_pack_string,
     }
 
     return render(request, 'serapis/task_grading_detail.html', template_context)
