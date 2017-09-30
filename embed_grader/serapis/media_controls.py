@@ -19,6 +19,7 @@ from guardian.shortcuts import assign_perm
 from wsgiref.util import FileWrapper
 
 from serapis.utils import team_helper
+from serapis.utils import submission_helper
 
 
 # Note: please keep the function name as in the convention of <model>_<attribute>.
@@ -132,7 +133,7 @@ def submission_file_file(request):
     file_to_download = submission_file[0]
     submission = file_to_download.submission_fk
 
-    if submission_helper.can_submission_be_accessed_by_user(submission, user):
+    if submission_helper.can_submission_file_be_accessed_by_user(submission, user):
         return _make_http_response_for_file_download(file_to_download.file.path)
     else:
         return HttpResponseForbidden()
