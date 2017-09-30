@@ -224,7 +224,7 @@ class Assignment(models.Model):
 
         # students cannot see test input if homework is not released yet
         now = timezone.now()
-        if now < self.release_time:
+        if now < self.release_time or (not user.has_perm('view_assignment', self.course_fk)):
             return Assignment.VIEWING_SCOPE_NO
 
         # students can see everything after deadline
