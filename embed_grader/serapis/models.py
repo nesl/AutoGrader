@@ -283,22 +283,12 @@ class AssignmentTask(models.Model):
     def can_access_grading_script_by_user(self, user):
         return user.has_perm('create_assignment', self.assignment_fk.course_fk)
 
-    def retrieve_assignment_task_files(self, user):
-        viewing_scope = self.assignment_fk.viewing_scope_by_user(user)
-        assign_task_file_list = AssignmentTaskFile.objects.filter(assignment_task_fk=self.id)
+    def retrieve_assignment_task_files_url(self, user):
+        assign_task_file_list = self.retrieve_assignment_task_files(user)
         assign_task_file_url_list = [f.file.url for f in assign_task_file_list]
+        return assign_task_file_url_list
 
-        if viewing_scope == Assignment.VIEWING_SCOPE_NO:
-            return []
-        elif viewing_scope == Assignment.VIEWING_SCOPE_FULL:
-            return assign_task_file_url_list
-        else:
-            if self.mode in [self.MODE_DEBUG, self.MODE_PUBLIC]:
-                return assign_task_file_url_list
-            else:
-                return []
-
-    def retrieve_assignment_task_files_obj(self, user):
+    def retrieve_assignment_task_files(self, user):
         viewing_scope = self.assignment_fk.viewing_scope_by_user(user)
         assign_task_file_list = AssignmentTaskFile.objects.filter(assignment_task_fk=self.id)
 

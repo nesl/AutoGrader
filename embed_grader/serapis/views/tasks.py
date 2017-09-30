@@ -22,13 +22,12 @@ from guardian.decorators import permission_required_or_403
 from guardian.compat import get_user_model
 from guardian.shortcuts import assign_perm
 
-from serapis.models import *
-from serapis.forms.task_forms import *
-
 import os
 from zipfile import ZipFile
 from io import BytesIO
 
+from serapis.models import *
+from serapis.forms.task_forms import *
 
 def _create_or_modify_assignment_task(request, assignment_id, assignment_task):
     """
@@ -129,16 +128,15 @@ def zip_input_files(request, task_id):
         return HttpResponse("Not enough privilege")
 
     # retrieve task status
-    # can_see_hidden_cases = (assignment.viewing_scope_by_user(user) == Assignment.VIEWING_SCOPE_FULL)
     in_memory = BytesIO()
     input_zip = ZipFile(in_memory, "w")
-    task_files = task.retrieve_assignment_task_files_obj(user)
+    task_files = task.retrieve_assignment_task_files(user)
 
-    if task_files == []:
+    if not task_files:
         return HttpResponse("Not enough privilege")
 
     for f_obj in task_files:
-        fdir, fname = os.path.split(f_obj.file.url)
+        _, fname = os.path.split(f_obj.file.url)
         raw_content = f_obj.file.read()
         input_zip.writestr(fname, raw_content)
 
@@ -146,7 +144,6 @@ def zip_input_files(request, task_id):
     for f in input_zip.filelist:
         f.create_system = 0
     input_zip.close()
-
 
     response = HttpResponse(in_memory.getvalue(), content_type="application/zip")
     response["Content-Disposition"] = "attachment; filename={0}_{1}_input.zip".format(assignment, task)

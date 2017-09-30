@@ -63,7 +63,7 @@
               <td>
                 {% if submission_form %}
                   {% if task.get_mode_display == 'Public' or task.get_mode_display == 'Debug' %}
-                  <a href="{% url 'zip-input-files' task.id%}" class="btn btn-primary"
+                  <a href="{% url 'zip-input-files' task.id %}" class="btn btn-primary"
                       style="font-size:12px; background:white; color:SteelBlue; border-color:SteelBlue;">
                     <span class="glyphicon glyphicon-download-alt"></span> &nbsp;Download
                   </a>
@@ -71,7 +71,7 @@
                     N/A
                   {% endif %}
                 {% else %}
-                  <a href="{% url 'zip-input-files' task.id%}" class="btn btn-primary"
+                  <a href="{% url 'zip-input-files' task.id %}" class="btn btn-primary"
                       style="font-size:12px; background:white; color:SteelBlue; border-color:SteelBlue;">
                     <span class="glyphicon glyphicon-download-alt"></span> &nbsp;Download
                   </a>

@@ -100,7 +100,7 @@ def assignment(request, assignment_id):
 
     assignment_task_files_list = []
     for task in assignment_tasks:
-        task_files = task.retrieve_assignment_task_files(user)
+        task_files = task.retrieve_assignment_task_files_url(user)
         assignment_task_files_list.append(task_files)
 
     if user.has_perm('modify_assignment', course):
