@@ -15,7 +15,7 @@
 
 {% block main-content %}
   {% get_obj_perms request.user for course as "course_perms" %}
-  
+
   <div class="main-content">
     <div class="top-buffer">
       <ol class="breadcrumb">
@@ -63,17 +63,17 @@
               <td>
                 {% if submission_form %}
                   {% if task.get_mode_display == 'Public' or task.get_mode_display == 'Debug' %}
-                  <a href="{{ MEDIA_URL }}{{ file_list.0 }}" class="btn btn-primary" 
+                  <a href="{{ MEDIA_URL }}{{ file_list.0 }}" class="btn btn-primary"
                       style="font-size:12px; background:white; color:SteelBlue; border-color:SteelBlue;">
-                    <span class="glyphicon glyphicon-download-alt"></span> &nbsp;Download   
+                    <span class="glyphicon glyphicon-download-alt"></span> &nbsp;Download
                   </a>
                   {% else %}
                     N/A
                   {% endif %}
                 {% else %}
-                  <a href="{{ MEDIA_URL }}{{ file_list.0 }}" class="btn btn-primary" 
+                  <a href="{{ MEDIA_URL }}{{ file_list.0 }}" class="btn btn-primary"
                       style="font-size:12px; background:white; color:SteelBlue; border-color:SteelBlue;">
-                    <span class="glyphicon glyphicon-download-alt"></span> &nbsp;Download   
+                    <span class="glyphicon glyphicon-download-alt"></span> &nbsp;Download
                   </a>
                 {% endif %}
               </td>
@@ -85,9 +85,9 @@
               <td>{{ task.points }}</td>
               <td>{{ task.description }}</td>
               <td>
-                <a href="{{ MEDIA_URL }}{{ file_list.0 }}" class="btn btn-primary" 
+                <a href="{% url 'zip-input-files' task.id%}" class="btn btn-primary"
                     style="font-size:12px; background:white; color:SteelBlue; border-color:SteelBlue;">
-                  <span class="glyphicon glyphicon-download-alt"></span> &nbsp;Download   
+                  <span class="glyphicon glyphicon-download-alt"></span> &nbsp;Download
                 </a>
               </td>
               <td>
@@ -252,7 +252,7 @@
     <hr/>
     {% if "modify_assignment" not in course_perms %}
       <a class="btn btn-primary" href="{% url 'course' course.id %}" style="width:100px;">Back</a>
-    {% else %}  
+    {% else %}
       <a class="btn btn-primary" href="{% url 'modify-assignment' assignment.id %}" style="width:100px;">
         <span class="glyphicon glyphicon-edit"></span>&nbsp; Edit </a>
       <a class="btn btn-primary" href="{% url 'course' course.id %}" style="width:100px; float:right;">Back</a>

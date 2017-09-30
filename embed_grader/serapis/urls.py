@@ -56,6 +56,7 @@ urlpatterns = [
     url(r'^create-assignment-task/(?P<assignment_id>[0-9]+)/$', tasks.create_assignment_task, name='create-assignment-task'),
     url(r'^modify-assignment-task/(?P<task_id>[0-9]+)/$', tasks.modify_assignment_task, name='modify-assignment-task'),
     url(r'^delete-assignment-task/(?P<task_id>[0-9]+)/$', tasks.delete_assignment_task, name='delete-assignment-task'),
+    url(r'^zip_input_files/(?P<task_id>[0-9]+)/$', tasks.zip_input_files, name='zip-input-files'),
 
     ## Submissions
     url(r'^submission/(?P<submission_id>[0-9]+)/$', submissions.submission, name='submission'),
@@ -83,7 +84,7 @@ urlpatterns = [
     url(r'^media/TestbedHardwareList_firmware/.*/$', media_controls.testbed_hardware_list_firmware, name='media-testbed-hardware-list-firmware'),
     url(r'^media/AssignmentTask_grading_script/.*/$', media_controls.assignment_task_grading_script, name='media-assignment-task-grading-script'),
     url(r'^media/TaskGradingStatus_grading_detail/.*/$', media_controls.task_grading_status_grading_detail, name='media-task-grading-status-grading-detail'),
-    
+
     url(r'^media/SubmissionFile_file/.*/$', media_controls.submission_file_file, name='media-submission-file2'),
     url(r'^media/TaskGradingStatusFile_file/.*/$', media_controls.task_grading_status_file_file, name='media-task-grading-status-file'),
     url(r'^media/AssignmentTaskFile_file/.*/$', media_controls.assignment_task_file_file, name='assignment-task-file'),

@@ -25,6 +25,10 @@ from guardian.shortcuts import assign_perm
 from serapis.models import *
 from serapis.forms.task_forms import *
 
+import os
+from zipfile import ZipFile
+from io import BytesIO
+
 
 def _create_or_modify_assignment_task(request, assignment_id, assignment_task):
     """
@@ -38,12 +42,12 @@ def _create_or_modify_assignment_task(request, assignment_id, assignment_task):
 
     user = User.objects.get(username=request.user)
     user_profile = UserProfile.objects.get(user=user)
-    
+
     course = assignment.course_fk
 
     if not user.has_perm('modify_assignment', course):
         return HttpResponse("Not enough privilege")
-    
+
     mode = 'modify' if assignment_task else 'create'
 
     if request.method == 'POST':
@@ -90,7 +94,7 @@ def modify_assignment_task(request, task_id):
             assignment_task=task,
     )
 
-    
+
 @login_required(login_url='/login/')
 def delete_assignment_task(request, task_id):
     try:
@@ -105,8 +109,40 @@ def delete_assignment_task(request, task_id):
 
     if not user.has_perm('modify_assignment', course):
         return HttpResponse("Not enough privilege")
-    
+
     task.delete()
 
     return HttpResponseRedirect(
             reverse('assignment', kwargs={'assignment_id': assignment.id}))
+
+@login_required(login_url='/login/')
+def zip_input_files(request, task_id):
+    try:
+        task = AssignmentTask.objects.get(id=task_id)
+    except AssignmentTask.DoesNotExist:
+        return HttpResponse("Assignment task cannot be found")
+
+    user = User.objects.get(username=request.user)
+    assignment = task.assignment_fk
+
+    # retrieve task status
+    # can_see_hidden_cases = (assignment.viewing_scope_by_user(user) == Assignment.VIEWING_SCOPE_FULL)
+    in_memory = BytesIO()
+    input_zip = ZipFile(in_memory, "w")
+    task_files = task.retrieve_assignment_task_files_obj(user)
+
+    for f_obj in task_files:
+        fdir, fname = os.path.split(f_obj.file.url)
+        raw_content = f_obj.file.read()
+        input_zip.writestr(fname, raw_content)
+
+    # for Linux zip files read in Windows
+    for f in input_zip.filelist:
+        f.create_system = 0
+    input_zip.close()
+
+
+    response = HttpResponse(in_memory.getvalue(), content_type="application/zip")
+    response["Content-Disposition"] = "attachment; filename={0}_{1}_input.zip".format(assignment, task)
+
+    return response

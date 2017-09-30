@@ -187,11 +187,11 @@ class Assignment(models.Model):
         for assignment_task in assignment_task_list:
             sum_score += assignment_task.points
         return (assignment_task_list, sum_score)
-    
+
     def retrieve_assignment_tasks_by_accumulative_scope(self, most_powerful_mode):
         """
         Paremeter:
-          - most_powerful_mode: int, should be one of AssignmentTask.MODE_*. 
+          - most_powerful_mode: int, should be one of AssignmentTask.MODE_*.
         Return:
           assignment_task_list
         """
@@ -287,7 +287,7 @@ class AssignmentTask(models.Model):
         viewing_scope = self.assignment_fk.viewing_scope_by_user(user)
         assign_task_file_list = AssignmentTaskFile.objects.filter(assignment_task_fk=self.id)
         assign_task_file_url_list = [f.file.url for f in assign_task_file_list]
-        
+
         if viewing_scope == Assignment.VIEWING_SCOPE_NO:
             return []
         elif viewing_scope == Assignment.VIEWING_SCOPE_FULL:
@@ -298,6 +298,19 @@ class AssignmentTask(models.Model):
             else:
                 return []
 
+    def retrieve_assignment_task_files_obj(self, user):
+        viewing_scope = self.assignment_fk.viewing_scope_by_user(user)
+        assign_task_file_list = AssignmentTaskFile.objects.filter(assignment_task_fk=self.id)
+
+        if viewing_scope == Assignment.VIEWING_SCOPE_NO:
+            return []
+        elif viewing_scope == Assignment.VIEWING_SCOPE_FULL:
+            return assign_task_file_list
+        else:
+            if self.mode in [self.MODE_DEBUG, self.MODE_PUBLIC]:
+                return assign_task_file_list
+            else:
+                return []
 
 class AssignmentTaskFileSchema(models.Model):
     class Meta:
@@ -319,7 +332,7 @@ class AssignmentTaskFile(models.Model):
 class Team(models.Model):
     assignment_fk = models.ForeignKey(Assignment, on_delete=models.CASCADE)
     passcode = models.CharField(max_length=20, unique=True)
-    
+
     def __str__(self):
         return str(self.id)
 
@@ -334,7 +347,7 @@ class TeamMember(models.Model):
     is_leader = models.BooleanField()
 
     def __str__(self):
-        return 'team%d-%s' % (self.team_fk.id, self.user_fk) 
+        return 'team%d-%s' % (self.team_fk.id, self.user_fk)
 
 
 class Submission(models.Model):
@@ -458,7 +471,7 @@ class TaskGradingStatus(models.Model):
 
     def can_access_grading_details_by_user(self, user):
         """
-        The grading details is defined the same as in AssignmentTask, including output files, 
+        The grading details is defined the same as in AssignmentTask, including output files,
         grading feedback, and score.
         """
 
@@ -535,7 +548,7 @@ class Testbed(models.Model):
     # report message
     report_time = models.DateTimeField()
     report_status = models.IntegerField(choices=REPORT_STATUS)
-    
+
     # status of the foreign testbed
     secret_code = models.CharField(max_length=100)
 
@@ -561,7 +574,7 @@ class Testbed(models.Model):
         if check_task_status_is_pending:
             if chosen_task.grading_status != TaskGradingStatus.STAT_PENDING:
                 raise Exception('Requested task is not in pending status')
-        
+
         with transaction.atomic():
             self.status = Testbed.STATUS_BUSY
             self.task_being_graded = chosen_task
@@ -593,7 +606,7 @@ class Testbed(models.Model):
         if check_task_status_is_executing:
             if task.grading_status != TaskGradingStatus.STAT_EXECUTING:
                 raise Exception('Status of the graded task is not executing')
-                
+
         with transaction.atomic():
             if task:
                 task.grading_status = TaskGradingStatus.STAT_PENDING
@@ -616,7 +629,7 @@ class Testbed(models.Model):
             task.execution_status = task_execution_status
             task.status_update_time = now
             task.save()
-            
+
             self.task_being_graded = None
             self.report_time = now
             self.report_status = Testbed.STATUS_AVAILABLE
