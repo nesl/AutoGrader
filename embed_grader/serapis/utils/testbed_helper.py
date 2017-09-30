@@ -42,7 +42,8 @@ def grade_task(testbed, chosen_task, duration, force_detach_currently_graded_tas
       - force_detach_currently_grading_task: True to abort the currently graded task if
             present. Otherwise an exception is raised if task_being_graded is not None.
       - check_testbed_status_available: True if want to check this testbed is available
-      - check_task_status_pending: True if want to check the status of chosen_task is pending
+      - check_task_status_pending: If set True status of chosen_task is not pending, this function
+            will throw an exception
     """
     if force_detach_currently_graded_task:
         if testbed.task_being_graded:

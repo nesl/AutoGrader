@@ -44,7 +44,7 @@ def remove_task_grading_status(task_grading_status):
         submission.save()
         task_grading_status.delete()
 
-def update_task_grading_status(task_grading_status, grading_atatus, **kwargs):
+def update_task_grading_status(task_grading_status, grading_status, **kwargs):
     """
     Param:
       - task_grading_status: the target to be changed
@@ -77,4 +77,4 @@ def update_task_grading_status(task_grading_status, grading_atatus, **kwargs):
 
     with transaction.atomic():
         submission.save()
-        task_grading_status.delete()
+        task_grading_status.save()
