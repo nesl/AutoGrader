@@ -187,11 +187,11 @@ class Assignment(models.Model):
         for assignment_task in assignment_task_list:
             sum_score += assignment_task.points
         return (assignment_task_list, sum_score)
-    
+
     def retrieve_assignment_tasks_by_accumulative_scope(self, most_powerful_mode):
         """
         Paremeter:
-          - most_powerful_mode: int, should be one of AssignmentTask.MODE_*. 
+          - most_powerful_mode: int, should be one of AssignmentTask.MODE_*.
         Return:
           assignment_task_list
         """
@@ -224,7 +224,7 @@ class Assignment(models.Model):
 
         # students cannot see test input if homework is not released yet
         now = timezone.now()
-        if now < self.release_time:
+        if now < self.release_time or (not user.has_perm('view_assignment', self.course_fk)):
             return Assignment.VIEWING_SCOPE_NO
 
         # students can see everything after deadline
@@ -283,21 +283,24 @@ class AssignmentTask(models.Model):
     def can_access_grading_script_by_user(self, user):
         return user.has_perm('create_assignment', self.assignment_fk.course_fk)
 
+    def retrieve_assignment_task_files_url(self, user):
+        assign_task_file_list = self.retrieve_assignment_task_files(user)
+        assign_task_file_url_list = [f.file.url for f in assign_task_file_list]
+        return assign_task_file_url_list
+
     def retrieve_assignment_task_files(self, user):
         viewing_scope = self.assignment_fk.viewing_scope_by_user(user)
         assign_task_file_list = AssignmentTaskFile.objects.filter(assignment_task_fk=self.id)
-        assign_task_file_url_list = [f.file.url for f in assign_task_file_list]
-        
+
         if viewing_scope == Assignment.VIEWING_SCOPE_NO:
             return []
         elif viewing_scope == Assignment.VIEWING_SCOPE_FULL:
-            return assign_task_file_url_list
+            return assign_task_file_list
         else:
             if self.mode in [self.MODE_DEBUG, self.MODE_PUBLIC]:
-                return assign_task_file_url_list
+                return assign_task_file_list
             else:
                 return []
-
 
 class AssignmentTaskFileSchema(models.Model):
     class Meta:
@@ -319,7 +322,7 @@ class AssignmentTaskFile(models.Model):
 class Team(models.Model):
     assignment_fk = models.ForeignKey(Assignment, on_delete=models.CASCADE)
     passcode = models.CharField(max_length=20, unique=True)
-    
+
     def __str__(self):
         return str(self.id)
 
@@ -334,7 +337,7 @@ class TeamMember(models.Model):
     is_leader = models.BooleanField()
 
     def __str__(self):
-        return 'team%d-%s' % (self.team_fk.id, self.user_fk) 
+        return 'team%d-%s' % (self.team_fk.id, self.user_fk)
 
 
 class Submission(models.Model):
@@ -460,7 +463,7 @@ class TaskGradingStatus(models.Model):
 
     def can_access_grading_details_by_user(self, user):
         """
-        The grading details is defined the same as in AssignmentTask, including output files, 
+        The grading details is defined the same as in AssignmentTask, including output files,
         grading feedback, and score.
         """
 
@@ -537,10 +540,9 @@ class Testbed(models.Model):
     # report message
     report_time = models.DateTimeField()
     report_status = models.IntegerField(choices=REPORT_STATUS)
-    
+
     # status of the foreign testbed
     secret_code = models.CharField(max_length=100)
-
 
 class HardwareDevice(models.Model):
     hardware_type = models.ForeignKey(

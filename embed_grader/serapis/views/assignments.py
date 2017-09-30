@@ -30,6 +30,7 @@ from serapis.utils import team_helper
 from serapis.forms.assignment_forms import *
 
 
+
 def _plural(n, s):
     return '%d %s%s' % (n, s, 's' if n == 1 else '')
 
@@ -37,7 +38,7 @@ def _plural(n, s):
 def _display_remaining_time(tdelta):
     if tdelta < datetime.timedelta(0):
         return 'Deadline passed'
-    
+
     days = tdelta.days
     hours, rem = divmod(tdelta.seconds, 3600)
     mins, secs = divmod(rem, 60)
@@ -99,7 +100,7 @@ def assignment(request, assignment_id):
 
     assignment_task_files_list = []
     for task in assignment_tasks:
-        task_files = task.retrieve_assignment_task_files(user)
+        task_files = task.retrieve_assignment_task_files_url(user)
         assignment_task_files_list.append(task_files)
 
     if user.has_perm('modify_assignment', course):
@@ -130,12 +131,12 @@ def assignment(request, assignment_id):
         teams = Team.objects.filter(assignment_fk=assignment)
         graded_list = []
         grading_list = []
-        
+
         for team in teams:
             sub = grading.get_last_fully_graded_submission(team, assignment)
             if sub:
                 graded_list.append(sub)
-            
+
             sub = grading.get_last_grading_submission(team, assignment)
             if sub:
                 grading_list.append(sub)
@@ -196,7 +197,7 @@ def assignment_run_final_grade(request, assignment_id):
         return HttpResponse("Not enough privilege")
 
     now = timezone.now()
-    
+
     assignment_tasks = assignment.retrieve_assignment_tasks_by_accumulative_scope(
             AssignmentTask.MODE_HIDDEN)
 
@@ -205,7 +206,7 @@ def assignment_run_final_grade(request, assignment_id):
         submission = grading.get_last_submission(student, assignment)
         if submission is None:
             continue
-        
+
         graded_task_obj_for_submission = TaskGradingStatus.objects.filter(submission_fk=submission)
         graded_task_for_submission = [t.assignment_task_fk for t in graded_task_obj_for_submission]
         task_to_be_added = [t for t in assignment_tasks if t not in graded_task_for_submission]
@@ -223,7 +224,7 @@ def assignment_run_final_grade(request, assignment_id):
 
             submission.task_scope = AssignmentTask.MODE_HIDDEN
             submission.save()
-    
+
     return HttpResponseRedirect(reverse('assignment', kwargs={'assignment_id': assignment_id}))
 
 
@@ -244,7 +245,7 @@ def assignment_create_team(request, assignment_id):
         return HttpResponse("Deadline is passed")
 
     team_helper.create_team(assignment, [user])
-    
+
     return HttpResponseRedirect(reverse('assignment', kwargs={'assignment_id': assignment_id}))
 
 
@@ -276,7 +277,7 @@ def assignment_join_team(request, assignment_id):
         return HttpResponse("Invalid request")
 
     form.save()
-    
+
     return HttpResponseRedirect(reverse('assignment', kwargs={'assignment_id': assignment_id}))
 
 
@@ -334,7 +335,7 @@ def delete_team(request, assignment_id, team_id):
         team = Team.objects.get(id=team_id)
     except Assignment.DoesNotExist:
         return HttpResponse("Assignment or team cannot be found.")
-    
+
     course = assignment.course_fk
     if not user.has_perm('modify_assignment', course):
         return HttpResponse("Not enough privilege")
@@ -363,7 +364,7 @@ def _create_or_modify_assignment(request, course_id, assignment):
     # Only super user has access to create a course
     if not user.has_perm('create_assignment', course):
         return HttpResponse("Not enough privilege")
-    
+
     mode = 'modify' if assignment else 'create'
 
     if request.method == 'POST':
@@ -374,7 +375,7 @@ def _create_or_modify_assignment(request, course_id, assignment):
                 kwargs={'assignment_id': assignment.id}))
     else:
         form = AssignmentForm(course=course, instance=assignment)
-    
+
     template_context = {
             'myuser': request.user,
             'user_profile': user_profile,
@@ -402,7 +403,7 @@ def modify_assignment(request, assignment_id):
     return _create_or_modify_assignment(
             request=request, course_id=assignment.course_fk.id, assignment=assignment)
 
-    
+
 @login_required(login_url='/login/')
 def delete_assignment(request, assignment_id):
     try:
@@ -411,7 +412,7 @@ def delete_assignment(request, assignment_id):
         return HttpResponse("Cannot find the assignment.")
 
     user = User.objects.get(username=request.user)
-    
+
     course = assignment.course_fk
 
     if not user.has_perm('create_assignment', course):
