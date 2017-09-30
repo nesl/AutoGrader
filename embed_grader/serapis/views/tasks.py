@@ -124,12 +124,18 @@ def zip_input_files(request, task_id):
 
     user = User.objects.get(username=request.user)
     assignment = task.assignment_fk
+    course = assignment.course_fk
+    if not user.has_perm('view_assignment', course):
+        return HttpResponse("Not enough privilege")
 
     # retrieve task status
     # can_see_hidden_cases = (assignment.viewing_scope_by_user(user) == Assignment.VIEWING_SCOPE_FULL)
     in_memory = BytesIO()
     input_zip = ZipFile(in_memory, "w")
     task_files = task.retrieve_assignment_task_files_obj(user)
+
+    if task_files == []:
+        return HttpResponse("Not enough privilege")
 
     for f_obj in task_files:
         fdir, fname = os.path.split(f_obj.file.url)
