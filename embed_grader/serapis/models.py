@@ -358,7 +358,9 @@ class Submission(models.Model):
     submission_time = models.DateTimeField()
     grading_result = models.FloatField()
     status = models.IntegerField(choices=SUBMISSION_STATES, default=STAT_RECEIVED)
-    task_scope = models.IntegerField()
+    task_scope = models.IntegerField()  # enum of AssignmentTask.EVAL_MODES
+    num_graded_tasks = models.IntegerField()
+    num_total_tasks = models.IntegerField()
 
     def __str__(self):
         return self.student_fk.first_name + " " + self.student_fk.last_name + ", " + str(self.id)
@@ -541,92 +543,6 @@ class Testbed(models.Model):
 
     # status of the foreign testbed
     secret_code = models.CharField(max_length=100)
-
-    def grade_task(self, chosen_task, duration, force_detach_currently_graded_task=False,
-            check_testbed_status_is_available=True, check_task_status_is_pending=True):
-        """
-        Paremeter:
-          - chosen_task: TaskGradingStatus, the task to be graded
-          - duration: Float, how much time the task can be executed
-          - force_detach_currently_grading_task: True to abort the currently graded task if
-                present. Otherwise an exception is raised if task_being_graded is not None.
-          - check_testbed_status_available: True if want to check this testbed is available
-          - check_task_status_pending: True if want to check the status of chosen_task is pending
-        """
-        if force_detach_currently_graded_task:
-            if self.task_being_graded:
-                self.abort_task(set_status=self.status, check_task_status_is_executing=False)
-        if self.task_being_graded:
-            raise Exception('This testbed is still grading one task')
-        if check_testbed_status_is_available:
-            if self.status != Testbed.STATUS_AVAILABLE:
-                raise Exception('Request grading a task but status is not available')
-        if check_task_status_is_pending:
-            if chosen_task.grading_status != TaskGradingStatus.STAT_PENDING:
-                raise Exception('Requested task is not in pending status')
-
-        with transaction.atomic():
-            self.status = Testbed.STATUS_BUSY
-            self.task_being_graded = chosen_task
-            self.grading_deadline = timezone.now() + datetime.timedelta(0, duration)
-            self.secret_code = str(timezone.now())
-            self.save()
-
-            chosen_task.grading_status = TaskGradingStatus.STAT_EXECUTING
-            chosen_task.status_update_time = timezone.now()
-            chosen_task.points = 0.
-            chosen_task.grading_detail = None
-            chosen_task.save()
-
-    def abort_task(self, set_status=STATUS_AVAILABLE,
-            tolerate_task_is_not_present=False, check_task_status_is_executing=True):
-        """
-        Paremeter:
-          - set_status: The status going to be set for this testbed
-          - tolerate_task_is_not_present: True if the grading task does not have to be present
-          - check_testbed_status_is_executing: True to check the status of the task is executing.
-                Will have no effect if tolerate_task_is_not_present is True.
-        """
-        check_task_status_is_executing &= not tolerate_task_is_not_present
-
-        task = self.task_being_graded
-        if not tolerate_task_is_not_present:
-            if not task:
-                raise Exception('No task to abort')
-        if check_task_status_is_executing:
-            if task.grading_status != TaskGradingStatus.STAT_EXECUTING:
-                raise Exception('Status of the graded task is not executing')
-
-        with transaction.atomic():
-            if task:
-                task.grading_status = TaskGradingStatus.STAT_PENDING
-                task.save()
-            self.task_being_graded = None
-            self.status = set_status
-            self.secret_code = ''
-            self.save()
-
-
-    def finish_grading(self, task_execution_status):
-        task = self.task_being_graded
-        if not task:
-            raise Exception('No grading task is associated with this testbed')
-
-        with transaction.atomic():
-            now = timezone.now()
-
-            task.grading_status = TaskGradingStatus.STAT_OUTPUT_TO_BE_CHECKED
-            task.execution_status = task_execution_status
-            task.status_update_time = now
-            task.save()
-
-            self.task_being_graded = None
-            self.report_time = now
-            self.report_status = Testbed.STATUS_AVAILABLE
-            self.status = Testbed.STATUS_AVAILABLE
-            self.secret_code = ''
-            self.save()
-
 
 class HardwareDevice(models.Model):
     hardware_type = models.ForeignKey(
