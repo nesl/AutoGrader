@@ -57,6 +57,7 @@ urlpatterns = [
     url(r'^modify-assignment-task/(?P<task_id>[0-9]+)/$', tasks.modify_assignment_task, name='modify-assignment-task'),
     url(r'^delete-assignment-task/(?P<task_id>[0-9]+)/$', tasks.delete_assignment_task, name='delete-assignment-task'),
     url(r'^zip-input-files/(?P<task_id>[0-9]+)/$', tasks.zip_input_files, name='zip-input-files'),
+    url(r'^view-task-input-files/(?P<task_id>[0-9]+)/$', tasks.view_task_input_files, name='view-task-input-files'),
 
     ## Submissions
     url(r'^submission/(?P<submission_id>[0-9]+)/$', submissions.submission, name='submission'),
