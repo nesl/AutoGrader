@@ -41,14 +41,14 @@
               <th style="width:25%">Task</th>
               <th style="width:15%">Mode</th>
               <th style="width:10%">Points</th>
-              <th style="width:35%">Description</th>
-              <th style="width:15%">Input File</th>
+              <th style="width:25%">Description</th>
+              <th style="width:25%">Input File</th>
             {% else %}
-              <th style="width:15%">Task</th>
+              <th style="width:12%">Task</th>
               <th style="width:12%">Mode</th>
               <th style="width:13%">Points</th>
-              <th style="width:30%">Description</th>
-              <th style="width:15%">Input File</th>
+              <th style="width:23%">Description</th>
+              <th style="width:25%">Input File</th>
               <th style="width:15%">Edit</th>
             {% endif %}
           <thead>
@@ -63,17 +63,21 @@
               <td>
                 {% if submission_form %}
                   {% if task.get_mode_display == 'Public' or task.get_mode_display == 'Debug' %}
-                    <a href="{% url 'zip-input-files' task.id %}" class="btn btn-primary"
-                        style="font-size:12px; background:white; color:SteelBlue; border-color:SteelBlue;">
+                    <a href="{% url 'zip-input-files' task.id %}" class="btn btn-primary btn-detail-enabled">
                       <span class="glyphicon glyphicon-download-alt"></span> &nbsp;Download
+                    </a>&nbsp;
+                    <a href="{% url 'view-task-input-files' task.id %}" class="btn btn-primary btn-detail-enabled">
+                      <span class="fa fa-file"></span> &nbsp;&nbsp;&nbsp;View &nbsp;&nbsp;&nbsp;
                     </a>
                   {% else %}
                     N/A
                   {% endif %}
                 {% else %}
-                  <a href="{% url 'zip-input-files' task.id %}" class="btn btn-primary"
-                      style="font-size:12px; background:white; color:SteelBlue; border-color:SteelBlue;">
+                  <a href="{% url 'zip-input-files' task.id %}" class="btn btn-primary btn-detail-enabled">
                     <span class="glyphicon glyphicon-download-alt"></span> &nbsp;Download
+                  </a>&nbsp;
+                  <a href="{% url 'view-task-input-files' task.id %}" class="btn btn-primary btn-detail-enabled">
+                    <span class="fa fa-file"></span> &nbsp;&nbsp;&nbsp;View &nbsp;&nbsp;&nbsp;
                   </a>
                 {% endif %}
               </td>
@@ -85,14 +89,15 @@
               <td>{{ task.points }}</td>
               <td>{{ task.description }}</td>
               <td>
-                <a href="{% url 'zip-input-files' task.id%}" class="btn btn-primary"
-                    style="font-size:12px; background:white; color:SteelBlue; border-color:SteelBlue;">
+                <a href="{% url 'zip-input-files' task.id%}" class="btn btn-primary btn-detail-enabled">
                   <span class="glyphicon glyphicon-download-alt"></span> &nbsp;Download
+                </a>&nbsp;
+                <a href="{% url 'view-task-input-files' task.id %}" class="btn btn-primary btn-detail-enabled">
+                  <span class="fa fa-file"></span> &nbsp;&nbsp;&nbsp;View &nbsp;&nbsp;&nbsp;
                 </a>
               </td>
               <td>
-                <a href="{% url 'modify-assignment-task' task.id %}" class="btn btn-primary"
-                    style="font-size: 12px; background:white; color:SteelBlue; border-color:SteelBlue;width:80px">
+                <a href="{% url 'modify-assignment-task' task.id %}" class="btn btn-primary btn-detail-enabled" style="width:80px">
                   <span class="glyphicon glyphicon-edit"></span>&nbsp;Edit
                 </a>
               </td>

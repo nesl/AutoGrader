@@ -28,6 +28,7 @@ from io import BytesIO
 
 from serapis.models import *
 from serapis.forms.task_forms import *
+from serapis.utils.visualizer_manager import VisualizerManager
 
 def _create_or_modify_assignment_task(request, assignment_id, assignment_task):
     """
@@ -114,6 +115,7 @@ def delete_assignment_task(request, task_id):
     return HttpResponseRedirect(
             reverse('assignment', kwargs={'assignment_id': assignment.id}))
 
+
 @login_required(login_url='/login/')
 def zip_input_files(request, task_id):
     try:
@@ -149,3 +151,44 @@ def zip_input_files(request, task_id):
     response["Content-Disposition"] = "attachment; filename={0}_{1}_input.zip".format(assignment, task)
 
     return response
+
+
+@login_required(login_url='/login/')
+def view_task_input_files(request, task_id):
+    try:
+        task = AssignmentTask.objects.get(id=task_id)
+    except AssignmentTask.DoesNotExist:
+        return HttpResponse("Assignment task cannot be found")
+
+    user = User.objects.get(username=request.user)
+    assignment = task.assignment_fk
+    course = assignment.course_fk
+    if not user.has_perm('view_assignment', course):
+        return HttpResponse("Not enough privilege")
+
+    task_files = task.retrieve_assignment_task_files(user)
+    if not task_files:
+        return HttpResponse("Not enough privilege")
+
+    visualizer_manager = VisualizerManager()
+
+    for f_obj in task_files:
+        url = f_obj.file.url
+        _, fname = os.path.split(url)
+        raw_content = f_obj.file.read()
+        visualizer_manager.add_file(fname, raw_content, url)
+
+    js_files = visualizer_manager.get_js_files()
+    css_files = visualizer_manager.get_css_files()
+    input_visualizations = visualizer_manager.get_visualizations_for_template()
+
+    template_context = {
+            'myuser': request.user,
+            'course': course,
+            'assignment': assignment,
+            'task': task,
+            'js_files': js_files,
+            'css_files': css_files,
+            'input_visualizations': input_visualizations,
+    }
+    return render(request, 'serapis/view_task_input.html', template_context)

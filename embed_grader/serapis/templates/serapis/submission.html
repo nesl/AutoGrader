@@ -33,13 +33,12 @@
     <h5>Score: {% show_score student_score total_score %}</h5>
     <h5>Files:
       {% for f in submission_file_list %}
-        <a href="{{ MEDIA_URL }}{{ f.file_field.url }}" class="btn btn-primary" style="font-size:12px;
-            background:white; color:SteelBlue; border-color:SteelBlue">
+        <a href="{{ MEDIA_URL }}{{ f.file_field.url }}" class="btn btn-primary btn-detail-enabled" style="width:100px;">
           <span class="glyphicon glyphicon-download-alt"></span>{{f.filename}}
         </a>
       {%endfor%}
     <h5>
-      
+
     <hr/>
     <br/>
     <h5>Grading Results</h5>
@@ -57,16 +56,15 @@
           <td>{{ t.assignment_task_fk.brief_description }}</td>
           <td>{{ t.get_grading_status_display }}</td>
           <td>{% show_score t.points t.assignment_task_fk.points %}</td>
-          
+
           {% if t.assignment_task_fk.mode == AssignmentTask.MODE_FEEDBACK and not can_see_feedback_details %}
             <td>N/A</td>
           {% else %}
             <td>
               {% if t|pm:'can_show_grading_details_to_user'|pa:myuser|invoke %}
-                <a href="{% url 'task-grading-detail' t.id %}" class="btn btn-primary" style="font-size:12px;
-                background:white; color:SteelBlue; border-color:SteelBlue; width:100px">
+                <a href="{% url 'task-grading-detail' t.id %}" class="btn btn-primary btn-detail-enabled" style="width:100px">
               {% else %}
-                <a class="btn btn-primary" style="font-size:12px; background:white; color:grey; border-color:grey; width:100px">
+                <a class="btn btn-primary btn-detail-disabled" style="width:100px;">
               {% endif %}
               <span class="glyphicon glyphicon-file"></span>Detail</a>
             </td>
