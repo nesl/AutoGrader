@@ -167,6 +167,8 @@ def view_task_input_files(request, task_id):
         return HttpResponse("Not enough privilege")
 
     task_files = task.retrieve_assignment_task_files(user)
+    if not task_files:
+        return HttpResponse("Not enough privilege")
 
     visualizer_manager = VisualizerManager()
 
@@ -187,6 +189,6 @@ def view_task_input_files(request, task_id):
             'task': task,
             'js_files': js_files,
             'css_files': css_files,
-            'input_visualizations': input_visualizations
+            'input_visualizations': input_visualizations,
     }
     return render(request, 'serapis/view_task_input.html', template_context)
