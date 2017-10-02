@@ -45,16 +45,15 @@
     <h5>Submission ID: {{ submission.id }}</h5>
     <h5>Task case: {{ assignment_task.brief_description }}</h5>
     <h5>Score: {% show_score grading.points assignment_task.points %}</h5>
-    
+
     <hr/>
     <h4>Grading feedback:<h4>
     <p style="white-space:pre; font-size:13px; font-family:monospace">{{feedback}}</p>
 
     {% for visualization in output_visualizations %}
       <hr/>
-      <h4>File: {{visualization.field_name}} 
-        <a href="{{ MEDIA_URL }}{{ visualization.url }}" class="btn btn-primary" 
-        style="font-size:12px; background:white; color:SteelBlue; border-color:SteelBlue;">
+      <h4>File: {{visualization.field_name}}
+        <a href="{{ MEDIA_URL }}{{ visualization.url }}" class="btn btn-primary btn-nesl">
           <span class="glyphicon glyphicon-download-alt"></span> &nbsp;Download
         </a>
       </h4>
@@ -64,5 +63,5 @@
     {% endfor %}
 
   </div>
-    
+
 {% endblock %}

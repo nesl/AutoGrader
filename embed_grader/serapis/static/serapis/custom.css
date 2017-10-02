@@ -9,3 +9,10 @@
 a:hover {
   cursor: pointer;
 }
+
+.btn-nesl {
+  font-size:12px;
+  background:white;
+  color:SteelBlue;
+  border-color:SteelBlue;
+}

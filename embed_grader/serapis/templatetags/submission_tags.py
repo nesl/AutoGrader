@@ -24,7 +24,7 @@ def show_score(achieved_score, total_score):
         total_score = str(round(float(total_score), 2))
     except:
         pass
-    
+
     background_color = ('green'
             if achieved_score != '0.0' and achieved_score == total_score else 'darkred')
     return format_html('<span class="badge" style="background:%s; width:100px;">%s / %s</span>' % (
@@ -35,7 +35,7 @@ def show_status(status):
         status = str(status)
     except:
         pass
-    
+
 
 
 class SubmissionTableSchemaNode(template.Node):
@@ -75,11 +75,11 @@ def do_submission_table_schema(parser, token):
         raise template.TemplateSyntaxError(
             "%r tag requires arguments" % token.contents.split()[0]
         )
-    
+
     m = re.search(r'(.*?) as (\w+)', arg)
     if not m:
         raise template.TemplateSyntaxError("%r tag had invalid arguments" % tag_name)
-    
+
     format_string, var_name = m.groups()
     terms = [w.strip() for w in format_string.split()]
     terms = [w for w in terms if w]
@@ -88,7 +88,7 @@ def do_submission_table_schema(parser, token):
         raise template.TemplateSyntaxError(
             "%r tag should have more than 0 and even number of arguments" % tag_name
         )
-    
+
     schema_list = terms[::2]
     attr_list = terms[1::2]
 
@@ -137,7 +137,7 @@ class RenderSubmissionTableRow:
                 .retrieve_assignment_tasks_and_score_sum(include_hidden=True))
         (task_grading_status_list, _, _) = (
                 self.submission.retrieve_task_grading_status_and_score_sum(self.include_hidden))
-        
+
         atid_2_task_grading_status = {}
         for task_grading_status in task_grading_status_list:
             atid = task_grading_status.assignment_task_fk.id
@@ -185,8 +185,7 @@ class RenderSubmissionTableRow:
 
     def _get_content_detail_button(self):
         url_str = reverse('submission', kwargs={'submission_id': self.submission.id})
-        return ('<a class="btn btn-primary" href="%s" style="font-size:12px; background:white; '
-                + 'width:90px; color:SteelBlue; border-color:SteelBlue">'
+        return ('<a class="btn btn-primary btn-nesl" href="%s" style="width:90px;">'
                 + '<span class="glyphicon glyphicon-file"></span>&nbsp;Detail</a>') % url_str
 
     def _get_content_author_names(self):
