@@ -185,7 +185,7 @@ class RenderSubmissionTableRow:
 
     def _get_content_detail_button(self):
         url_str = reverse('submission', kwargs={'submission_id': self.submission.id})
-        return ('<a class="btn btn-primary btn-nesl" href="%s" style="width:90px;">'
+        return ('<a class="btn btn-primary btn-detail-enabled" href="%s" style="width:90px;">'
                 + '<span class="glyphicon glyphicon-file"></span>&nbsp;Detail</a>') % url_str
 
     def _get_content_author_names(self):
