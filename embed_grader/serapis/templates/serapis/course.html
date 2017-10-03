@@ -57,8 +57,8 @@
               <td>{{ assignment.deadline }}</td>
               {% if "modify_course" in course_perms %}
                 <td>
-                <a class="btn btn-primary" href="{% url 'modify-assignment' assignment.id %}" style="width:100px">
-                <span class="glyphicon glyphicon-edit"></span>&nbsp;Edit</a>
+                  <a class="btn btn-primary btn-detail-enabled" href="{% url 'modify-assignment' assignment.id %}" style="width:100px">
+                  <span class="glyphicon glyphicon-edit"></span>&nbsp;Edit</a>
                 </td>
               {% endif %}
             </tr>
