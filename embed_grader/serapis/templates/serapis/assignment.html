@@ -197,7 +197,7 @@
             <tr><thead class="thead-default">
               {% submission_table_schema  status 30%  score 20%  submission_time 30%  detail_button 20% as table_schema %}
             </thead></tr>
-            {% for submission in submission_lists.student %}
+            {% for submission in submission_lists.team %}
               <tr>{% submission_table_row table_schema submission myuser %}</tr>
             {% endfor %}
           </table>
