@@ -29,6 +29,7 @@ from io import BytesIO
 from serapis.models import *
 from serapis.forms.task_forms import *
 from serapis.utils.visualizer_manager import VisualizerManager
+from serapis.utils import file_schema
 
 def _create_or_modify_assignment_task(request, assignment_id, assignment_task):
     """
@@ -170,13 +171,15 @@ def view_task_input_files(request, task_id):
     if not task_files:
         return HttpResponse("Not enough privilege")
 
+    input_files = file_schema.get_dict_schema_name_to_assignment_task_schema_files(task, enforce_check=True)
+
     visualizer_manager = VisualizerManager()
 
-    for f_obj in task_files:
-        url = f_obj.file.url
-        _, fname = os.path.split(url)
-        raw_content = f_obj.file.read()
-        visualizer_manager.add_file(fname, raw_content, url)
+    for field_name in input_files:
+        file = input_files[field_name].file
+        raw_content = file.read()
+        url = file.url
+        visualizer_manager.add_file(field_name, raw_content, url)
 
     js_files = visualizer_manager.get_js_files()
     css_files = visualizer_manager.get_css_files()
