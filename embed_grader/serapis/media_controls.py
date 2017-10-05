@@ -20,6 +20,7 @@ from wsgiref.util import FileWrapper
 
 from serapis.utils import team_helper
 from serapis.utils import submission_helper
+from serapis.utils import task_grading_status_helper
 
 
 # Note: please keep the function name as in the convention of <model>_<attribute>.
@@ -153,7 +154,7 @@ def task_grading_status_grading_detail(request):
         print('Warning: find 2 or more records with this file name')
 
     status = status_list[0]
-    if status.can_access_grading_details_by_user(user):
+    if task_grading_status_helper.can_access_grading_details_by_user(status, user):
         return _make_http_response_for_file_download(status.grading_detail.path)
     else:
         return HttpResponseForbidden()
@@ -174,7 +175,7 @@ def task_grading_status_file_file(request):
         print('Warning: find 2 or more records with this file name')
 
     task_grading_status = task_grading_status_file_list[0].task_grading_status_fk
-    if task_grading_status.can_access_grading_details_by_user(user):
+    if task_grading_status_helper.can_access_grading_details_by_user(status, user):
         return _make_http_response_for_file_download(task_grading_status_file_list[0].file.path)
     else:
         return HttpResponseForbidden()
