@@ -149,10 +149,26 @@ def get_team_member_full_name_list(team, last_and=False):
 
     return result
 
-def get_team_member_first_name_list(team):
+def get_team_member_first_name_list(team, last_and=False):
     """
+    Parameter:
+      last_and: Optional. When set to true, the output sounds more natural for humans.
     Return:
       name_list: A string
     """
-    return ', '.join([tm.user_fk.first_name for tm
-            in TeamMember.objects.filter(team_fk=team).order_by('id')])
+    name_list = [tm.user_fk.first_name for tm
+            in TeamMember.objects.filter(team_fk=team).order_by('id')]
+    
+    result = ', '.join(name_list)
+
+    if last_and: 
+        if len(name_list) == 0:
+            result = ''
+        elif len(name_list) == 1:
+            result = name_list[0]
+        elif len(name_list) == 2:
+            result = ' and '.join(name_list)
+        else:
+            result = ', '.join(name_list[:-1]) + ', and ' + name_list[-1]
+
+    return result
