@@ -126,13 +126,28 @@ def get_specific_team_member(team, user):
     team_member_list = TeamMember.objects.filter(team_fk=team, user_fk=user)
     return team_member_list[0] if team_member_list else None
 
-def get_team_member_full_name_list(team):
+def get_team_member_full_name_list(team, last_and=False):
     """
+    Parameter:
+      last_and: Optional. When set to true, the output sounds more natural for humans.
     Return:
       name_list: A string
     """
-    return ', '.join([user_info_helper.get_first_last_name(tm.user_fk) for tm
-            in TeamMember.objects.filter(team_fk=team).order_by('id')])
+    name_list = [user_info_helper.get_first_last_name(tm.user_fk) for tm
+                    in TeamMember.objects.filter(team_fk=team).order_by('id')]
+    result = ', '.join(name_list)
+
+    if last_and: 
+        if len(name_list) == 0:
+            result = ''
+        elif len(name_list) == 1:
+            result = name_list[0]
+        elif len(name_list) == 2:
+            result = ' and '.join(name_list)
+        else:
+            result = ', '.join(name_list[:-1]) + ', and ' + name_list[-1]
+
+    return result
 
 def get_team_member_first_name_list(team):
     """
