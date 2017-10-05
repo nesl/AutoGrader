@@ -33,7 +33,7 @@
     <h5>Score: {% show_score student_score total_score %}</h5>
     <h5>Files:
       {% for f in submission_file_list %}
-        <a href="{{ MEDIA_URL }}{{ f.file_field.url }}" class="btn btn-primary btn-detail-enabled" style="width:100px;">
+        <a href="{{ MEDIA_URL }}{{ f.file_field.url }}" class="btn btn-primary btn-detail-enabled">
           <span class="glyphicon glyphicon-download-alt"></span>{{f.filename}}
         </a>
       {%endfor%}
