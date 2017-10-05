@@ -40,14 +40,14 @@ def submission(request, submission_id):
     assignment = submission.assignment_fk
     course = assignment.course_fk
 
-    if not user.has_perm('view_assignment',course):
+    if not user.has_perm('view_assignment', course):
         return HttpResponse("Not enough privilege")
 
-    author = User.objects.get(username=submission.student_fk)
-    if not user.has_perm('modify_assignment',course):
-        if author.username != user.username:
+    # for normal students, one can only see the submission if she is in the team
+    if not user.has_perm('modify_assignment', course):
+        if not team_helper.is_user_in_team(user, submission.team_fk):
             return HttpResponse("Not enough privilege")
-    submitter_name = user_info_helper.get_first_last_name(author)
+    submitter_name = user_info_helper.get_first_last_name(submission.student_fk)
     team_member_names = team_helper.get_team_member_full_name_list(submission.team_fk)
 
     task_grading_status_list = TaskGradingStatus.objects.filter(
@@ -103,12 +103,11 @@ def task_grading_detail(request, task_grading_id):
         print("not enrolled")
         return HttpResponse("Not enough privilege")
 
-    author = submission.student_fk
+    # for normal students, one can only see the submission if she is in the team
     if not user.has_perm('modify_assignment', course):
-        if author != user:
-            print("Not author")
+        if not team_helper.is_user_in_team(user, submission.team_fk):
             return HttpResponse("Not enough privilege")
-    submitter_name = user_info_helper.get_first_last_name(author)
+    submitter_name = user_info_helper.get_first_last_name(submission.student_fk)
     team_member_names = team_helper.get_team_member_full_name_list(submission.team_fk)
 
     assignment_task = task_grading_status.assignment_task_fk

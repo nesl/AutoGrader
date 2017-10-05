@@ -56,6 +56,16 @@ def get_belonged_team(user, assignment):
     member_list = TeamMember.objects.filter(user_fk=user, team_fk__assignment_fk=assignment)
     return member_list[0].team_fk if member_list else None
 
+def is_user_in_team(user, team):
+    """
+    Parameter:
+      user: A User object
+      team: A Team object
+    Return:
+      Bool to indicate if the user is in the team
+    """
+    return TeamMember.objects.filter(user_fk=user, team_fk=team).count() == 1
+
 def delete_team(team):
     team.delete()
 
