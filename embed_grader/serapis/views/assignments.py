@@ -74,11 +74,15 @@ def assignment(request, assignment_id):
         team, _ = team_helper.create_team(assignment=assignment, users=[user])
         num_team_members = 1
 
+    # retrieve passcode
     passcode = None
     if team is not None:
         user_team_member = team_helper.get_specific_team_member(team, user)
         if user_team_member is not None and user_team_member.is_leader:
             passcode = team.passcode
+
+    # a string of team member names
+    team_members_human_readable = team_helper.get_team_member_full_name_list(team, last_and=True)
 
     # handle POST the request
     if team is not None and request.method == 'POST':
@@ -166,7 +170,7 @@ def assignment(request, assignment_id):
             # team info
             'team': team,
             'num_team_members': num_team_members,
-            'team_members_human_readable': team_helper.get_team_member_full_name_list(last_and=True),
+            'team_members_human_readable': team_members_human_readable,
             'passcode': passcode,
             # form
             'submission_form': submission_form,
