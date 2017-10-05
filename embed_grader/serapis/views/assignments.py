@@ -166,6 +166,7 @@ def assignment(request, assignment_id):
             # team info
             'team': team,
             'num_team_members': num_team_members,
+            'team_members_human_readable': team_helper.get_team_member_full_name_list(last_and=True),
             'passcode': passcode,
             # form
             'submission_form': submission_form,
