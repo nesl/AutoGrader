@@ -130,9 +130,6 @@ def task_grading_detail(request, task_grading_id):
         raw_content = file.read()
         url = file.url
         visualizer_manager.add_file(field_name, raw_content, url)
-    js_files = visualizer_manager.get_js_files()
-    css_files = visualizer_manager.get_css_files()
-    output_visualizations = visualizer_manager.get_visualizations_for_template()
 
     if task_grading_status.grading_detail:
         feedback = task_grading_status.grading_detail.read()
@@ -148,9 +145,7 @@ def task_grading_detail(request, task_grading_id):
         'team_member_names': team_member_names,
         'grading': task_grading_status,
         'assignment_task': assignment_task,
-        'js_files': js_files,
-        'css_files': css_files,
-        'output_visualizations': output_visualizations,
+        'visualizer_manager': visualizer_manager,
         'feedback': feedback,
     }
 

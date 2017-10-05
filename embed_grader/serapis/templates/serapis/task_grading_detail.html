@@ -14,15 +14,11 @@
 {% block submissions-active %}active{% endblock %}
 
 {% block page-specific-css %}
-  {% for css in css_files %}
-    <link rel="stylesheet" href="{{css}}" type="text/css" media="all" />
-  {% endfor %}
+  {{ visualizer_manager.render_css }}
 {% endblock %}
 
 {% block page-specific-js %}
-  {% for js in js_files %}
-    <script src={{js}}></script>
-  {% endfor %}
+  {{ visualizer_manager.render_js }}
 {% endblock %}
 
 {% block main-content %}
@@ -50,7 +46,7 @@
     <h4>Grading feedback:<h4>
     <p style="white-space:pre; font-size:13px; font-family:monospace">{{feedback}}</p>
 
-    {% for visualization in output_visualizations %}
+    {% for visualization in visualizer_manager.get_visualizations %}
       <hr/>
       <h4>File: {{visualization.field_name}}
         <a href="{{ MEDIA_URL }}{{ visualization.url }}" class="btn btn-primary btn-detail-enabled">
@@ -59,7 +55,6 @@
       </h4>
       <br/>
       {{ visualization.html }}
-      <p style="white-space:pre; font-size:13px; font-family:monospace">{{output.content}}</p>
     {% endfor %}
 
   </div>

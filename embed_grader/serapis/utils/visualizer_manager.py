@@ -1,3 +1,7 @@
+from django.template.loader import get_template
+from django.template import Context
+
+
 class VisualizerManager(object):
 
     def __init__(self):
@@ -16,21 +20,25 @@ class VisualizerManager(object):
             'url': url,
         })
 
-    def get_js_files(self):
+    def render_js(self):
         """
-        Return a list indicating all the javascript files that the visualizers request. Note
-        the list preserves the order that each visualizer requests
+        Return a list of <script> tags in html format. These tags are for importing the javascript
+        files that the visualizers request. Note the list preserves the order that each visualizer
+        requests.
         """
-        return self.js_files
+        template = get_template('serapis/visualizers/visualizer_manager/render_js.html')
+        return template.render(Context({'js_files': self.js_files}))
 
-    def get_css_files(self):
+    def render_css(self):
         """
-        Return a list indicating all the css files that the visualizers request. Note the list
-        preserves the order that each visualizer requests
+        Return a list of <link> tags in html format. These tags are for importing the css files
+        that the visualizers request. Note the list preserves the order that each visualizer
+        requests.
         """
-        return self.css_files
+        template = get_template('serapis/visualizers/visualizer_manager/render_css.html')
+        return template.render(Context({'css_files': self.css_files}))
 
-    def get_visualizations_for_template(self):
+    def get_visualizations(self):
         """
         Return a list of dictionaries, which always include 'field_name', 'html', and 'url'
         """
