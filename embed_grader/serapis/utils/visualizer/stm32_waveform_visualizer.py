@@ -167,20 +167,35 @@ class STM32WaveformVisualizer(VisualizerBase):
             return None
 
     def _compute_plot_json(self, plot_config, bus_values):
-        last_val = -1
+        last_timestamp = None
+        last_val = None
         pins = plot_config['pins']
         series_timestamps = []
         series_values = []
+
         for i in range(len(bus_values) - 1):
-            val = 0
+            cur_val = 0
             for pidx in pins:
-                val = (val << 1) | ((bus_values[i][1] >> pidx) & 1)
-            if val != last_val:
-                series_timestamps.append(bus_values[i][0])
-                series_values.append(val)
-                series_timestamps.append(bus_values[i + 1][0] - 0.01)
-                series_values.append(val)
-                last_val = val
+                cur_val = (cur_val << 1) | ((bus_values[i][1] >> pidx) & 1)
+
+            if last_timestamp is None:
+                # if this is the very first point, just memorize it
+                last_timestamp, last_val = 0., cur_val
+            elif cur_val != last_val:
+                # if a transition is detected, we add a horizontal line and a vertial line
+                cur_timestamp = bus_values[i][0]
+                series_timestamps.append(last_timestamp)
+                series_values.append(last_val)
+                series_timestamps.append(cur_timestamp - 0.01)
+                series_values.append(last_val)
+                last_timestamp, last_val = cur_timestamp, cur_val
+
+        # add the last segment
+        series_timestamps.append(last_timestamp)
+        series_values.append(last_val)
+        series_timestamps.append(bus_values[-1][0] - 0.01)
+        series_values.append(last_val)
+        
         return json.dumps({
             'timestamps': series_timestamps,
             'values': series_values,
