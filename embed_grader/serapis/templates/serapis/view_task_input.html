@@ -13,6 +13,18 @@
 
 {% block courses-active %}active{% endblock %}
 
+{% block page-specific-css %}
+  {% for css in css_files %}
+    <link rel="stylesheet" href="{{css}}" type="text/css" media="all" />
+  {% endfor %}
+{% endblock %}
+
+{% block page-specific-js %}
+  {% for js in js_files %}
+    <script src={{js}}></script>
+  {% endfor %}
+{% endblock %}
+
 {% block main-content %}
   {% get_obj_perms request.user for course as "course_perms" %}
 
