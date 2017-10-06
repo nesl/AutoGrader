@@ -8,7 +8,7 @@ from django.utils.html import format_html
 
 from serapis.models import *
 from serapis.utils import team_helper
-
+from serapis.utils import task_grading_status_helper
 
 register = template.Library()
 
@@ -168,8 +168,9 @@ class RenderSubmissionTableRow:
             else:
                 task = atid_2_task_grading_status[atid]
                 status = task.grading_status
-                task_id_for_url = (
-                        task.id if task.can_show_grading_details_to_user(self.user) else None)
+                can_show_task = task_grading_status_helper.can_show_grading_details_to_user(
+                        task, self.user)
+                task_id_for_url = task.id if can_show_task else None
                 htmls.append(self._render_task_status(status_2_text[status],
                     status_2_background_color[status], task_id_for_url))
         return '&nbsp;'.join(htmls)
