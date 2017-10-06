@@ -37,7 +37,6 @@ def show_status(status):
         pass
 
 
-
 class SubmissionTableSchemaNode(template.Node):
     SCHEMA_ASSIGNMENT = 'assignment'
     SCHEMA_STATUS = 'status'
