@@ -10,7 +10,7 @@ from serapis.utils import team_helper
 def can_submission_file_be_accessed_by_user(submission, user):
     if user.has_perm('modify_assignment', submission.assignment_fk.course_fk):
         return True
-    return submission.team == team_helper.get_belonged_team(user, self.assignment_fk)
+    return team_helper.is_user_in_team(user, submission.team_fk)
 
 def create_task_grading_status(submission, assignment_task):
     """

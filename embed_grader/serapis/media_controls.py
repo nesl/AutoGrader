@@ -157,7 +157,7 @@ def task_grading_status_file_file(request):
         print('Warning: find 2 or more records with this file name')
 
     task_grading_status = task_grading_status_file_list[0].task_grading_status_fk
-    if task_grading_status_helper.can_access_grading_details_by_user(status, user):
+    if task_grading_status_helper.can_access_grading_details_by_user(task_grading_status, user):
         return _make_http_response_for_file_download(task_grading_status_file_list[0].file.path)
     else:
         return HttpResponseForbidden()

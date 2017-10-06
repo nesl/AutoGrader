@@ -30,7 +30,6 @@ from serapis.utils import team_helper
 from serapis.forms.assignment_forms import *
 
 
-
 def _plural(n, s):
     return '%d %s%s' % (n, s, 's' if n == 1 else '')
 
@@ -85,11 +84,14 @@ def assignment(request, assignment_id):
     team_members_human_readable = team_helper.get_team_member_full_name_list(team, last_and=True)
 
     # handle POST the request
+    first_sub_error = None
     if team is not None and request.method == 'POST':
         form = AssignmentSubmissionForm(
                 request.POST, request.FILES, user=user, team=team, assignment=assignment)
         if form.is_valid():
             form.save_and_commit()
+        if form.errors is not None and form.errors != {}:
+            first_sub_error = form.errors.as_data()['__all__'][0].message
 
     # compute remaining time for submission
     now = timezone.now()
@@ -154,8 +156,7 @@ def assignment(request, assignment_id):
                 assignment=assignment, include_hidden=is_deadline_passed)
 
     assignment_tasks_with_file_list = zip(assignment_tasks, assignment_task_files_list)
-
-
+    
     template_context = {
             # user
             'myuser': request.user,
@@ -173,6 +174,7 @@ def assignment(request, assignment_id):
             'team_members_human_readable': team_members_human_readable,
             'passcode': passcode,
             # form
+            'first_sub_error': first_sub_error,
             'submission_form': submission_form,
             'reason_of_cannot_submit': reason_of_cannot_submit,
             'now': now,
