@@ -17,6 +17,12 @@
   {% get_obj_perms request.user for course as "course_perms" %}
 
   <div class="main-content">
+    {% if submission_form and submission_form.errors %}
+      <div class="alert alert-danger">
+        {{ submission_form.errors }}
+      </div>
+    {% endif %}
+    
     <div class="top-buffer">
       <ol class="breadcrumb">
         <li><a href="{% url 'homepage' %}">Courses</a></li>
