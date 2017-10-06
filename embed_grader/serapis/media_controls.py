@@ -20,9 +20,12 @@ from wsgiref.util import FileWrapper
 
 from serapis.utils import team_helper
 from serapis.utils import submission_helper
+from serapis.utils import task_grading_status_helper
 
 
-# Note: please keep the function name as in the convention of <model>_<attribute>.
+"""
+Note: The convention of the function names is <model>_<attribute>.
+"""
 
 
 def _get_query_file_name(request_full_path):
@@ -75,26 +78,6 @@ def testbed_hardware_list_firmware(request):
     testbed_hardware_list = testbed_hardware_lists[0]
 
     return _make_http_response_for_file_download(testbed_hardware_list.firmware.path)
-
-
-# @login_required(login_url='/login/')
-# def assignment_task_test_input(request):
-#     user = User.objects.get(username=request.user)
-#     query_file_name = _get_query_file_name(request.get_full_path())
-
-#     # Check file exists
-#     assignment_tasks = AssignmentTask.objects.filter(test_input=query_file_name)
-#     if len(assignment_tasks) == 0:
-#         return HttpResponseForbidden()
-
-#     if len(assignment_tasks) >= 2:
-#         print('Warning: find 2 or more records with this file name')
-
-#     assignment_task = assignment_tasks[0]
-#     if assignment_task.can_access_test_input_by_user(user):
-#         return _make_http_response_for_file_download(assignment_task.test_input.path)
-#     else:
-#         return HttpResponseForbidden()
 
 
 @login_required(login_url='/login/')
@@ -153,7 +136,7 @@ def task_grading_status_grading_detail(request):
         print('Warning: find 2 or more records with this file name')
 
     status = status_list[0]
-    if status.can_access_grading_details_by_user(user):
+    if task_grading_status_helper.can_access_grading_details_by_user(status, user):
         return _make_http_response_for_file_download(status.grading_detail.path)
     else:
         return HttpResponseForbidden()
@@ -174,7 +157,7 @@ def task_grading_status_file_file(request):
         print('Warning: find 2 or more records with this file name')
 
     task_grading_status = task_grading_status_file_list[0].task_grading_status_fk
-    if task_grading_status.can_access_grading_details_by_user(user):
+    if task_grading_status_helper.can_access_grading_details_by_user(status, user):
         return _make_http_response_for_file_download(task_grading_status_file_list[0].file.path)
     else:
         return HttpResponseForbidden()

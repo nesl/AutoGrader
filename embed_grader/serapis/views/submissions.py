@@ -26,6 +26,7 @@ from serapis.utils import grading
 from serapis.utils import file_schema
 from serapis.utils import user_info_helper
 from serapis.utils import team_helper
+from serapis.utils import task_grading_status_helper
 from serapis.utils.visualizer_manager import VisualizerManager
 
 
@@ -70,21 +71,33 @@ def submission(request, submission_id):
                 'file_field': submission_file_dict[s].file,
             })
 
+    showing_grading_detail_check_func = task_grading_status_helper.can_show_grading_details_to_user
+
     template_context = {
+        # general
         'myuser': user,
         'now': now,
+        # topic objects
         'submission': submission,
         'assignment': assignment,
         'course': course,
+        # submission info
         'submitter_name': submitter_name,
         'team_member_names': team_member_names,
         'student_score': sum_student_score,
         'total_score': sum_total_score,
+        # submission files for download
         'submission_file_list': submission_file_list,
+        # details of solving tasks
         'task_grading_status_list': task_grading_status_list,
+        # permission
         'can_see_feedback_details': can_see_hidden_cases_and_feedback_details,
+        # classes
         'AssignmentTask': AssignmentTask,
+        # functions
+        'showing_grading_detail_check_func': [showing_grading_detail_check_func],
     }
+    
     return render(request, 'serapis/submission.html', template_context)
 
 
