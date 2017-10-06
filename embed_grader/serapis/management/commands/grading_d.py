@@ -19,6 +19,7 @@ from serapis.utils import file_schema
 from serapis.utils import send_mail_helper
 from serapis.utils import submission_helper
 from serapis.utils import testbed_helper
+from serapis.utils import team_helper
 
 
 K_TESTBED_INVALIDATION_OFFLINE_SEC = 30
@@ -270,6 +271,9 @@ class Command(BaseCommand):
 
                     # send email to the student
                     subject = 'Your submission has been graded (ID:%d)' % submission.id
+                    team = submission.team_fk
+                    recipient_email_list = [tm.user_fk.email
+                            for tm in team_helper.get_team_members(team)]
                     context = {
                             'user': submission.student_fk,
                             'submission': submission,
@@ -277,7 +281,7 @@ class Command(BaseCommand):
                     }
                     send_mail_helper.send_by_template(
                             subject=subject,
-                            recipient_email_list=[submission.student_fk.email],
+                            recipient_email_list=recipient_email_list,
                             template_path='serapis/email/grading_done_email.html',
                             context_dict=context,
                     )
