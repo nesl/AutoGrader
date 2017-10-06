@@ -45,4 +45,4 @@ def can_show_grading_details_to_user(task_grading_status, user):
       A bool to indicate the user can see the task grading details on the web.
     """
     return (task_grading_status.is_grading_done()
-            and task_grading_status.can_access_grading_details_by_user(user))
+            and can_access_grading_details_by_user(task_grading_status, user))

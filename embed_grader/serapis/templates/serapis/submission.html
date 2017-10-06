@@ -2,6 +2,7 @@
 {% load staticfiles %}
 {% load guardian_tags %}
 {% load submission_tags %}
+{% load function_call_generalization %}
 {% load object_call_generalization %}
 
 {% block profile-usertitle-name %}
@@ -61,7 +62,7 @@
             <td>N/A</td>
           {% else %}
             <td>
-              {% if t|pom:'can_show_grading_details_to_user'|poa:myuser|invoke_method %}
+              {% if showing_grading_detail_check_func|pfa:t|pfa:myuser|invoke_function %}
                 <a href="{% url 'task-grading-detail' t.id %}" class="btn btn-primary btn-detail-enabled" style="width:100px">
               {% else %}
                 <a class="btn btn-primary btn-detail-disabled" style="width:100px;">

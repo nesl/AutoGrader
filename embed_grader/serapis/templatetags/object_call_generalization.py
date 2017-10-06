@@ -51,13 +51,11 @@ def poa(object_middle_node, arg):
     return object_middle_node
 
 @register.filter
-def invoke_method(object_middle_node, arg=None):
+def invoke_method(object_middle_node):
     if type(object_middle_node) is not ObjectCallingNode:
         raise Exception('Expect an ObjectCallingNode object')
     if object_middle_node.state != ObjectCallingNode.STATE_GOT_ARG:
         raise Exception('Invalid state for invoking a method')
-    if arg != None:
-        raise Exception('Redundant filter argument')
 
     object_middle_node.state = ObjectCallingNode.STATE_EXECUTED
     return object_middle_node.method_to_call(*(object_middle_node.args))
