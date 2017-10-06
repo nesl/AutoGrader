@@ -24,7 +24,7 @@ def can_access_grading_details_by_user(task_grading_status, user):
 
     # Otherwise, the user is a student. We need to make sure the user is the owner of this output
     # file
-    if team_helper.is_user_in_team(user, task_grading_status.submission_fk.team_fk):
+    if not team_helper.is_user_in_team(user, task_grading_status.submission_fk.team_fk):
         return False
 
     # After the ownership checks, we need to make sure one more thing, that is the mode of the
