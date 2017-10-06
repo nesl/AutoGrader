@@ -17,9 +17,9 @@
   {% get_obj_perms request.user for course as "course_perms" %}
 
   <div class="main-content">
-    {% if submission_form and submission_form.errors %}
+    {% if first_sub_error %}
       <div class="alert alert-danger">
-        {{ submission_form.errors }}
+        {{ first_sub_error }}
       </div>
     {% endif %}
     
