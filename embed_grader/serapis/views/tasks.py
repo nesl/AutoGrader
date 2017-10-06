@@ -181,17 +181,11 @@ def view_task_input_files(request, task_id):
         url = file.url
         visualizer_manager.add_file(field_name, raw_content, url)
 
-    js_files = visualizer_manager.get_js_files()
-    css_files = visualizer_manager.get_css_files()
-    input_visualizations = visualizer_manager.get_visualizations_for_template()
-
     template_context = {
             'myuser': request.user,
             'course': course,
             'assignment': assignment,
             'task': task,
-            'js_files': js_files,
-            'css_files': css_files,
-            'input_visualizations': input_visualizations,
+            'visualizer_manager': visualizer_manager,
     }
     return render(request, 'serapis/view_task_input.html', template_context)
