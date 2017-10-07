@@ -182,7 +182,7 @@
     {% if not score_statistics %}
       <p>No {{submission_unit}}s have tried this assignment so far.</p>
     {% else %}
-      <p>{{num_contributed_students}} {{submission_unit}}(s) have tried this assignment so far</p>
+      <p>{{num_attempting_teams}} {{submission_unit}}(s) have tried this assignment so far</p>
       <p><span style="font-weight: bold;">Mean: </span>{{score_statistics.mean_score}}</p>
       <p><span style="font-weight: bold;">Highest Score: </span>{{score_statistics.max_score}}</p>
       <p><span style="font-weight: bold;">1st Quantile: </span>{{score_statistics.first_quantile}}</p>
