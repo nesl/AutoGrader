@@ -5,31 +5,37 @@ from serapis.models import *
 from serapis.utils import submission_helper
 
 
-def abort_task(testbed, set_status=Testbed.STATUS_AVAILABLE,
-        tolerate_task_is_not_present=False, check_task_status_is_executing=True):
+def abort_task(testbed, set_testbed_status=Testbed.STATUS_AVAILABLE,
+        enforce_task_present=True, enforce_task_status_executing=True):
     """
     Paremeter:
-      - set_status: The status going to be set for this testbed
-      - tolerate_task_is_not_present: True if the grading task does not have to be present
-      - check_testbed_status_is_executing: True to check the status of the task is executing.
-            Will have no effect if tolerate_task_is_not_present is True.
+      - set_testbed_status: The status going to be set for this testbed
+      - enforce_task_present: If set True, this testbed should be grading a task. If such task
+            is absent, this function will raise an exception.
+      - enforce_task_status_executing: If set True, the status of the task which is being graded
+            by this testbed should be executing. Otherwise, this function will raise an exception.
+            Note that if enforce_task_present is False, this flag will simply be skipped.
     """
-    check_task_status_is_executing &= not tolerate_task_is_not_present
 
+    # ignore the check of grading status if we don't check the presence of the task
+    enforce_task_status_executing &= enforce_task_present
+
+    # check if the task is present
     task = testbed.task_being_graded
-    if not tolerate_task_is_not_present:
-        if not task:
-            raise Exception('No task to abort')
-    if check_task_status_is_executing:
-        if task.grading_status != TaskGradingStatus.STAT_EXECUTING:
-            raise Exception('Status of the graded task is not executing')
-            
+    if enforce_task_present and not task:
+        raise Exception('No task to abort')
+
+    # check if the task status is executing
+    if enforce_task_status_executing and task.grading_status != TaskGradingStatus.STAT_EXECUTING:
+        raise Exception('Status of the graded task is not executing')
+        
+    # database update
     with transaction.atomic():
         if task:
             submission_helper.update_task_grading_status(
                     task, grading_status=TaskGradingStatus.STAT_PENDING)
         testbed.task_being_graded = None
-        testbed.status = set_status
+        testbed.status = set_testbed_status
         testbed.secret_code = ''
         testbed.save()
 
@@ -47,7 +53,7 @@ def grade_task(testbed, chosen_task, duration, force_detach_currently_graded_tas
     """
     if force_detach_currently_graded_task:
         if testbed.task_being_graded:
-            abort_task(set_status=testbed.status, check_task_status_is_executing=False)
+            abort_task(set_status=testbed.status, enforce_task_status_executing=False)
     if testbed.task_being_graded:
         raise Exception('This testbed is still grading one task')
     if check_testbed_status_is_available:
