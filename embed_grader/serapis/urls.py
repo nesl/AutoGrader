@@ -45,7 +45,7 @@ urlpatterns = [
 
     ## Assignment pages
     url(r'^assignment/(?P<assignment_id>[0-9]+)/$', assignments.assignment, name='assignment'),
-    url(r'^assignment-run_final-grade/(?P<assignment_id>[0-9]+)/$', assignments.assignment_run_final_grade, name='assignment-run-final-grade'),
+    url(r'^assignment-run-final-grade/(?P<assignment_id>[0-9]+)/$', assignments.assignment_run_final_grade, name='assignment-run-final-grade'),
     url(r'^assignment-create-team/(?P<assignment_id>[0-9]+)/$', assignments.assignment_create_team, name='assignment-create-team'),
     url(r'^assignment-join-team/(?P<assignment_id>[0-9]+)/$', assignments.assignment_join_team, name='assignment-join-team'),
     url(r'^view-assignment-team-list/(?P<assignment_id>[0-9]+)/$', assignments.view_assignment_team_list, name='view-assignment-team-list'),
