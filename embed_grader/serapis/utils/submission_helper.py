@@ -64,8 +64,6 @@ def update_task_grading_status(task_grading_status, grading_status, **kwargs):
         submission.num_graded_tasks += 1
 
     # update the rest of attributes
-    if 'grading_status' in kwargs:
-        task_grading_status.grading_status = kwargs['grading_status']
     if 'execution_status' in kwargs:
         task_grading_status.execution_status = kwargs['execution_status']
     if 'status_update_time' in kwargs:

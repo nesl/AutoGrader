@@ -170,6 +170,19 @@ class Command(BaseCommand):
                 testbed_helper.abort_task(testbed, set_status=Testbed.STATUS_AVAILABLE,
                         tolerate_task_is_not_present=True)
 
+            #TODO(#160): Remove the following code when the issue is resolved
+            # What happens right now is that a testbed sometimes mysteriously detach the task
+            # which the testbed should be grading, leaving the task hanging on there and showing
+            # status as executing. The following is to clear this when orphan task grading status
+            # is found
+            executing_task_grading_status_list = TaskGradingStatus.objects.filter(
+                    grading_status=TaskGradingStatus.STAT_EXECUTING)
+            for task in executing_task_grading_status_list:
+                if Testbed.objects.filter(task_being_graded=task).count() == 0:
+                    self._printMessage('Orphan test grading status is found (id=%d)' % task.id)
+                    task.grading_status = TaskGradingStatus.STAT_PENDING
+                    task.save()
+
             #
             # task assignment
             #
