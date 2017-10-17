@@ -27,6 +27,7 @@ from serapis.utils import grading
 from serapis.utils import user_info_helper
 from serapis.utils import score_distribution
 from serapis.utils import team_helper
+from serapis.utils import submission_helper
 from serapis.forms.assignment_forms import *
 
 
@@ -208,9 +209,9 @@ def assignment_run_final_grade(request, assignment_id):
     assignment_tasks = assignment.retrieve_assignment_tasks_by_accumulative_scope(
             AssignmentTask.MODE_HIDDEN)
 
-    students = [o.user_fk for o in CourseUserList.objects.filter(course_fk=course)]
-    for student in students:
-        submission = grading.get_last_submission(student, assignment)
+    teams = Team.objects.filter(assignment_fk=assignment)
+    for team in teams:
+        submission = grading.get_last_submission(team, assignment)
         if submission is None:
             continue
 
@@ -220,13 +221,7 @@ def assignment_run_final_grade(request, assignment_id):
 
         with transaction.atomic():
             for task in task_to_be_added:
-                grading_task = TaskGradingStatus.objects.create(
-                    submission_fk=submission,
-                    assignment_task_fk=task,
-                    grading_status=TaskGradingStatus.STAT_PENDING,
-                    execution_status=TaskGradingStatus.EXEC_UNKNOWN,
-                    status_update_time=now,
-                    )
+                grading_task = submission_helper.create_task_grading_status(submission, task)
                 file_schema.create_empty_task_grading_status_schema_files(grading_task)
 
             submission.task_scope = AssignmentTask.MODE_HIDDEN
