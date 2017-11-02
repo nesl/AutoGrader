@@ -165,6 +165,7 @@ class Assignment(models.Model):
     deadline = models.DateTimeField()
     problem_statement = RichTextUploadingField(blank=True)
     max_num_team_members = models.IntegerField()
+    max_num_submissions = models.IntegerField(validators=[MinValueValidator(1)])
 
     # testbed related
     testbed_type_fk = models.ForeignKey(TestbedType, null=True, blank=True)
