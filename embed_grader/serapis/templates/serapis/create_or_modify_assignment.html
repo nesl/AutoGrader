@@ -46,11 +46,11 @@
     {% endif %}
     
     <script>
-      $('#id_num_max_team_members').width(50);
-      $('#id_num_max_team_members').css('display', 'inline-block');
+      $('#id_max_num_team_members').width(50);
+      $('#id_max_num_team_members').css('display', 'inline-block');
       $('#id_team_choice').children().last().css('display', 'inline-block');
       $('#id_team_choice').append('<div id="id_team_choice_num_members" style="display:inline-block">: </div>');
-      $('#id_num_max_team_members').appendTo('#id_team_choice_num_members');
+      $('#id_max_num_team_members').appendTo('#id_team_choice_num_members');
       $('#id_team_choice_num_members').append('people')
 
       $('.form-group').slice(10, 11).remove();

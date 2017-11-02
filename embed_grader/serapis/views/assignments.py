@@ -70,7 +70,7 @@ def assignment(request, assignment_id):
 
     # if the user does not belong to any team yet it's an individual assignment, just create the
     # one-person team
-    if team is None and assignment.num_max_team_members == 1:
+    if team is None and assignment.max_num_team_members == 1:
         team, _ = team_helper.create_team(assignment=assignment, users=[user])
         num_team_members = 1
 
@@ -183,7 +183,7 @@ def assignment(request, assignment_id):
             # score distribution
             'num_attempting_teams': num_attempting_teams,
             'score_statistics': score_statistics,
-            'submission_unit': 'student' if assignment.num_max_team_members == 1 else 'team',
+            'submission_unit': 'student' if assignment.max_num_team_members == 1 else 'team',
             # submission section
             'submission_lists': submission_lists,
     }
@@ -297,7 +297,7 @@ def view_assignment_team_list(request, assignment_id):
     if not user.has_perm('modify_assignment', course):
         return HttpResponse("Not enough privilege")
 
-    if assignment.num_max_team_members == 1:
+    if assignment.max_num_team_members == 1:
         return HttpResponse("Not a team-based assignment")
 
     #TODO: The original plan of view_assignment_team_list view is that each student is represented

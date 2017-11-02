@@ -86,10 +86,10 @@ class AssignmentForm(ModelForm):
                     initial=initial_val,
             )
         
-        num_max_team_members = assignment.num_max_team_members if assignment else 1
+        max_num_team_members = assignment.max_num_team_members if assignment else 1
         initial_team_choice_val, initial_num_member_val = (
-                (AssignmentForm.TEAM_OPTION_INDIVIDUAL, 2) if num_max_team_members == 1
-                else (AssignmentForm.TEAM_OPTION_TEAM, num_max_team_members))
+                (AssignmentForm.TEAM_OPTION_INDIVIDUAL, 2) if max_num_team_members == 1
+                else (AssignmentForm.TEAM_OPTION_TEAM, max_num_team_members))
 
         self.fields['team_choice'] = forms.ChoiceField(
                 required=True,
@@ -97,7 +97,7 @@ class AssignmentForm(ModelForm):
                 choices=AssignmentForm.TEAM_CHOICES,
                 initial=initial_team_choice_val,
         )
-        self.fields['num_max_team_members'] = forms.IntegerField(
+        self.fields['max_num_team_members'] = forms.IntegerField(
                 required=False,
                 initial=initial_num_member_val,
                 validators=[MinValueValidator(2)]
@@ -116,16 +116,16 @@ class AssignmentForm(ModelForm):
 
         # team choice
         if self.cleaned_data['team_choice'] == AssignmentForm.TEAM_OPTION_INDIVIDUAL:
-            self.cleaned_data['num_max_team_members'] = 1
+            self.cleaned_data['max_num_team_members'] = 1
         else:
-            if 'num_max_team_members' not in self.cleaned_data:
-                # Since field 'num_max_team_members' is optional, the data is not saved in
+            if 'max_num_team_members' not in self.cleaned_data:
+                # Since field 'max_num_team_members' is optional, the data is not saved in
                 # self.cleaned_data if its format is not correct.
                 raise forms.ValidationError(self.error_messages['invalid_num_members'],
                     code='invalid_num_members')
             
-            self.cleaned_data['num_max_team_members'] = int(
-                    self.cleaned_data['num_max_team_members'])
+            self.cleaned_data['max_num_team_members'] = int(
+                    self.cleaned_data['max_num_team_members'])
 
         return self.cleaned_data
 
@@ -180,7 +180,7 @@ class AssignmentForm(ModelForm):
         """
         assignment = super(AssignmentForm, self).save(commit=False)
         assignment.course_fk = self.course
-        assignment.num_max_team_members = self.cleaned_data['num_max_team_members']
+        assignment.max_num_team_members = self.cleaned_data['max_num_team_members']
         assignment.save()
 
         # file schemas
