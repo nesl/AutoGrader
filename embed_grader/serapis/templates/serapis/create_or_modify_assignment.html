@@ -3,6 +3,10 @@
 {% load bootstrap3 %}
 {% load guardian_tags %}
 
+{% block page-specific-js %}
+  <script src="{% static 'serapis/js/form_helper.js' %}"></script>
+{% endblock %}
+
 {% block profile-usertitle-name %}
   {{ course.course_code }}
 {% endblock %}
@@ -46,25 +50,11 @@
     {% endif %}
     
     <script>
-      $('#id_max_num_team_members').width(50);
-      $('#id_max_num_team_members').css('display', 'inline-block');
-      $('#id_team_choice').children().last().css('display', 'inline-block');
-      $('#id_team_choice').append('<div id="id_team_choice_num_members" style="display:inline-block">: </div>');
-      $('#id_max_num_team_members').appendTo('#id_team_choice_num_members');
-      $('#id_team_choice_num_members').append('people')
-
-      $('.form-group').slice(10, 11).remove();
-
-      function onTeamChoiceChange() {
-        if ($("#id_team_choice_0:checked").is(":checked"))
-          $('#id_team_choice_num_members').css('visibility', 'hidden');
-        else
-          $('#id_team_choice_num_members').css('visibility', 'visible');
-      }
-
-      onTeamChoiceChange();
-
-      $('input[type=radio][name=team_choice]').change(onTeamChoiceChange);
+      make_radio_button_choice_extension(
+        'id_team_choice', /* radio_button_group_id */
+        'id_max_num_team_members', /* input_id */
+        ': <input>people', /* append_format */
+      );
     </script>
   </div>
 {% endblock %}
