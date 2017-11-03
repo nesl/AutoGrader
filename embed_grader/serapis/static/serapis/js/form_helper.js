@@ -58,14 +58,15 @@
 function make_radio_button_choice_extension(radio_button_group_id, input_id,
     append_format=": <input>", input_width=50) {
 
-  input_object = $("#" + input_id);
-  obselete_form_group = $(input_object).parent();
+  var input_object = $("#" + input_id);
+  var obselete_form_group = $(input_object).parent();
   
   $(input_object).width(input_width);
   $(input_object).css('display', 'inline-block');
 
   // segment append_format into `block_prefix` + <input> + `block_postfix`
-  tidx = append_format.indexOf("<input>");
+  var tidx = append_format.indexOf("<input>");
+  var block_prefix, block_postfix;
   if (tidx === -1) {
     block_prefix = ": ";
     block_postfix = "";
@@ -76,17 +77,17 @@ function make_radio_button_choice_extension(radio_button_group_id, input_id,
   }
 
   // create and place the extension div
-  extension_block_id = radio_button_group_id + "_extension";
-  radio_button_group_div = $("#" + radio_button_group_id);
+  var extension_block_id = radio_button_group_id + "_extension";
+  var radio_button_group_div = $("#" + radio_button_group_id);
   $(radio_button_group_div).children().last().css('display', 'inline-block');
 
-  last_radio_button_block = $('div', radio_button_group_div).last();
-  last_radio_button_id = $('input', last_radio_button_block).attr('id')
+  var last_radio_button_block = $('div', radio_button_group_div).last();
+  var last_radio_button_id = $('input', last_radio_button_block).attr('id')
 
   $(radio_button_group_div).append(
       '<div id="' + extension_block_id + '" style="display:inline-block">'
       + block_prefix + '</div>');
-  extension_block_div = $("#" + extension_block_id);
+  var extension_block_div = $("#" + extension_block_id);
   $(input_object).appendTo(extension_block_div);
   $(extension_block_div).append(block_postfix);
 
@@ -94,7 +95,8 @@ function make_radio_button_choice_extension(radio_button_group_id, input_id,
   $(obselete_form_group).remove();
 
   // assign callback for capturing the change of radio buttons 
-  on_change_callback = function() {
+  var on_change_callback = function() {
+    console.log('callback', last_radio_button_id, extension_block_div);
     if ($("#" + last_radio_button_id + ":checked").is(":checked"))
       $(extension_block_div).css('visibility', 'visible');
     else
@@ -103,6 +105,7 @@ function make_radio_button_choice_extension(radio_button_group_id, input_id,
 
   on_change_callback();
 
-  radio_button_group_name = radio_button_group_id.substring(3);  // remove 'id_' in the front
+  var radio_button_group_name = radio_button_group_id.substring(3);  // remove 'id_' in the front
   $('input[type=radio][name=' + radio_button_group_name + ']').change(on_change_callback);
+  console.log('radio_button_group_name', radio_button_group_name);
 }
