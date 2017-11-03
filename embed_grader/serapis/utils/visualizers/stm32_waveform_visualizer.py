@@ -1,7 +1,7 @@
 import json
 import re
 
-from serapis.utils.visualizer.visualizer_base import VisualizerBase
+from serapis.utils.visualizers.visualizer_base import VisualizerBase
 from embed_grader import settings
 
 class STM32WaveformVisualizer(VisualizerBase):
