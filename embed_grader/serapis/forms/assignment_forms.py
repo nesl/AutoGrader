@@ -53,6 +53,13 @@ class AssignmentForm(ModelForm):
             (TEAM_OPTION_TEAM, 'Team assignment'),
     )
 
+    SUBMISSION_LIMIT_OPTION_INFINITE = '0'
+    SUBMISSION_LIMIT_OPTION_FINITE = '1'
+    SUBMISSION_LIMIT_CHOICES = (
+            (SUBMISSION_LIMIT_OPTION_INFINITE, 'No limit'),
+            (SUBMISSION_LIMIT_OPTION_FINITE, 'Set a limit for number of submissions'),
+    )
+
     def __init__(self, *args, **kwargs):
         """
         Constructor:
@@ -86,6 +93,7 @@ class AssignmentForm(ModelForm):
                     initial=initial_val,
             )
         
+        # add team_choice radio button and max_num_team_members input field
         max_num_team_members = assignment.max_num_team_members if assignment else 1
         initial_team_choice_val, initial_num_member_val = (
                 (AssignmentForm.TEAM_OPTION_INDIVIDUAL, 2) if max_num_team_members == 1
@@ -101,6 +109,27 @@ class AssignmentForm(ModelForm):
                 required=False,
                 initial=initial_num_member_val,
                 validators=[MinValueValidator(2)]
+        )
+
+        # add submission_limit_choice radio button and max_num_submission input field
+        max_num_submissions = (assignment.max_num_submissions if assignment
+                else Assignment.SUBMISSION_LIMIT_INFINITE)
+
+        is_no_limit = (max_num_submissions == Assignment.SUBMISSION_LIMIT_INFINITE)
+        initial_submission_limit_choice_val, initial_num_submission_val = (
+                (AssignmentForm.SUBMISSION_LIMIT_OPTION_INFINITE, 10) if is_no_limit
+                else (AssignmentForm.SUBMISSION_LIMIT_OPTION_INFINITE, max_num_submissions))
+
+        self.fields['submission_limit_choice'] = forms.ChoiceField(
+                required=True,
+                widget=forms.RadioSelect,
+                choices=AssignmentForm.SUBMISSION_LIMIT_CHOICES,
+                initial=initial_submission_limit_choice_val,
+        )
+        self.fields['max_num_submissions'] = forms.IntegerField(
+                required=False,
+                initial=initial_num_submission_val,
+                validators=[MinValueValidator(1)]
         )
 
         #TODO: field order
