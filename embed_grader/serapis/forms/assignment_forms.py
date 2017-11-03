@@ -29,6 +29,7 @@ class AssignmentForm(ModelForm):
     error_messages = {
         'time_conflict': 'Release time must be earlier than deadline.',
         'invalid_num_members': 'Number of team members has to be more than or equal to 2.',
+        'invalid_num_submissions': 'Number of submissions has to be a postive integer.',
         'invalid_schema': 'Schema can only contain 0-9, a-z, \'.\', and \'_\'.',
     }
 
@@ -111,7 +112,7 @@ class AssignmentForm(ModelForm):
                 validators=[MinValueValidator(2)]
         )
 
-        # add submission_limit_choice radio button and max_num_submission input field
+        # add submission_limit_choice radio button and max_num_submissions input field
         max_num_submissions = (assignment.max_num_submissions if assignment
                 else Assignment.SUBMISSION_LIMIT_INFINITE)
 
@@ -148,13 +149,28 @@ class AssignmentForm(ModelForm):
             self.cleaned_data['max_num_team_members'] = 1
         else:
             if 'max_num_team_members' not in self.cleaned_data:
-                # Since field 'max_num_team_members' is optional, the data is not saved in
-                # self.cleaned_data if its format is not correct.
+                # Since 'max_num_team_members' field is optional, it will not be inserted to
+                # self.cleaned_data if user input is invalid
                 raise forms.ValidationError(self.error_messages['invalid_num_members'],
                     code='invalid_num_members')
             
             self.cleaned_data['max_num_team_members'] = int(
                     self.cleaned_data['max_num_team_members'])
+
+
+        # submission limit
+        if (self.cleaned_data['submission_limit_choice']
+                == AssignmentForm.SUBMISSION_LIMIT_OPTION_INFINITE):
+            self.cleaned_data['max_num_submissions'] = Assignment.SUBMISSION_LIMIT_INFINITE
+        else:
+            if 'max_num_submissions' not in self.cleaned_data:
+                # Since 'max_num_submissions' field is optional, it will not be inserted to
+                # self.cleaned_data if user input is invalid
+                raise forms.ValidationError(self.error_messages['invalid_num_submissions'],
+                    code='invalid_num_submissions')
+
+            self.cleaned_data['max_num_submissions'] = int(
+                    self.cleaned_data['max_num_submissions'])
 
         return self.cleaned_data
 
@@ -210,6 +226,7 @@ class AssignmentForm(ModelForm):
         assignment = super(AssignmentForm, self).save(commit=False)
         assignment.course_fk = self.course
         assignment.max_num_team_members = self.cleaned_data['max_num_team_members']
+        assignment.max_num_submissions = self.cleaned_data['max_num_submissions']
         assignment.save()
 
         # file schemas
