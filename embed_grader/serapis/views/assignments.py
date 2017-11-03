@@ -91,6 +91,7 @@ def assignment(request, assignment_id):
                 request.POST, request.FILES, user=user, team=team, assignment=assignment)
         if form.is_valid():
             form.save_and_commit()
+        #TODO: The following code seems hacky. Find a better way to implement the following logic
         if form.errors is not None and form.errors != {}:
             first_sub_error = form.errors.as_data()['__all__'][0].message
 
@@ -110,17 +111,25 @@ def assignment(request, assignment_id):
         task_files = task.retrieve_assignment_task_files_url(user)
         assignment_task_files_list.append(task_files)
 
+    num_attempted_submissions = (
+            Submission.objects.filter(assignment_fk=assignment, team_fk=team).count())
+    submission_quota = max(assignment.max_num_submissions - num_attempted_submissions, 0)
+
+    # check submission status (whether students can make a submission or not)
     if user.has_perm('modify_assignment', course):
-        can_submit, reason_of_cannot_submit = True, None
+        reason_of_cannot_submit = None
     elif assignment.is_deadline_passed():
-        can_submit, reason_of_cannot_submit = False, 'Deadline has passed'
+        reason_of_cannot_submit = 'Deadline has passed'
     elif team is None:
-        can_submit, reason_of_cannot_submit = False, 'You have to create or join a team first'
+        reason_of_cannot_submit = 'You have to create or join a team first'
     elif not user_info_helper.all_submission_graded_on_assignment(user, assignment):
-        can_submit, reason_of_cannot_submit = (
-                False, 'Please wait until current submission if fully graded')
+        reason_of_cannot_submit = 'Please wait until current submission if fully graded'
+    elif submission_quota == 0:
+        reason_of_cannot_submit = 'Have reached maximum number of attempts'
     else:
-        can_submit, reason_of_cannot_submit = True, None
+        reason_of_cannot_submit = None
+
+    can_submit = (reason_of_cannot_submit is None)
 
     # render the submission form
     submission_form = (AssignmentSubmissionForm(user=user, team=team, assignment=assignment)
@@ -178,6 +187,7 @@ def assignment(request, assignment_id):
             'first_sub_error': first_sub_error,
             'submission_form': submission_form,
             'reason_of_cannot_submit': reason_of_cannot_submit,
+            'submission_quota': submission_quota,
             'now': now,
             'time_remaining': time_remaining,
             # score distribution
@@ -186,6 +196,8 @@ def assignment(request, assignment_id):
             'submission_unit': 'student' if assignment.max_num_team_members == 1 else 'team',
             # submission section
             'submission_lists': submission_lists,
+            # classes
+            'Assignment': Assignment,
     }
 
     return render(request, 'serapis/assignment.html', template_context)

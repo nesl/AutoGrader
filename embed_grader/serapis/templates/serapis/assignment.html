@@ -166,6 +166,24 @@
     <hr/>
     <p><b>Release time: </b>{{ assignment.release_time }}</p>
     <p><b>Deadline: </b>{{ assignment.deadline }}</p>
+
+    {% if assignment.max_num_submissions != Assignment.SUBMISSION_LIMIT_INFINITE %}
+      {% if "modify_assignment" in course_perms %}
+        <p><b>Number of attempts allowed: </b>{{ assignment.max_num_submissions }}</p>
+      {% else %}
+        <p>
+          <b>Submission quota: </b>
+          {% if submission_quota > 1 %}
+            You can submit {{ submission_quota }} more times.
+          {% elif submission_quota == 1 %}
+            You can submit one more time (this is your <u>last</u> chance.)
+          {% else %}
+            Run out of attempts.
+          {% endif %}
+        </p>
+      {% endif %}
+    {% endif %}
+
     {% if submission_form %}
       <p><b>Time Remaining: </b>{{ time_remaining }}</p>
       <form action="." method="post" enctype="multipart/form-data">

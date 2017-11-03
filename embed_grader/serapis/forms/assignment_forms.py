@@ -119,7 +119,7 @@ class AssignmentForm(ModelForm):
         is_no_limit = (max_num_submissions == Assignment.SUBMISSION_LIMIT_INFINITE)
         initial_submission_limit_choice_val, initial_num_submission_val = (
                 (AssignmentForm.SUBMISSION_LIMIT_OPTION_INFINITE, 10) if is_no_limit
-                else (AssignmentForm.SUBMISSION_LIMIT_OPTION_INFINITE, max_num_submissions))
+                else (AssignmentForm.SUBMISSION_LIMIT_OPTION_FINITE, max_num_submissions))
 
         self.fields['submission_limit_choice'] = forms.ChoiceField(
                 required=True,
