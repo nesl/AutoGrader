@@ -3,14 +3,7 @@ from django.contrib.auth import views as auth_views
 from django.conf import settings
 from django.conf.urls.static import static
 
-from serapis.views import homepages
-from serapis.views import registrations
-from serapis.views import courses
-from serapis.views import assignments
-from serapis.views import tasks
-from serapis.views import submissions
-from serapis.views import testbeds
-from serapis.views import hardware
+from serapis.views import *
 from . import services
 from . import media_controls
 
