@@ -109,7 +109,7 @@ class AssignmentForm(ModelForm):
         self.fields['max_num_team_members'] = forms.IntegerField(
                 required=False,
                 initial=initial_num_member_val,
-                validators=[MinValueValidator(2)]
+                validators=[MinValueValidator(2)],
         )
 
         # add submission_limit_choice radio button and max_num_submissions input field
@@ -130,7 +130,7 @@ class AssignmentForm(ModelForm):
         self.fields['max_num_submissions'] = forms.IntegerField(
                 required=False,
                 initial=initial_num_submission_val,
-                validators=[MinValueValidator(1)]
+                validators=[MinValueValidator(1)],
         )
 
         #TODO: field order
