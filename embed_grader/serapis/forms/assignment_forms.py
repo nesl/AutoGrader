@@ -29,6 +29,7 @@ class AssignmentForm(ModelForm):
     error_messages = {
         'time_conflict': 'Release time must be earlier than deadline.',
         'invalid_num_members': 'Number of team members has to be more than or equal to 2.',
+        'invalid_num_submissions': 'Number of submissions has to be a postive integer.',
         'invalid_schema': 'Schema can only contain 0-9, a-z, \'.\', and \'_\'.',
     }
 
@@ -51,6 +52,13 @@ class AssignmentForm(ModelForm):
     TEAM_CHOICES = (
             (TEAM_OPTION_INDIVIDUAL, 'Individual assignment'),
             (TEAM_OPTION_TEAM, 'Team assignment'),
+    )
+
+    SUBMISSION_LIMIT_OPTION_INFINITE = '0'
+    SUBMISSION_LIMIT_OPTION_FINITE = '1'
+    SUBMISSION_LIMIT_CHOICES = (
+            (SUBMISSION_LIMIT_OPTION_INFINITE, 'No limit'),
+            (SUBMISSION_LIMIT_OPTION_FINITE, 'Set a limit for number of submissions'),
     )
 
     def __init__(self, *args, **kwargs):
@@ -86,10 +94,11 @@ class AssignmentForm(ModelForm):
                     initial=initial_val,
             )
         
-        num_max_team_members = assignment.num_max_team_members if assignment else 1
+        # add team_choice radio button and max_num_team_members input field
+        max_num_team_members = assignment.max_num_team_members if assignment else 1
         initial_team_choice_val, initial_num_member_val = (
-                (AssignmentForm.TEAM_OPTION_INDIVIDUAL, 2) if num_max_team_members == 1
-                else (AssignmentForm.TEAM_OPTION_TEAM, num_max_team_members))
+                (AssignmentForm.TEAM_OPTION_INDIVIDUAL, 2) if max_num_team_members == 1
+                else (AssignmentForm.TEAM_OPTION_TEAM, max_num_team_members))
 
         self.fields['team_choice'] = forms.ChoiceField(
                 required=True,
@@ -97,10 +106,31 @@ class AssignmentForm(ModelForm):
                 choices=AssignmentForm.TEAM_CHOICES,
                 initial=initial_team_choice_val,
         )
-        self.fields['num_max_team_members'] = forms.IntegerField(
+        self.fields['max_num_team_members'] = forms.IntegerField(
                 required=False,
                 initial=initial_num_member_val,
-                validators=[MinValueValidator(2)]
+                validators=[MinValueValidator(2)],
+        )
+
+        # add submission_limit_choice radio button and max_num_submissions input field
+        max_num_submissions = (assignment.max_num_submissions if assignment
+                else Assignment.SUBMISSION_LIMIT_INFINITE)
+
+        is_no_limit = (max_num_submissions == Assignment.SUBMISSION_LIMIT_INFINITE)
+        initial_submission_limit_choice_val, initial_num_submission_val = (
+                (AssignmentForm.SUBMISSION_LIMIT_OPTION_INFINITE, 10) if is_no_limit
+                else (AssignmentForm.SUBMISSION_LIMIT_OPTION_FINITE, max_num_submissions))
+
+        self.fields['submission_limit_choice'] = forms.ChoiceField(
+                required=True,
+                widget=forms.RadioSelect,
+                choices=AssignmentForm.SUBMISSION_LIMIT_CHOICES,
+                initial=initial_submission_limit_choice_val,
+        )
+        self.fields['max_num_submissions'] = forms.IntegerField(
+                required=False,
+                initial=initial_num_submission_val,
+                validators=[MinValueValidator(1)],
         )
 
         #TODO: field order
@@ -116,42 +146,57 @@ class AssignmentForm(ModelForm):
 
         # team choice
         if self.cleaned_data['team_choice'] == AssignmentForm.TEAM_OPTION_INDIVIDUAL:
-            self.cleaned_data['num_max_team_members'] = 1
+            self.cleaned_data['max_num_team_members'] = 1
         else:
-            if 'num_max_team_members' not in self.cleaned_data:
-                # Since field 'num_max_team_members' is optional, the data is not saved in
-                # self.cleaned_data if its format is not correct.
+            if 'max_num_team_members' not in self.cleaned_data:
+                # Since 'max_num_team_members' field is optional, it will not be inserted to
+                # self.cleaned_data if user input is invalid
                 raise forms.ValidationError(self.error_messages['invalid_num_members'],
                     code='invalid_num_members')
             
-            self.cleaned_data['num_max_team_members'] = int(
-                    self.cleaned_data['num_max_team_members'])
+            self.cleaned_data['max_num_team_members'] = int(
+                    self.cleaned_data['max_num_team_members'])
+
+
+        # submission limit
+        if (self.cleaned_data['submission_limit_choice']
+                == AssignmentForm.SUBMISSION_LIMIT_OPTION_INFINITE):
+            self.cleaned_data['max_num_submissions'] = Assignment.SUBMISSION_LIMIT_INFINITE
+        else:
+            if 'max_num_submissions' not in self.cleaned_data:
+                # Since 'max_num_submissions' field is optional, it will not be inserted to
+                # self.cleaned_data if user input is invalid
+                raise forms.ValidationError(self.error_messages['invalid_num_submissions'],
+                    code='invalid_num_submissions')
+
+            self.cleaned_data['max_num_submissions'] = int(
+                    self.cleaned_data['max_num_submissions'])
 
         return self.cleaned_data
 
     def clean_assignment_task_file_schema(self):
-         schema_string = self.cleaned_data.get('assignment_task_file_schema')
-         schema_name_list = self._parse_schema_string(schema_string)
-         if schema_name_list is None:
-             raise forms.ValidationError(self.error_messages['invalid_schema'],
-                     code='invalid_schema')
-         return schema_name_list
+        schema_string = self.cleaned_data.get('assignment_task_file_schema')
+        schema_name_list = self._parse_schema_string(schema_string)
+        if schema_name_list is None:
+            raise forms.ValidationError(self.error_messages['invalid_schema'],
+                    code='invalid_schema')
+        return schema_name_list
 
     def clean_submission_file_schema(self):
-         schema_string = self.cleaned_data.get('submission_file_schema')
-         schema_name_list = self._parse_schema_string(schema_string)
-         if schema_name_list is None:
-             raise forms.ValidationError(self.error_messages['invalid_schema'],
-                     code='invalid_schema')
-         return schema_name_list
+        schema_string = self.cleaned_data.get('submission_file_schema')
+        schema_name_list = self._parse_schema_string(schema_string)
+        if schema_name_list is None:
+            raise forms.ValidationError(self.error_messages['invalid_schema'],
+                    code='invalid_schema')
+        return schema_name_list
 
     def clean_task_grading_status_file_schema(self):
-         schema_string = self.cleaned_data.get('task_grading_status_file_schema')
-         schema_name_list = self._parse_schema_string(schema_string)
-         if schema_name_list is None:
-             raise forms.ValidationError(self.error_messages['invalid_schema'],
-                     code='invalid_schema')
-         return schema_name_list
+        schema_string = self.cleaned_data.get('task_grading_status_file_schema')
+        schema_name_list = self._parse_schema_string(schema_string)
+        if schema_name_list is None:
+            raise forms.ValidationError(self.error_messages['invalid_schema'],
+                    code='invalid_schema')
+        return schema_name_list
 
     def _parse_schema_string(self, schema_str):
         schema_name_list = [s.strip().lower() for s in schema_str.split(';')]
@@ -180,7 +225,8 @@ class AssignmentForm(ModelForm):
         """
         assignment = super(AssignmentForm, self).save(commit=False)
         assignment.course_fk = self.course
-        assignment.num_max_team_members = self.cleaned_data['num_max_team_members']
+        assignment.max_num_team_members = self.cleaned_data['max_num_team_members']
+        assignment.max_num_submissions = self.cleaned_data['max_num_submissions']
         assignment.save()
 
         # file schemas
@@ -223,14 +269,24 @@ class AssignmentSubmissionForm(Form):
         assignment = kwargs.pop('assignment')
         super(AssignmentSubmissionForm, self).__init__(*args, **kwargs)
 
-        execution_scope_choice = [
-                (AssignmentTask.MODE_DEBUG, 'Debug'),
-                (AssignmentTask.MODE_PUBLIC, 'Debug+Public'),
-                (AssignmentTask.MODE_FEEDBACK, 'Debug+Public+Feedback'),
-        ]
+        # If there is no submission limit, we show all the possible submission scopes; otherwise,
+        # the only fair option for students is "Debug+Public+Feedback"
+        if assignment.max_num_submissions == Assignment.SUBMISSION_LIMIT_INFINITE:
+            execution_scope_choice = [
+                    (AssignmentTask.MODE_DEBUG, 'Debug'),
+                    (AssignmentTask.MODE_PUBLIC, 'Debug+Public'),
+                    (AssignmentTask.MODE_FEEDBACK, 'Debug+Public+Feedback'),
+            ]
+        else:
+            execution_scope_choice = [
+                    (AssignmentTask.MODE_FEEDBACK, 'Debug+Public+Feedback'),
+            ]
+
+        # An instructor can also submit for the hidden test cases
         if user.has_perm('modify_assignment', assignment.course_fk):  # an instructor
             execution_scope_choice.append(
                     (AssignmentTask.MODE_HIDDEN, 'Debug+Public+Feedback+Hidden'))
+
         self.fields['execution_scope'] = forms.ChoiceField(
                 required=True,
                 widget=forms.Select,
@@ -249,6 +305,22 @@ class AssignmentSubmissionForm(Form):
         self.team = team
         self.assignment = assignment
         self.file_fields = file_fields
+
+    def clean_execution_scope():
+        # Set the correct execution scope option
+        scope = int(self.cleaned_data.get('execution_scope'))
+        if self.user.has_perm('modify_assignment', self.assignment.course_fk):  # an instructor
+            return scope
+        
+        # for a student:
+        #   - if there is no submission limit, set maximum scope to upto feedback
+        #   - if there is a limit, only set to feedback
+        if assignment.max_num_submissions == Assignment.SUBMISSION_LIMIT_INFINITE:
+            if scope == Assignment.MODE_HIDDEN:
+                scope = Assignment.MODE_FEEDBACK
+        else:
+            scope = Assignment.MODE_FEEDBACK
+        return scope
 
     def clean(self):
         if not self.user.has_perm('modify_assignment', self.assignment.course_fk):  # a student

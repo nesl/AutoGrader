@@ -3,6 +3,10 @@
 {% load guardian_tags %}
 {% load bootstrap3 %}
 
+{% block page-specific-js %}
+  <script src="{% static 'serapis/js/form_helper.js' %}"></script>
+{% endblock %}
+
 {% block profile-usertitle-name %}
   Regrading Interface
 {% endblock %}
@@ -51,39 +55,19 @@
     </form>
 
     <script>
-      $('#id_author_choice').width(200);
-      $('#id_author_choice').css('display', 'inline-block');
-      $('#id_author_scope').children().last().css('display', 'inline-block');
-      $('#id_author_scope').append('<div id="id_author_scope_select" style="display:inline-block">, and the author is </div>');
-      $('#id_author_choice').appendTo('#id_author_scope_select');
-
-      $('#id_submission_range').width(400);
-      $('#id_submission_range').css('display', 'inline-block');
-      $('#id_submission_scope').children().last().css('display', 'inline-block');
-      $('#id_submission_scope').append('<div id="id_submission_scope_range" style="display:inline-block">: </div>');
-      $('#id_submission_range').appendTo('#id_submission_scope_range');
-
-      $('.form-group').slice(2, 4).remove();
-
-      function onAuthorScopeChange() {
-        if ($("#id_author_scope_1:checked").is(":checked"))
-          $('#id_author_scope_select').css('visibility', 'visible');
-        else
-          $('#id_author_scope_select').css('visibility', 'hidden');
-      }
+      make_radio_button_choice_extension(
+        'id_author_scope', /* radio_button_group_id */
+        'id_author_choice', /* input_id */
+        ', and the author is <input>', /* append_format */
+        200, /* input width */
+      );
       
-      function onSubmissionScopeChange() {
-        if ($("#id_submission_scope_1:checked").is(":checked"))
-          $('#id_submission_scope_range').css('visibility', 'visible');
-        else
-          $('#id_submission_scope_range').css('visibility', 'hidden');
-      }
-
-      onAuthorScopeChange();
-      onSubmissionScopeChange();
-
-      $('input[type=radio][name=author_scope]').change(onAuthorScopeChange);
-      $('input[type=radio][name=submission_scope]').change(onSubmissionScopeChange);
+      make_radio_button_choice_extension(
+        'id_submission_scope', /* radio_button_group_id */
+        'id_submission_range', /* input_id */
+        ': <input>', /* append_format */
+        400, /* input width */
+      );
     </script>
   </div>
 {% endblock %}

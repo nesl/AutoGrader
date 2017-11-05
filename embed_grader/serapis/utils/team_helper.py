@@ -18,7 +18,7 @@ def create_team(assignment, users):
     Returns:
       (team, team_member_list)
     """
-    if len(users) > assignment.num_max_team_members:
+    if len(users) > assignment.max_num_team_members:
         raise Exception('Maximum number of team members exceeds')
 
     with transaction.atomic():
@@ -78,7 +78,7 @@ def add_users_to_team(team, users):
       users: A list of User
     """
     assignment = team.assignment_fk
-    if len(TeamMember.objects.filter(team_fk=team)) + len(users) > assignment.num_max_team_members:
+    if len(TeamMember.objects.filter(team_fk=team)) + len(users) > assignment.max_num_team_members:
         raise Exception('Maximum number of team members exceeds')
 
     with transaction.atomic():
