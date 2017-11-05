@@ -175,28 +175,28 @@ class AssignmentForm(ModelForm):
         return self.cleaned_data
 
     def clean_assignment_task_file_schema(self):
-         schema_string = self.cleaned_data.get('assignment_task_file_schema')
-         schema_name_list = self._parse_schema_string(schema_string)
-         if schema_name_list is None:
-             raise forms.ValidationError(self.error_messages['invalid_schema'],
-                     code='invalid_schema')
-         return schema_name_list
+        schema_string = self.cleaned_data.get('assignment_task_file_schema')
+        schema_name_list = self._parse_schema_string(schema_string)
+        if schema_name_list is None:
+            raise forms.ValidationError(self.error_messages['invalid_schema'],
+                    code='invalid_schema')
+        return schema_name_list
 
     def clean_submission_file_schema(self):
-         schema_string = self.cleaned_data.get('submission_file_schema')
-         schema_name_list = self._parse_schema_string(schema_string)
-         if schema_name_list is None:
-             raise forms.ValidationError(self.error_messages['invalid_schema'],
-                     code='invalid_schema')
-         return schema_name_list
+        schema_string = self.cleaned_data.get('submission_file_schema')
+        schema_name_list = self._parse_schema_string(schema_string)
+        if schema_name_list is None:
+            raise forms.ValidationError(self.error_messages['invalid_schema'],
+                    code='invalid_schema')
+        return schema_name_list
 
     def clean_task_grading_status_file_schema(self):
-         schema_string = self.cleaned_data.get('task_grading_status_file_schema')
-         schema_name_list = self._parse_schema_string(schema_string)
-         if schema_name_list is None:
-             raise forms.ValidationError(self.error_messages['invalid_schema'],
-                     code='invalid_schema')
-         return schema_name_list
+        schema_string = self.cleaned_data.get('task_grading_status_file_schema')
+        schema_name_list = self._parse_schema_string(schema_string)
+        if schema_name_list is None:
+            raise forms.ValidationError(self.error_messages['invalid_schema'],
+                    code='invalid_schema')
+        return schema_name_list
 
     def _parse_schema_string(self, schema_str):
         schema_name_list = [s.strip().lower() for s in schema_str.split(';')]
@@ -269,14 +269,24 @@ class AssignmentSubmissionForm(Form):
         assignment = kwargs.pop('assignment')
         super(AssignmentSubmissionForm, self).__init__(*args, **kwargs)
 
-        execution_scope_choice = [
-                (AssignmentTask.MODE_DEBUG, 'Debug'),
-                (AssignmentTask.MODE_PUBLIC, 'Debug+Public'),
-                (AssignmentTask.MODE_FEEDBACK, 'Debug+Public+Feedback'),
-        ]
+        # If there is no submission limit, we show all the possible submission scopes; otherwise,
+        # the only fair option for students is "Debug+Public+Feedback"
+        if assignment.max_num_submissions == Assignment.SUBMISSION_LIMIT_INFINITE:
+            execution_scope_choice = [
+                    (AssignmentTask.MODE_DEBUG, 'Debug'),
+                    (AssignmentTask.MODE_PUBLIC, 'Debug+Public'),
+                    (AssignmentTask.MODE_FEEDBACK, 'Debug+Public+Feedback'),
+            ]
+        else:
+            execution_scope_choice = [
+                    (AssignmentTask.MODE_FEEDBACK, 'Debug+Public+Feedback'),
+            ]
+
+        # An instructor can also submit for the hidden test cases
         if user.has_perm('modify_assignment', assignment.course_fk):  # an instructor
             execution_scope_choice.append(
                     (AssignmentTask.MODE_HIDDEN, 'Debug+Public+Feedback+Hidden'))
+
         self.fields['execution_scope'] = forms.ChoiceField(
                 required=True,
                 widget=forms.Select,
@@ -295,6 +305,22 @@ class AssignmentSubmissionForm(Form):
         self.team = team
         self.assignment = assignment
         self.file_fields = file_fields
+
+    def clean_execution_scope():
+        # Set the correct execution scope option
+        scope = int(self.cleaned_data.get('execution_scope'))
+        if self.user.has_perm('modify_assignment', self.assignment.course_fk):  # an instructor
+            return scope
+        
+        # for a student:
+        #   - if there is no submission limit, set maximum scope to upto feedback
+        #   - if there is a limit, only set to feedback
+        if assignment.max_num_submissions == Assignment.SUBMISSION_LIMIT_INFINITE:
+            if scope == Assignment.MODE_HIDDEN:
+                scope = Assignment.MODE_FEEDBACK
+        else:
+            scope = Assignment.MODE_FEEDBACK
+        return scope
 
     def clean(self):
         if not self.user.has_perm('modify_assignment', self.assignment.course_fk):  # a student
