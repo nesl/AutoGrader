@@ -55,7 +55,7 @@ class STM32WaveformFileReader(object):
     ERROR_CODE_FORMAT = 3
 
     period_ms = None
-    tick_freqency = None
+    tick_frequency = None
 
     # display_params is an array, each element is a dictionary with `name` (a string) and `pins`
     # (a list of integers)
@@ -69,22 +69,22 @@ class STM32WaveformFileReader(object):
 
     def __init__(self, raw_content):
         if len(raw_content) == 0:
-            error_code = STM32WaveformFileReader.ERROR_CODE_EMPTY_FILE
+            self.error_code = STM32WaveformFileReader.ERROR_CODE_EMPTY_FILE
             return
         else:
             try:
                 content = raw_content.decode('ascii')
             except:
-                error_code = STM32WaveformFileReader.ERROR_CODE_NON_ASCII
+                self.error_code = STM32WaveformFileReader.ERROR_CODE_NON_ASCII
                 return
 
-            if not self._parse_content():
-                error_code = STM32WaveformFileReader.ERROR_CODE_FORMAT
+            if not self._parse_content(content):
+                self.error_code = STM32WaveformFileReader.ERROR_CODE_FORMAT
                 return
 
-            error_code = None
+            self.error_code = None
 
-    def _parse_content(self):
+    def _parse_content(self, content):
         try:
             lines = content.strip().split('\n')
             num_total_lines = len(lines)
@@ -101,7 +101,7 @@ class STM32WaveformFileReader(object):
             matches = re.search(r'^Tick frequency: *(\d+(\.\d*)?)', lines[line_idx])
             if not matches:
                 return False
-            self.tick_freqency = float(matches.group(1))
+            self.tick_frequency = float(matches.group(1))
             line_idx += 1
 
             tick_ms = 1000. / self.tick_frequency
@@ -117,6 +117,8 @@ class STM32WaveformFileReader(object):
             self.display_params = []  # a list of {name, pins}
             while line_idx < num_total_lines and not lines[line_idx].startswith('Display end'):
                 terms = lines[line_idx].split(',')
+                if len(terms) <= 1:
+                    return False  # should have at least a name and a pin index
                 self.display_params.append({
                     'name': terms[0],
                     'pins': [int(x) for x in terms[1:]],
@@ -145,13 +147,14 @@ class STM32WaveformFileReader(object):
             
             # If there are no pin value events or the first pin value event does not start at
             # time 0, add an event with time 0 in the beginning
-            if len(bus_values) == 0:
-                bus_values = [(0.0, 0)]
-            elif bus_values[0][0] != 0:
-                bus_values[0:0] = [(0.0, 0)]
+            if len(self.data) == 0:
+                self.data = [(0.0, 0)]
+            elif self.data[0][0] != 0:
+                self.data[0:0] = [(0.0, 0)]
 
             # Add a dummy end pin value event
-            bus_values.append((period_ms, 0))
+            if self.data[-1][0] < self.period_ms:
+                self.data.append((self.period_ms, self.data[-1][1]))
 
         except:
             return False
@@ -180,17 +183,17 @@ class STM32WaveformFileReader(object):
     def get_period_sec(self):
         if self.error_code is not None:
             raise Exception("There is an error while parsing content")
-        return self.period * 1000.
+        return self.period_ms / 1000.
 
     def get_period_ms(self):
         if self.error_code is not None:
             raise Exception("There is an error while parsing content")
-        return self.period
+        return self.period_ms
 
     def get_num_display_plots(self):
         if self.error_code is not None:
             raise Exception("There is an error while parsing content")
-        return len(self.data)
+        return len(self.display_params)
 
     def _rearrange_bus(self, pin_indexes, original_bus_value):
         """
@@ -233,22 +236,34 @@ class STM32WaveformFileReader(object):
         start_time_ms = max(0., start_time_ms)
         end_time_ms = min(self.period_ms, end_time_ms)
 
+        display_param = self.display_params[series_idx]
+        series_name = display_param['name']
+        series_pins = display_param['pins']
+
         # get bus value based on pin configurations
-        series_data = [t, self._rearrange_bus(self.display_params, bus_value)
+        series_data = [(t, self._rearrange_bus(series_pins, bus_value))
                 for t, bus_value in self.data]
 
         # get transitions within the range
         middle_idx_events = list(filter(
             lambda x: start_time_ms <= x[1][0] and x[1][0] <= end_time_ms, enumerate(series_data)))
-        ret_events = [e for _, e in middle_idx_events]
+        candidate_events = [e for _, e in middle_idx_events]
 
-        # handle boundaries
+        # handle start boundary
         sidx = middle_idx_events[0][0]
-        if sidx > 0 and ret_events[0][0] > start_time_ms:
-            ret_events[0:0] = [(start_time_ms, series_events[sidx - 1][1])]
+        if sidx > 0 and candidate_events[0][0] > start_time_ms:
+            candidate_events[0:0] = [(start_time_ms, series_data[sidx - 1][1])]
 
-        eidx = middle_idx_events[-1][0]
-        if eidx < len(series_events) - 1 and ret_events[-1][0] < end_time_ms:
-            ret_events.append((end_time_ms, middle_idx_events[-1][1]))
+        # filter out repeating transitions
+        ret_events = []
+        ret_events.append(candidate_events[0])
+        for cur_event in candidate_events[1:]:
+            t, bus_value = cur_event
+            if bus_value != ret_events[-1][1]:
+                ret_events.append(cur_event)
+
+        # handle end boundary
+        if ret_events[-1][0] < end_time_ms:
+            ret_events.append((end_time_ms, ret_events[-1][1]))
         
-        return ret_events
+        return (series_name, ret_events)
