@@ -190,6 +190,21 @@ class STM32WaveformFileReader(object):
             raise Exception("There is an error while parsing content")
         return self.period_ms
 
+    def get_tick_frequency(self):
+        if self.error_code is not None:
+            raise Exception("There is an error while parsing content")
+        return self.tick_frequency
+
+    def get_tick_length_sec(self):
+        if self.error_code is not None:
+            raise Exception("There is an error while parsing content")
+        return 1.0 / self.tick_frequency
+
+    def get_tick_length_ms(self):
+        if self.error_code is not None:
+            raise Exception("There is an error while parsing content")
+        return 1000.0 / self.tick_frequency
+
     def get_num_display_plots(self):
         if self.error_code is not None:
             raise Exception("There is an error while parsing content")

@@ -13,6 +13,12 @@ class STM32WaveformFileReaderTestCase(TestCase):
         with self.assertRaises(Exception):
             reader.get_period_ms()
         with self.assertRaises(Exception):
+            reader.get_tick_frequency()
+        with self.assertRaises(Exception):
+            reader.get_tick_sec()
+        with self.assertRaises(Exception):
+            reader.get_tick_ms()
+        with self.assertRaises(Exception):
             reader.get_num_display_plots()
         with self.assertRaises(Exception):
             reader.get_event_series()
@@ -100,6 +106,9 @@ class STM32WaveformFileReaderTestCase(TestCase):
         self.assertEqual(reader.get_error_code(), None)
         self.assertEqual(reader.get_period_sec(), 20.)
         self.assertEqual(reader.get_period_ms(), 20000.)
+        self.assertEqual(reader.get_tick_frequency(), 5000.)
+        self.assertEqual(reader.get_tick_length_sec(), 2e-4)
+        self.assertEqual(reader.get_tick_length_ms(), 0.2)
         self.assertEqual(reader.get_num_display_plots(), 2)
         self.assertEqual(reader.get_event_series(0), (
             'CTL',
@@ -139,6 +148,7 @@ class STM32WaveformFileReaderTestCase(TestCase):
         self.assertEqual(reader.get_error_code(), None)
         self.assertEqual(reader.get_period_sec(), 0.1)
         self.assertEqual(reader.get_period_ms(), 100.)
+        self.assertEqual(reader.get_tick_frequency(), 100.)
         self.assertEqual(reader.get_num_display_plots(), 3)
         
         self.assertEqual(reader.get_event_series(series_idx=0), (
