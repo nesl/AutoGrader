@@ -1,9 +1,6 @@
 import json
 import re
 
-from embed_grader import settings
-
-
 """
 An example of the file content of STM32 waveform looks like the following:
 
