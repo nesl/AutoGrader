@@ -54,35 +54,40 @@ class STM32WaveformFileReader(object):
     ERROR_CODE_NON_ASCII = 2
     ERROR_CODE_FORMAT = 3
 
-    period_ms = None
-    tick_frequency = None
-
-    # display_params is an array, each element is a dictionary with `name` (a string) and `pins`
-    # (a list of integers)
-    display_params = None
-
-    # data contains a list of tuples. Each tuple contains two items, a float representing start
-    # timestamp in ms, and an integer for a bus value
-    data = None
-
-    error_code = None
-
     def __init__(self, raw_content):
+        self._initialize_instance_variables()
+        self._parse_raw_content(raw_content)
+
+    def _initialize_instance_variables(self):
+        self.period_ms = None
+        self.tick_frequency = None
+
+        # display_params is an array, each element is a dictionary with `name` (a string) and
+        # `pins` (a list of integers)
+        self.display_params = None
+
+        # data contains a list of tuples. Each tuple contains two items, a float representing
+        # start timestamp in ms, and an integer for a bus value
+        self.data = None
+        
+        self.error_code = None
+
+    def _parse_raw_content(self, raw_content):
         if len(raw_content) == 0:
             self.error_code = STM32WaveformFileReader.ERROR_CODE_EMPTY_FILE
             return
-        else:
-            try:
-                content = raw_content.decode('ascii')
-            except:
-                self.error_code = STM32WaveformFileReader.ERROR_CODE_NON_ASCII
-                return
+        
+        try:
+            content = raw_content.decode('ascii')
+        except:
+            self.error_code = STM32WaveformFileReader.ERROR_CODE_NON_ASCII
+            return
 
-            if not self._parse_content(content):
-                self.error_code = STM32WaveformFileReader.ERROR_CODE_FORMAT
-                return
+        if not self._parse_content(content):
+            self.error_code = STM32WaveformFileReader.ERROR_CODE_FORMAT
+            return
 
-            self.error_code = None
+        self.error_code = None
 
     def _parse_content(self, content):
         try:
