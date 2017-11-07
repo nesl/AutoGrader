@@ -158,3 +158,74 @@ class WaveformFileWriterTestCase(TestCase):
                 [(0.0, 0), (8.0, 1), (15.0, 1)],
         )
 
+    def test_get_rising_and_falling_edge_events(self):
+        helper = MinimumWaveformQueryHelper()
+
+        data = [(float(i), i) for i in range(16)]
+
+        self.assertEqual(
+                helper._get_rising_edge_events(data, pin_index=0),
+                [1.0, 3.0, 5.0, 7.0, 9.0, 11.0, 13.0, 15.0],
+        )
+        
+        self.assertEqual(
+                helper._get_falling_edge_events(data, pin_index=1),
+                [4.0, 8.0, 12.0],
+        )
+        
+        output = helper._get_rising_edge_events(
+                data, pin_index=2, start_time_sec=2, end_time_sec=12)
+        self.assertEqual(
+                output,
+                [4.0, 12.0],
+        )
+        
+        output = helper._get_falling_edge_events(
+                data, pin_index=3, start_time_sec=10, end_time_sec=15)
+        self.assertEqual(
+                output,
+                [],
+        )
+    
+    def test_get_rising_and_falling_edge_events(self):
+        helper = MinimumWaveformQueryHelper()
+
+        data = [(float(i), 30 - i) for i in range(16)]
+
+        self.assertEqual(
+                helper._get_bus_value(data, pin_indexes=[4, 3, 2, 1, 0], query_time_sec=-3.2),
+                None,
+        )
+        self.assertEqual(
+                helper._get_bus_value(data, pin_indexes=[4, 3, 2, 1, 0], query_time_sec=0.0),
+                30,
+        )
+        self.assertEqual(
+                helper._get_bus_value(data, pin_indexes=[4, 3, 2, 1, 0], query_time_sec=0.5),
+                30,
+        )
+        self.assertEqual(
+                helper._get_bus_value(data, pin_indexes=[4, 3, 2, 1, 0], query_time_sec=7.7),
+                23,
+        )
+        self.assertEqual(
+                helper._get_bus_value(data, pin_indexes=[4, 3, 2, 1, 0], query_time_sec=15.0),
+                15,
+        )
+        self.assertEqual(
+                helper._get_bus_value(data, pin_indexes=[4, 3, 2, 1, 0], query_time_sec=15.1),
+                None,
+        )
+        self.assertEqual(
+                helper._get_bus_value(data, pin_indexes=0, query_time_sec=4),
+                0,
+        )
+        self.assertEqual(
+                helper._get_bus_value(data, pin_indexes=[1, 4], query_time_sec=10.2),
+                1,
+        )
+        self.assertEqual(
+                helper._get_bus_value(data, pin_indexes=[3, 2], query_time_sec=6.1),
+                2,
+        )
+        

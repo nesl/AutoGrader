@@ -1,5 +1,7 @@
 import json
 import re
+import bisect
+import numpy
 
 """
 WaveformQueryBase is an abstract class which provides waveform event cleaning methods and handy
@@ -10,6 +12,10 @@ class WaveformQueryBase(object):
 
     def __init__(self):
         raise Exception("Does not expect to be directly instantiated ")
+
+    #####################################################
+    #   Protected functions. Designed for sub-classes   #
+    #####################################################
 
     def _clean_waveform(self, data, period_sec):
         """
@@ -69,22 +75,6 @@ class WaveformQueryBase(object):
 
         return new_data
 
-    def _rearrange_bus(self, pin_indexes, original_bus_value):
-        """
-        A bus value is defined as a binary number when laying down all the pin values in order.
-        This function reshuffle the order of pins (may only consider a subset of them.) The first
-        index of the pin_indexes will be the most significant value.
-
-        Params:
-          pin_indexes: a list presenting pins to be considered
-          original_bus_value: an integer
-        """
-        ret = 0
-        for i in pin_indexes:
-            ret <<= 1
-            ret |= ((original_bus_value & (1 << i)) >> i)
-        return ret
-
     def _get_event_series(self, data, pin_indexes, start_time_sec=None, end_time_sec=None):
         """
         Get the events within the specified time range. The event can be a bus value if pin_indexes
@@ -109,15 +99,7 @@ class WaveformQueryBase(object):
         if type(pin_indexes) is int:
             pin_indexes = [pin_indexes]
 
-        # replace the default value
-        if start_time_sec is None:
-            start_time_sec = data[0][0]
-        if end_time_sec is None:
-            end_time_sec = data[-1][0]
-
-        # correct the time bounds if they are not correctly set
-        start_time_sec = max(data[0][0], start_time_sec)
-        end_time_sec = min(data[-1][0], end_time_sec)
+        start_time_sec, end_time_sec = self._refine_time_bounds(data, start_time_sec, end_time_sec)
 
         # get bus value based on pin configurations
         series_data = [(t, self._rearrange_bus(pin_indexes, bus_value)) for t, bus_value in data]
@@ -147,3 +129,126 @@ class WaveformQueryBase(object):
             ret_events.append((end_time_sec, ret_events[-1][1]))
         
         return ret_events
+
+    def _get_rising_edge_events(self, data, pin_index, start_time_sec=None, end_time_sec=None):
+        """
+        Get the rising-edge events of a certain pin within the specified time range, including
+        those are on the time bounds. We use the same definition in _get_event_series() for
+        start_time_sec and end_time_sec.
+
+        Params:
+          data: A list of tuples representing the waveform. This method assumes that data is
+              cleaned by _cleaned_waveform().
+          pin_index: An integer.
+          start_time_sec: A Float number
+          end_time_sec: A Float number
+        Returns:
+          A list of real numbers representing the timestamps of all the rising edges.
+        """
+
+        start_time_sec, end_time_sec = self._refine_time_bounds(data, start_time_sec, end_time_sec)
+        event_series = self._get_event_series(data, pin_index)
+        
+        # detailed_events is a list of (timestamp, prev_value, cur_value)
+        detailed_events = zip(
+                [t for t, _ in event_series[1:]],
+                [v for _, v in event_series[:-1]],
+                [v for _, v in event_series[1:]],
+        )
+
+        return [t for t, prev, cur in detailed_events
+                if start_time_sec <= t and t <= end_time_sec and prev == 0 and cur == 1]
+
+    def _get_falling_edge_events(self, data, pin_index, start_time_sec=None, end_time_sec=None):
+        """
+        Get the falling-edge events of a certain pin within the specified time range, including
+        those are on the time bounds. We use the same definition in _get_event_series() for
+        start_time_sec and end_time_sec.
+
+        Params:
+          data: A list of tuples representing the waveform. This method assumes that data is
+              cleaned by _cleaned_waveform().
+          pin_index: An integer.
+          start_time_sec: A Float number
+          end_time_sec: A Float number
+        Returns:
+          A list of real numbers representing the timestamps of all the rising edges.
+        """
+
+        start_time_sec, end_time_sec = self._refine_time_bounds(data, start_time_sec, end_time_sec)
+        event_series = self._get_event_series(data, pin_index)
+        
+        # detailed_events is a list of (timestamp, prev_value, cur_value)
+        detailed_events = zip(
+                [t for t, _ in event_series[1:]],
+                [v for _, v in event_series[:-1]],
+                [v for _, v in event_series[1:]],
+        )
+
+        return [t for t, prev, cur in detailed_events
+                if start_time_sec <= t and t <= end_time_sec and prev == 1 and cur == 0]
+    
+    def _get_bus_value(self, data, pin_indexes, query_time_sec):
+        """
+        Get the bus value of the waveform at a certain time point.
+
+        Params:
+          data: A list of tuples representing the waveform. This method assumes that data is
+              cleaned by _cleaned_waveform().
+          pin_indexes: Can be an integer or a list of integers. Representing how a new bus is
+              arranged, the first element is the most significant value.
+          query_time_sec: A Float number. The time point to be queried.
+        Returns:
+          An integer indicating the bus value, or None if the time is beyond the bound
+        """
+
+        if query_time_sec < data[0][0] or query_time_sec > data[-1][0]:
+            return None
+
+        # convert pin_indexes to a list if it is an integer
+        if type(pin_indexes) is int:
+            pin_indexes = [pin_indexes]
+
+        idx = bisect.bisect_right(data, (query_time_sec, 1 << 32))
+        return self._rearrange_bus(pin_indexes, data[idx-1][1])
+
+    ########################################################################
+    #   Private helper functions. Should never be called from subclasses   #
+    ########################################################################
+    
+    def _rearrange_bus(self, pin_indexes, original_bus_value):
+        """
+        A bus value is defined as a binary number when laying down all the pin values in order.
+        This function reshuffle the order of pins (may only consider a subset of them.) The first
+        index of the pin_indexes will be the most significant value.
+
+        Params:
+          pin_indexes: a list presenting pins to be considered
+          original_bus_value: an integer
+        """
+        ret = 0
+        for i in pin_indexes:
+            ret <<= 1
+            ret |= ((original_bus_value & (1 << i)) >> i)
+        return ret
+
+    def _refine_time_bounds(self, data, start_time_sec, end_time_sec):
+        """
+        If start_time_sec is None or earlier than the first event, set it to the beginning
+        of the waveform captured in data. Similarly for end_time_sec.
+
+        Returns:
+          (new_start_time_sec, new_end_time_sec)
+        """
+
+        # replace the default value
+        if start_time_sec is None:
+            start_time_sec = data[0][0]
+        if end_time_sec is None:
+            end_time_sec = data[-1][0]
+
+        # correct the time bounds if they are not correctly set
+        start_time_sec = max(data[0][0], start_time_sec)
+        end_time_sec = min(data[-1][0], end_time_sec)
+        
+        return (start_time_sec, end_time_sec)
