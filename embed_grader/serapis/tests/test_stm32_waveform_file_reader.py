@@ -21,7 +21,7 @@ class STM32WaveformFileReaderTestCase(TestCase):
         with self.assertRaises(Exception):
             reader.get_num_display_plots()
         with self.assertRaises(Exception):
-            reader.get_event_series()
+            reader.get_event_series(series_idx=0)
 
     def test_non_ascii_content_should_fail(self):
         reader = STM32WaveformFileReader(b'\xffbinary\xee')
