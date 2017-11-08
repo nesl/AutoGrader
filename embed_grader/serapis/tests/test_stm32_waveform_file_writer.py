@@ -47,8 +47,6 @@ class STM32WaveformFileWriterTestCase(TestCase):
                     b'68,30000,3\n' +
                     b'68,70000,4',
             )
-        
-        writer = STM32WaveformFileWriter(output_path)
 
     def test_case_2(self):
         output_path = '/tmp/STM32WaveformFileWriterTestCase_case2_kvlh3ifj18f9ejzncmdjqyd'
