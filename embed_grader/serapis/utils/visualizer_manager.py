@@ -54,6 +54,9 @@ class VisualizerManager(object):
         if field_name.endswith('.stm32.waveform'):
             from serapis.utils.visualizers.stm32_waveform_visualizer import STM32WaveformVisualizer
             return STM32WaveformVisualizer(*params)
+        elif field_name.endswith('.logicsaleae.waveform'):
+            from serapis.utils.visualizers.logic_saleae_waveform_visualizer import LogicSaleaeWaveformVisualizer
+            return LogicSaleaeWaveformVisualizer(*params)
         else:
             from serapis.utils.visualizers.plain_text_visualizer import PlainTextVisualizer
             return PlainTextVisualizer(*params)
