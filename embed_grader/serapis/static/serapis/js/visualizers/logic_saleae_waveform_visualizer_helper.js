@@ -42,7 +42,7 @@ function draw_logic_saleae_waveform_series(series_data) {
       },
       {
         "axisAlpha": 0,
-        "title": "Time in millisecond",
+        "title": "Time in microsecond",
         "position": "bottom",
         "maximum": max_tick,
       }
