@@ -306,7 +306,7 @@ class AssignmentSubmissionForm(Form):
         self.assignment = assignment
         self.file_fields = file_fields
 
-    def clean_execution_scope():
+    def clean_execution_scope(self):
         # Set the correct execution scope option
         scope = int(self.cleaned_data.get('execution_scope'))
         if self.user.has_perm('modify_assignment', self.assignment.course_fk):  # an instructor
@@ -315,11 +315,11 @@ class AssignmentSubmissionForm(Form):
         # for a student:
         #   - if there is no submission limit, set maximum scope to upto feedback
         #   - if there is a limit, only set to feedback
-        if assignment.max_num_submissions == Assignment.SUBMISSION_LIMIT_INFINITE:
-            if scope == Assignment.MODE_HIDDEN:
-                scope = Assignment.MODE_FEEDBACK
+        if self.assignment.max_num_submissions == Assignment.SUBMISSION_LIMIT_INFINITE:
+            if scope == AssignmentTask.MODE_HIDDEN:
+                scope = AssignmentTask.MODE_FEEDBACK
         else:
-            scope = Assignment.MODE_FEEDBACK
+            scope = AssignmentTask.MODE_FEEDBACK
         return scope
 
     def clean(self):
