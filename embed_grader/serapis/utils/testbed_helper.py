@@ -37,10 +37,14 @@ def abort_task(testbed, set_status=Testbed.STATUS_AVAILABLE,
     with open('/tmp/embed_grader_scheduler.log', 'a') as fo:
         import pytz
         time_str = timezone.now().astimezone(pytz.timezone('US/Pacific')).strftime("%H:%M:%S")
-        final_msg = ('%s - DEBUG abort_task: Testbed %d detach task %d, now the status of task is %s'
-                % (time_str, testbed.id, task_debug_id if task_debug_id else -1,
-                    TaskGradingStatus.objects.get(id=task_debug_id).get_grading_status_display()))
+        final_msg = ('%s - DEBUG abort_task: Testbed %d detach task %d'
+                % (time_str, testbed.id, task_debug_id if task_debug_id else -1))
         fo.write(final_msg + '\n')
+
+        if task_debug_id != -1:
+            final_msg = ('%s - DEBUG abort_task: Now the status of task is %s'
+                % (time_str, TaskGradingStatus.objects.get(id=task_debug_id).get_grading_status_display()))
+            fo.write(final_msg + '\n')
 
 def grade_task(testbed, chosen_task, duration, force_detach_currently_graded_task=False,
         check_testbed_status_is_available=True, check_task_status_is_pending=True):
