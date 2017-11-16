@@ -92,8 +92,14 @@ def assignment(request, assignment_id):
         if form.is_valid():
             form.save_and_commit()
         #TODO: The following code seems hacky. Find a better way to implement the following logic
-        if form.errors is not None and form.errors != {}:
-            first_sub_error = form.errors.as_data()['__all__'][0].message
+        #if form.errors is not None and form.errors != {}:
+        #    first_sub_error = form.errors.as_data()['__all__'][0].message
+        if form.errors != {}:
+            error_data = form.errors.as_data()
+            error_msgs = []
+            for key in error_data:
+                error_msgs.extend(['<li>%s</li>' % msg for msg in error_data[key]])
+            first_sub_error = '<ul>%s</ul>' % ''.join(error_msgs)
 
     # compute remaining time for submission
     now = timezone.now()
