@@ -254,7 +254,7 @@ class AssignmentForm(ModelForm):
 
 class AssignmentSubmissionForm(Form):
     error_messages = {
-        'pass_deadline': 'Assignment deadline has already passed.',
+        'passed_deadline': 'Assignment deadline has already passed.',
         'submission_in_queue': 'Previous submission is still grading.'
     }
 
@@ -326,8 +326,8 @@ class AssignmentSubmissionForm(Form):
         if not self.user.has_perm('modify_assignment', self.assignment.course_fk):  # a student
             # a student cannot submit after passing the deadline
             if self.assignment.is_deadline_passed():
-                raise forms.ValidationError(self.error_messages['pass_deadline'],
-                        code='pass_deadline')
+                raise forms.ValidationError(self.error_messages['passed_deadline'],
+                        code='passed_deadline')
 
             # a student can submit only if the previous submission is done
             if not user_info_helper.all_submission_graded_on_assignment(self.user, self.assignment):
@@ -378,8 +378,9 @@ class JoinTeamForm(Form):
     """
 
     error_messages = {
-        'wrong_passcode': 'Incorrect passcode.',
-        'pass_deadline': 'Assignment deadline has already passed.',
+        'wrong_passcode': 'Invalid passcode.',
+        'inconsistent_assignment': 'Invalid passcode.',  # hide details from students
+        'passed_deadline': 'Assignment deadline has already passed.',
         'no_capacity': 'No empty spot in the team.',
     }
 
@@ -406,10 +407,15 @@ class JoinTeamForm(Form):
             raise forms.ValidationError(self.error_messages['wrong_passcode'],
                     code='wrong_passcode')
 
+        # check if the selected team is in the same assignment the student is working on
+        if team.assignment_fk != self.assignment:
+            raise forms.ValidationError(self.error_messages['inconsistent_assignment'],
+                    code='inconsistent_assignment')
+
         # a student cannot join a team after passing the deadline
         if self.assignment.is_deadline_passed():
-            raise forms.ValidationError(self.error_messages['pass_deadline'],
-                    code='pass_deadline')
+            raise forms.ValidationError(self.error_messages['passed_deadline'],
+                    code='passed_deadline')
 
         if not team_helper.add_users_to_team(team, [self.user]):
             raise forms.ValidationError(self.error_messages['no_capacity'],
