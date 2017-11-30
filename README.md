@@ -21,6 +21,7 @@ Web frontend of Embedded Systems Auto Grader project
   - ```pip3 install django-guardian```
   - ```pip3 install django-chartjs```
   - ```pip3 install django-ckeditor```
+  - ```pip3 install django-sslserver```
 
 
 - If you are using PostgreSQL as your database
