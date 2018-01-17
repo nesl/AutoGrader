@@ -145,7 +145,7 @@ def unenroll_course(request, course_id):
     course = Course.objects.get(id=course_id)
 
     course_enrolled = (CourseUserList.objects.filter(user_fk=user, course_fk=course).count() > 0)
-    
+
     if not course_enrolled:
         template_context = {
             'myuser': user,
@@ -168,6 +168,12 @@ def unenroll_course(request, course_id):
         'course_enrolled': True,
     }
     return render(request, 'serapis/unenroll_course.html', template_context)
+
+@login_required(login_url='/login/')
+def download_csv(request, course_id):
+    user = User.objects.get(username=request.user)
+    if not user.has_perm('download_csv_data', course):
+        return HttpResponse("Not enough privilege.")
 
 
 @login_required(login_url='/login/')

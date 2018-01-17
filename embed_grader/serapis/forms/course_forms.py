@@ -103,6 +103,7 @@ class CourseCreationForm(ModelForm):
             assign_perm('view_assignment', student_group, course)
             assign_perm('modify_assignment', instructor_group, course)
             assign_perm('create_assignment', instructor_group, course)
+            assign_perm('download_csv_data', instructor_group, course)
         else:  # updating mode
             course = self.course
             course.course_code = self.cleaned_data['course_code']
