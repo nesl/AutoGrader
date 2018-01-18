@@ -25,6 +25,7 @@ from guardian.shortcuts import assign_perm
 from serapis.models import *
 from serapis.forms.course_forms import *
 
+import csv
 
 def _create_or_modify_course(request, course):
     """
@@ -173,32 +174,24 @@ def unenroll_course(request, course_id):
 def download_csv(request, course_id):
     user = User.objects.get(username=request.user)
     course = Course.objects.get(id=course_id)
+    print(course)
+    students = []
+    assignment_list = Assignment.objects.filter(course_fk=course_id).order_by('-id')
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="%s_scores.csv"' % course
+    writer = csv.writer(response)
+
     if not user.has_perm('download_csv', course):
         return HttpResponse("Not enough privilege.")
 
-        # user = User.objects.get(username=request.user)
-        # user_profile = UserProfile.objects.get(user=user)
-        #
-        # try:
-        #     course = Course.objects.get(id=course_id)
-        # except Course.DoesNotExist:
-        #     return HttpResponse("Course cannot be found.")
-        #
-        # if not user.has_perm('view_course', course):
-        #     return HttpResponse("Not enough privilege.")
-        #
-        # assignment_list = Assignment.objects.filter(course_fk=course_id).order_by('-id')
-        #
-        # if not user.has_perm('modify_course', course):
-        #     assignment_list = [a for a in assignment_list if a.is_released()]
-        #
-        # template_context = {
-        #     'myuser': request.user,
-        #     'course': course,
-        #     'assignment_list': assignment_list,
-        # }
-        # return render(request, 'serapis/course.html', template_context)
+    cu_list = CourseUserList.objects.filter(course_fk=course)
+    for cu in cu_list:
+        member = UserProfile.objects.get(user=cu.user_fk)
+        if cu.role == CourseUserList.ROLE_STUDENT:
+            students.append(member.user)
 
+    return response
 
 @login_required(login_url='/login/')
 def membership(request, course_id):
