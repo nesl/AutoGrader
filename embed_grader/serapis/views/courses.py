@@ -176,7 +176,7 @@ def download_csv(request, course_id):
     course = Course.objects.get(id=course_id)
     print(course)
     students = []
-    assignment_list = Assignment.objects.filter(course_fk=course_id).order_by('-id')
+    headers = ['Last Name', 'First Name', 'UID']
 
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="%s_scores.csv"' % course
@@ -184,6 +184,12 @@ def download_csv(request, course_id):
 
     if not user.has_perm('download_csv', course):
         return HttpResponse("Not enough privilege.")
+
+    assignment_list = Assignment.objects.filter(course_fk=course_id).order_by('-id')
+    for a in assignment_list:
+        headers.append(a.name)
+
+    writer.writerow(headers)
 
     cu_list = CourseUserList.objects.filter(course_fk=course)
     for cu in cu_list:
