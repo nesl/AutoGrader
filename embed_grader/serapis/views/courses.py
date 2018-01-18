@@ -172,8 +172,32 @@ def unenroll_course(request, course_id):
 @login_required(login_url='/login/')
 def download_csv(request, course_id):
     user = User.objects.get(username=request.user)
-    if not user.has_perm('download_csv_data', course):
+    course = Course.objects.get(id=course_id)
+    if not user.has_perm('download_csv', course):
         return HttpResponse("Not enough privilege.")
+
+        # user = User.objects.get(username=request.user)
+        # user_profile = UserProfile.objects.get(user=user)
+        #
+        # try:
+        #     course = Course.objects.get(id=course_id)
+        # except Course.DoesNotExist:
+        #     return HttpResponse("Course cannot be found.")
+        #
+        # if not user.has_perm('view_course', course):
+        #     return HttpResponse("Not enough privilege.")
+        #
+        # assignment_list = Assignment.objects.filter(course_fk=course_id).order_by('-id')
+        #
+        # if not user.has_perm('modify_course', course):
+        #     assignment_list = [a for a in assignment_list if a.is_released()]
+        #
+        # template_context = {
+        #     'myuser': request.user,
+        #     'course': course,
+        #     'assignment_list': assignment_list,
+        # }
+        # return render(request, 'serapis/course.html', template_context)
 
 
 @login_required(login_url='/login/')
