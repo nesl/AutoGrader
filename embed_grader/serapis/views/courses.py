@@ -183,7 +183,7 @@ def download_csv(request, course_id):
     response['Content-Disposition'] = 'attachment; filename="%s_scores.csv"' % course
     writer = csv.writer(response)
 
-    if not user.has_perm('download_csv', course):
+    if not user.has_perm('modify_course', course):
         return HttpResponse("Not enough privilege.")
 
     assignment_list = Assignment.objects.filter(course_fk=course_id).order_by('-id')
@@ -192,61 +192,55 @@ def download_csv(request, course_id):
 
     writer.writerow(headers)
 
-    assignment_ids = []
-
-    for assign in assignment_list:
-        assignment_ids.append(assign.id)
-
-    print(assignment_ids)
-
     students = [o.user_fk for o in CourseUserList.objects.filter(course_fk=course)]
+    students = [s for s in students if not s.has_perm('modify_course', course)]
+
     scores = {}
-    for s in students:
-        scores[s] = [0. for _ in range(len(assignment_list))]
-    for idx, aid in enumerate(assignment_ids):
-        assignment = Assignment.objects.get(id=aid)
+    max_possible_score_for_each_assignment = [0.0]*(len(assignment_list))
+    for student in students:
+        scores[student] = [0. for _ in range(len(assignment_list))]
+    for idx, aid in enumerate(assignment_list):
+        assignment = Assignment.objects.get(id=aid.id)
         teams = Team.objects.filter(assignment_fk=assignment)
         for team in teams:
             last_submission = grading.get_last_submission(team, assignment)
         if last_submission is None:
             continue
-        _, score, _ = last_submission.retrieve_task_grading_status_and_score_sum(True)
+        _, score, max_possible_score_for_each_assignment[idx] = last_submission.retrieve_task_grading_status_and_score_sum(True)
         team_students = [o.user_fk for o in TeamMember.objects.filter(team_fk=team)]
-        for s in team_students:
-            if s.id != 1:
-                scores[s][idx] = score
+        for student in students:
+            if student.id != 1:
+                # the score of student s in the idx-th assignment
+                # idx is the index in the assignment list
+                scores[student][idx] = score
 
-    for s in scores:
+    for score in scores:
         new_row = []
-        user_profile = UserProfile.objects.get(user=s)
-        terms = [user_profile.uid] + list(map(str, scores[s]))
+        user_profile = UserProfile.objects.get(user=score)
+        terms = [user_profile.uid] + list(map(str, scores[score]))
         new_row.append(user_profile.user.last_name)
         new_row.append(user_profile.user.first_name)
         new_row.append(user_profile.uid)
         count = 0
         sum_scores_for_each_assignment = [None]*(len(terms)-1)
-        max_score_for_each_assignment = [None]*(len(terms)-1)
         for t in terms[1:]:
             if sum_scores_for_each_assignment[count] == None:
                 sum_scores_for_each_assignment[count] = t
             else:
                 sum_scores_for_each_assignment[count] += t
-
-            if max_score_for_each_assignment[count] == None or max_score_for_each_assignment[count] < t:
-                max_score_for_each_assignment[count] = t
             new_row.append(t)
             count += 1
         writer.writerow(new_row)
 
     average = ['Average']
-    maximum = ['Max']
+    maximum = ['Max Possible Points']
 
     average_scores_for_each_assignment = []
     for i in sum_scores_for_each_assignment:
         print(i)
         average.append(float(i)/len(scores))
 
-    for j in max_score_for_each_assignment:
+    for j in max_possible_score_for_each_assignment:
         print(j)
         maximum.append(j)
 
