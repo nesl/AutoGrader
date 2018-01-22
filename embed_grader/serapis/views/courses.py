@@ -171,6 +171,7 @@ def unenroll_course(request, course_id):
     }
     return render(request, 'serapis/unenroll_course.html', template_context)
 
+
 @login_required(login_url='/login/')
 def download_csv(request, course_id):
     user = User.objects.get(username=request.user)
@@ -195,8 +196,11 @@ def download_csv(request, course_id):
     students = [o.user_fk for o in CourseUserList.objects.filter(course_fk=course)]
     students = [s for s in students if not s.has_perm('modify_course', course)]
 
+    # the score of student s in the idx-th assignment
+    # idx is the index in the assignment list
     scores = {}
-    max_possible_score_for_each_assignment = [0.0]*(len(assignment_list))
+
+    max_possible_score_for_each_assignment = [0.0]*len(assignment_list)
     for student in students:
         scores[student] = [0. for _ in range(len(assignment_list))]
     for idx, aid in enumerate(assignment_list):
@@ -209,44 +213,24 @@ def download_csv(request, course_id):
         _, score, max_possible_score_for_each_assignment[idx] = last_submission.retrieve_task_grading_status_and_score_sum(True)
         team_students = [o.user_fk for o in TeamMember.objects.filter(team_fk=team)]
         for student in students:
-            if student.id != 1:
-                # the score of student s in the idx-th assignment
-                # idx is the index in the assignment list
-                scores[student][idx] = score
+            scores[student][idx] = score
 
-    for score in scores:
-        new_row = []
-        user_profile = UserProfile.objects.get(user=score)
-        terms = [user_profile.uid] + list(map(str, scores[score]))
-        new_row.append(user_profile.user.last_name)
-        new_row.append(user_profile.user.first_name)
-        new_row.append(user_profile.uid)
-        count = 0
-        sum_scores_for_each_assignment = [None]*(len(terms)-1)
-        for t in terms[1:]:
-            if sum_scores_for_each_assignment[count] == None:
-                sum_scores_for_each_assignment[count] = t
-            else:
-                sum_scores_for_each_assignment[count] += t
-            new_row.append(t)
-            count += 1
-        writer.writerow(new_row)
-
-    average = ['Average']
-    maximum = ['Max Possible Points']
+    for student in scores:
+        user_profile = UserProfile.objects.get(user=student)
+        writer.writerow([student.last_name, student.first_name, user_profile.uid]
+                + [str(score) for score in scores[student]])
 
     average_scores_for_each_assignment = []
-    for i in sum_scores_for_each_assignment:
-        print(i)
-        average.append(float(i)/len(scores))
+    for idx in range(len(assignment_list)):
+        sum_score = sum([scores[student][idx] for student in scores])
+        average_scores_for_each_assignment.append(sum_score / len(scores))
+    writer.writerow(['', '', 'Average']
+            + list(map(str, average_scores_for_each_assignment)))
 
-    for j in max_possible_score_for_each_assignment:
-        print(j)
-        maximum.append(j)
+    writer.writerow(['', '', 'Max Score'] + [str(score) for score in max_possible_score_for_each_assignment])
 
-    writer.writerow(average)
-    writer.writerow(maximum)
     return response
+
 
 @login_required(login_url='/login/')
 def membership(request, course_id):
