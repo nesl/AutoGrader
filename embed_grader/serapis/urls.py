@@ -68,6 +68,7 @@ urlpatterns = [
     url(r'^hardware-type/(?P<hardware_type_id>[0-9]+)/$', hardware.hardware_type, name='hardware-type'),
     url(r'^create-hardware-type/$', hardware.create_hardware_type, name='create-hardware-type'),
     url(r'^modify-hardware-type/(?P<hardware_type_id>[0-9]+)/$', hardware.modify_hardware_type, name='modify-hardware-type'),
+    url(r'^testbed-status-list/$', testbeds.testbed_status_list, name='testbed-status-list'),
 
     ## Report from testbeds
     url(r'^tb/send-summary/$', services.testbed_show_summary_report, name='tb-show-summary'),
