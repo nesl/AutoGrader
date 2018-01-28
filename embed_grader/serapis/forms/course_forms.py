@@ -128,8 +128,7 @@ class CourseEnrollmentForm(Form):
         cur_year = now.year
         cur_month = now.month
         cur_quarter = (cur_month - 1) // 3
-        cur_year_quarter = cur_year * 4 + cur_quarter
-
+        
         self.fields['course_select'] = forms.ModelChoiceField(
             queryset=Course.objects.filter(year=cur_year, quarter=cur_quarter))
 
