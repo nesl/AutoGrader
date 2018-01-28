@@ -1,4 +1,70 @@
 {% extends 'serapis/base_sidebar.html' %}
 {% load staticfiles %}
 
+{% block profile-usertitle-name %}
+  Testbed
+{% endblock %}
+
+{% block profile-usertitle-job %}
+  <br/>
+{% endblock %}
+
 {% block testbed-status-list-active %}active{% endblock %}
+
+{% block main-content %}
+  <div class="main-content">
+    <h1 class="page-header">Testbed Status List</h1>
+
+    {% if not testbed_list %}
+      <p>No testbeds available to view.</p>
+    {% else %}
+      <div class="table-responsive">
+      <table class="table table-hover">
+        <tr>
+          <th>#</th>
+          <th>IP Address & Port</th>
+          <th>Current Status</th>
+          <th>Last Report Time</th>
+          <th>Last Report Status</th>
+          <th>Graded task</th>
+        </tr>
+        {% for testbed in testbed_list %}
+        <tr>
+          <td>{{ forloop.counter }}</td>
+          <td>{{ testbed.ip_address }}</td>
+          <td>{{ testbed.status }}</td>
+          <td>{{ testbed.report_time }}</td>
+          <td>{{ testbed.report_status }}</td>
+          <td>{{ testbed.task_being_graded }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+      </div>
+    {% endif %}
+<!--
+    testbed_type_fk = models.ForeignKey(TestbedType, on_delete=models.CASCADE)
+
+      #IP Address. Only allowing IPv4 as the testers are internal
+      #TODO: see whether we should switch back to IPAddressField
+      #ip_address = models.GenericIPAddressField(protocol='IPv4')
+      ip_address = models.CharField(max_length=25, unique=True)
+      task_being_graded = models.ForeignKey(TaskGradingStatus, null=True, on_delete=models.SET_NULL)
+      grading_deadline = models.DateTimeField()
+
+      # internal
+      status = models.IntegerField(choices=TESTBED_STATUS)
+
+      # report message
+      report_time = models.DateTimeField()
+      report_status = models.IntegerField(choices=REPORT_STATUS)
+
+      # status of the foreign testbed
+      secret_code = models.CharField(max_length=100) -->
+
+    <p>
+      <a href="{% url 'create-hardware-type' %}" class="btn btn-primary">Create a New Hardware Type</a>
+      <!-- <a href="{% url 'testbed-type-list' %}" class="btn btn-default">View Testbed Type List</a> -->
+    </p>
+  </div>
+
+{% endblock %}

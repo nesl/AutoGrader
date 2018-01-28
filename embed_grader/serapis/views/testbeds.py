@@ -197,10 +197,11 @@ def testbed_status_list(request):
     if not user.has_perm('serapis.view_hardware_type'):
         return HttpResponse("Not enough privilege")
 
-    testbed_type_list = TestbedType.objects.all()
+    testbed_list = Testbed.objects.all()
+
     template_context = {
             'myuser': request.user,
             'user_profile': user_profile,
-            'testbed_type_list': testbed_type_list,
+            'testbed_list': testbed_list,
     }
     return render(request, 'serapis/testbed_status_list.html', template_context)
