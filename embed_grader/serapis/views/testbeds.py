@@ -189,19 +189,17 @@ def testbed_type_list(request):
     }
     return render(request, 'serapis/testbed_type_list.html', template_context)
 
+
 @login_required(login_url='/login/')
 def testbed_status_list(request):
     user = User.objects.get(username=request.user)
-    user_profile = UserProfile.objects.get(user=user)
-
+    # user_profile = UserProfile.objects.get(user=user)
     if not user.has_perm('serapis.view_hardware_type'):
         return HttpResponse("Not enough privilege")
 
     testbed_list = Testbed.objects.all()
 
     template_context = {
-            'myuser': request.user,
-            'user_profile': user_profile,
-            'testbed_list': testbed_list,
+        'testbed_list': testbed_list,
     }
     return render(request, 'serapis/testbed_status_list.html', template_context)
