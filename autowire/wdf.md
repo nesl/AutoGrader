@@ -25,7 +25,7 @@ With the pin connections specified, the back-end generates a Verilog file descri
 
 ### Format of WDF
 
-```JSON
+```
 {
 	"testbed_id": int,
 	"testbed_name": string,
