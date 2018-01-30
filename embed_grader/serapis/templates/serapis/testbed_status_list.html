@@ -19,33 +19,39 @@
       <p>No testbeds available to view.</p>
     {% else %}
       <div class="table-responsive">
-      <table class="table table-hover">
-        <tr>
-          <th>#</th>
-          <th>IP Address & Port</th>
-          <th>Current Status</th>
-          <th>Last Report Time</th>
-          <th>Last Report Status</th>
-          <th>Graded task</th>
-        </tr>
-        {% for testbed in testbed_list %}
-        <tr>
-          <td>{{ forloop.counter }}</td>
-          <td>{{ testbed.ip_address }}</td>
-          <td>{{ testbed.status }}</td>
-          <td>{{ testbed.report_time }}</td>
-          <td>{{ testbed.report_status }}</td>
-          <td>{{ testbed.task_being_graded }}</td>
-        </tr>
+        <table class="table table-hover">
+          <tr>
+            <th>Testbed ID</th>
+            <th>IP Address &nbsp; Port</th>
+            <th>Current Status</th>
+            <th>Last Report Time</th>
+            <th>Last Report Status</th>
+            <th>Graded task</th>
+          </tr>
+          {% for testbed in testbed_list %}
+          <tr>
+            <td>{{ testbed.id }}</td>
+            <td>{{ testbed.ip_address }}</td>
+            <td>{{ testbed.get_status_display }}</td>
+            <td>{{ testbed.report_time }}</td>
+            <td>{{ testbed.get_report_status_display }}</td>
+            <td>
+              {% if not testbed.task_being_graded %}
+                (No executing task)
+              {% else %}
+                Course: {{ testbed.task_being_graded.assignment_task_fk.assignment_fk.course_fk.name }}<br/>
+                Assignment: {{ testbed.task_being_graded.assignment_task_fk.assignment_fk.name }}<br/>
+                Task name: {{ testbed.task_being_graded.assignment_task_fk }}<br/>
+                Submission ID: {{ testbed.task_being_graded.submission_fk.id }}
+              {% endif %}
+            </td>
+          </tr>
         {% endfor %}
       </table>
       </div>
     {% endif %}
 
-    <p>
-      <a href="{% url 'create-hardware-type' %}" class="btn btn-primary">Create a New Hardware Type</a>
-      <!-- <a href="{% url 'testbed-type-list' %}" class="btn btn-default">View Testbed Type List</a> -->
-    </p>
+
   </div>
 
 {% endblock %}

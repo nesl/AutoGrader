@@ -193,7 +193,6 @@ def testbed_type_list(request):
 @login_required(login_url='/login/')
 def testbed_status_list(request):
     user = User.objects.get(username=request.user)
-    # user_profile = UserProfile.objects.get(user=user)
     if not user.has_perm('serapis.view_hardware_type'):
         return HttpResponse("Not enough privilege")
 
