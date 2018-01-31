@@ -96,7 +96,7 @@ window.addEventListener('load', function() {
     root.draw()
     var device = new AWDeviceView(root, 20, 20, 100, 300)
     device.draw()
-    var header = new AMHeaderView(root, 20, 20, 2, 20)
+    var header = new AMHeaderView(device, 20, 20, 2, 20)
     header.draw()
 })
 
