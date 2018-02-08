@@ -79,9 +79,12 @@ def modify_course(request, course_id):
 
 
 @login_required(login_url='/login/')
-def delete_course(request, course_id):
+def delete_course(request):
+    if request.method != 'POST':
+        HttpResponse("Not enough privilege", status=404)
+
     try:
-        course = Course.objects.get(id=course_id)
+        course = Course.objects.get(id=request.POST.get('course_id'))
     except Course.DoesNotExist:
         return HttpResponse("Course cannot be found.")
 
