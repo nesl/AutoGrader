@@ -145,19 +145,17 @@ def enroll_course(request):
 
 
 @login_required(login_url='/login/')
-def unenroll_course(request, course_id):
+def drop_course(request, course_id):
     user = User.objects.get(username=request.user)
-    course = Course.objects.get(id=course_id)
 
-    course_enrolled = (CourseUserList.objects.filter(user_fk=user, course_fk=course).count() > 0)
+    try:
+        course = Course.objects.get(id=course_id)
+    except Course.DoesNotExist:
+        return HttpResponse("Not enough privilege")
 
-    if not course_enrolled:
-        template_context = {
-            'myuser': user,
-            'course': course,
-            'course_enrolled': False,
-        }
-        return render(request, 'serapis/unenroll_course.html', template_context)
+    # show an error if not enrolled, 
+    if CourseUserList.objects.filter(user_fk=user, course_fk=course).count() == 0:
+        return HttpResponse("Not enough privilege")
 
     if request.method == 'POST':
         form = CourseDropForm(request.POST, user=user, course=course)
@@ -170,9 +168,8 @@ def unenroll_course(request, course_id):
         'myuser': user,
         'course': course,
         'form': form,
-        'course_enrolled': True,
     }
-    return render(request, 'serapis/unenroll_course.html', template_context)
+    return render(request, 'serapis/drop_course.html', template_context)
 
 
 @login_required(login_url='/login/')

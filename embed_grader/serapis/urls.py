@@ -34,7 +34,7 @@ urlpatterns = [
     url(r'^modify-course/(?P<course_id>[0-9]+)/$', courses.modify_course, name='modify-course'),
     url(r'^delete-course/$', courses.delete_course, name='delete-course'),
     url(r'^enroll-course/$', courses.enroll_course, name='enroll-course'),
-    url(r'^unenroll-course/(?P<course_id>[0-9]+)/$', courses.unenroll_course, name='unenroll-course'),
+    url(r'^drop-course/(?P<course_id>[0-9]+)/$', courses.drop_course, name='drop-course'),
     url(r'^download-csv/(?P<course_id>[0-9]+)/$', courses.download_csv, name='download-csv'),
 
     ## Assignment pages
