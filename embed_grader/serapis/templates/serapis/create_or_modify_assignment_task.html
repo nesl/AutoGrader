@@ -35,7 +35,11 @@
       <br/>
       <br/>
       <h2 class="page-header">Danger zone</h2>
-      <a class="btn btn-danger" href="{% url 'delete-assignment-task' assignment_task.id %}" onclick="return double_check_delete_assignment_task()">Delete task</a>
+      <form action="{% url 'delete-assignment-task' %}" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="task_id" value="{{assignment_task.id}}" />
+        <input type="submit" class="btn btn-danger" value="Delete task" onclick="return double_check_delete_assignment_task()">
+      </form>
       <script>
         function double_check_delete_assignment_task() {
           return confirm("Are you sure you want to permanently remove this task? All the corresponding judging results are going to be removed, too.");
