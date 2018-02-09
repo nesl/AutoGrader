@@ -425,9 +425,12 @@ def modify_assignment(request, assignment_id):
 
 
 @login_required(login_url='/login/')
-def delete_assignment(request, assignment_id):
+def delete_assignment(request):
+    if request.method != 'POST':
+        HttpResponse("Not enough privilege", status=404)
+
     try:
-        assignment = Assignment.objects.get(id=assignment_id)
+        assignment = Assignment.objects.get(id=request.POST.get('assignment_id'))
     except Assignment.DoesNotExist:
         return HttpResponse("Cannot find the assignment.")
 
