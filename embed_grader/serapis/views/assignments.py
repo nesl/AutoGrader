@@ -3,7 +3,7 @@ from django.contrib.auth.models import User, Group
 
 from django.shortcuts import render, get_object_or_404
 from django.http import *
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
 
 from django.template import RequestContext
 from django import forms
@@ -347,13 +347,16 @@ def view_assignment_team_list(request, assignment_id):
 
 
 @login_required(login_url='/login/')
-def delete_team(request, assignment_id, team_id):
+def delete_team(request):
+    if request.method != 'POST':
+        HttpResponse("Not enough privilege", status=404)
+
     user = User.objects.get(username=request.user)
 
     try:
-        assignment = Assignment.objects.get(id=assignment_id)
-        team = Team.objects.get(id=team_id)
-    except Assignment.DoesNotExist:
+        assignment = Assignment.objects.get(id=request.POST.get('assignment_id'))
+        team = Team.objects.get(id=request.POST.get('team_id'))
+    except ObjectDoesNotExist:
         return HttpResponse("Assignment or team cannot be found.")
 
     course = assignment.course_fk
