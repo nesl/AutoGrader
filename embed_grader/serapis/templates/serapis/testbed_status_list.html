@@ -12,6 +12,36 @@
 {% block testbed-status-list-active %}active{% endblock %}
 
 {% block main-content %}
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+  <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/1.10.11/js/jquery.dataTables.min.js"></script>
+  <script type="text/javascript">
+    setInterval(function(){
+      $.ajax({
+        url: '{% url 'testbed-status-list' %}',
+        type: 'get', // This is the default though, you don't actually need to always mention it
+        dataType: 'JSON',
+        success: function(data) {
+          var testbeds = JSON.parse(data)
+          $("#status-table-body").empty();
+          if(testbeds.length == 0) {
+            $(".main-content").append("<p>No testbeds available to view.</p>")
+          }
+          else {
+            console.log(testbeds[1]["fields"]["ip_address"]);
+            for(var i=0; i < testbeds.length; i++) {
+              var newRow = "<tr class=\"modifiable-rows\"><td>"+toString(i+1)+"</td><td>"+testbeds[i]["fields"]["ip_address"]+"</td><td>"+
+
+            }
+
+          }
+        },
+        failure: function(data) {
+          console.log("bad")
+          alert('Got an error dude');
+        }
+      });
+    }, 5000);
+  </script>
   <div class="main-content">
     <h1 class="page-header">Testbed Status List</h1>
 
@@ -20,6 +50,7 @@
     {% else %}
       <div class="table-responsive">
         <table class="table table-hover">
+          <thead>
           <tr>
             <th>Testbed ID</th>
             <th>IP Address &nbsp; Port</th>
@@ -28,8 +59,10 @@
             <th>Last Report Status</th>
             <th>Graded task</th>
           </tr>
+        </thead>
+        <tbody id="status-table-body">
           {% for testbed in testbed_list %}
-          <tr>
+          <tr class="modifiable-rows">
             <td>{{ testbed.id }}</td>
             <td>{{ testbed.ip_address }}</td>
             <td>{{ testbed.get_status_display }}</td>
@@ -46,12 +79,11 @@
               {% endif %}
             </td>
           </tr>
-        {% endfor %}
+          {% endfor %}
+        </tbody>
       </table>
       </div>
     {% endif %}
-
-
   </div>
 
 {% endblock %}

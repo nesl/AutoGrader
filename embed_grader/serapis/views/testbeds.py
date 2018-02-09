@@ -7,6 +7,7 @@ from django.shortcuts import render, get_object_or_404
 from django.http import *
 from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
+from django.core import serializers
 from django.template import RequestContext
 from django.db import IntegrityError
 from django.db import transaction
@@ -201,4 +202,7 @@ def testbed_status_list(request):
     template_context = {
         'testbed_list': testbed_list,
     }
-    return render(request, 'serapis/testbed_status_list.html', template_context)
+    if request.is_ajax():
+        return JsonResponse(serializers.serialize('json', testbed_list), safe=False)
+    else:
+        return render(request, 'serapis/testbed_status_list.html', template_context)
