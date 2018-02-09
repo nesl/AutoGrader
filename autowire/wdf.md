@@ -18,7 +18,7 @@ The output of the front-end is the above and
 
  - Pin connections with direction
 
-> The front-end itself needs to have the notion of the appearence of the devices, including what pin headers there are on the device in order to draw them. It needs the map the devices described in the WDF to its own notion. This can be done by matching the device names.
+The size and the position of the devices and the headers also need to be specified. To make the UI scalable, the basic length unit is "pins". Therefore, by specify the dimension of one "pin" we can scale the size of all objects in the UI. For example, the pin header on a Raspberry Pi 3 is 20 x 2 and the x dimension of it is about two times the length of the header. Then, the x dimension of that Pi using our metrics is 40 "pins". The position of the headers and the devices can also be specified in this way.
 
 ### Back-end's Action
 With the pin connections specified, the back-end generates a Verilog file describing a module which is a collection of wires. It also generates the helper script for the Quartus tool to map the Verilog pin variable to the actual pin. After that, it builds the generated module to a binary and flashes the binary to the FPGA, and the wiring is thereof done.
@@ -29,14 +29,18 @@ With the pin connections specified, the back-end generates a Verilog file descri
 {
 	"testbed_id": int,
 	"testbed_name": string,
+	"testbed_shape": [int], // length 2
 	"devices": [
 		{
 			device_id: int,
 			device_name: string,
+			device_shape: [int],
+			device_pos: [int],
 			pin_headers: [
 				{
 					header_name: string,
-					header_shape: [int], // length 2
+					header_shape: [int],
+					header_pos:[int],
 					pins: [
 						{
 							pin_no: int,
