@@ -16,30 +16,46 @@
   <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/1.10.11/js/jquery.dataTables.min.js"></script>
   <script type="text/javascript">
     setInterval(function(){
-      $.ajax({
-        url: '{% url 'testbed-status-list' %}',
-        type: 'get', // This is the default though, you don't actually need to always mention it
-        dataType: 'JSON',
-        success: function(data) {
-          var testbeds = JSON.parse(data)
-          $("#status-table-body").empty();
-          if(testbeds.length == 0) {
-            $(".main-content").append("<p>No testbeds available to view.</p>")
-          }
-          else {
-            console.log(testbeds[1]["fields"]["ip_address"]);
-            for(var i=0; i < testbeds.length; i++) {
-              var newRow = "<tr class=\"modifiable-rows\"><td>"+toString(i+1)+"</td><td>"+testbeds[i]["fields"]["ip_address"]+"</td><td>"+
+        $.ajax({
+            url: '{% url 'testbed-status-list' %}',
+            type: 'get', // This is the default though, you don't actually need to always mention it
+            dataType: 'JSON',
+            success: function(data) {
+                var testbeds = JSON.parse(data)
+                $("#status-table-body").empty();
+                if(testbeds.length == 0) {
+                    $(".main-content").append("<p>No testbeds available to view.</p>")
+                }
+                else {
+                    console.log(testbeds[0]);
+                    var tbody = $("#status-table-body")
+                    for(var i=0; i < testbeds.length; i++) {
+                        tbody.append("<tr class=\"modifiable-rows\">")
+                        var index = i+1;
+                        var tr = $('#status-table-body').find('tr:eq('+index+')');
+                        console.log(tr.length==0)
+                        tr.append("<td>"+toString(i+1)+"</td>");
+                        tr.append("<td>"+testbeds[i]["fields"]["ip_address"]+"</td>");
+                        tr.append("<td>"+testbeds[i]["fields"]["status"]+"</td>");
+                        tr.append("<td>"+testbeds[i]["fields"]["report_time"]+"</td>");
+                        tr.append("<td>"+testbeds[i]["fields"]["report_status"]+"</td>");
+                        tr.append("<td>"+testbeds[i]["fields"]["report_time"]+"</td>");
+                        if(testbeds[i]["task_being_graded"] == null) {
+                            tr.append("<td>(No executing task)</td>");
+                        }
+                        else {
+                            tr.append("<td>"+testbeds[i]["fields"]["task_being_graded"]+"</td>")
+                        }
+                    }
 
+                }
+
+            },
+            failure: function(data) {
+              console.log("bad")
+              alert('Got an error dude');
             }
-
-          }
-        },
-        failure: function(data) {
-          console.log("bad")
-          alert('Got an error dude');
-        }
-      });
+        });
     }, 5000);
   </script>
   <div class="main-content">
