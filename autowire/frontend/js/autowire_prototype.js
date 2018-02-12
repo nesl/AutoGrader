@@ -1,7 +1,8 @@
+const PIN_PX = 8
 var platform = {
   "testbed_id": 0,
   "testbed_name": "Sample Platform",
-  "testbed_shape": [500, 500], // length 2
+  "testbed_shape": [100, 100], // length 2
   "devices": [
     {
       "device_id": 0,
@@ -262,21 +263,27 @@ var platform = {
   ]
 }
 
+var tb_shape = platform.testbed_shape;
 var root = SVG("autowire")
-root.viewbox(0, 0, 640, 480)
-root.rect(640, 480).fill("#fff").stroke({ width: 2, color: "black" })
+root.viewbox(0, 0, PIN_PX * tb_shape[0], PIN_PX * tb_shape[1]);
+root.rect(PIN_PX * tb_shape[0], PIN_PX * tb_shape[1]).fill("#fff").stroke({ width: 2, color: "black" })
 
+for (var dev_idx in platform.devices) {
+  var dev = platform.devices[dev_idx]
+  var device = root.nested().move(PIN_PX * dev.device_pos[0], PIN_PX * dev.device_pos[1])
+  device.rect(PIN_PX * dev.device_shape[0], PIN_PX * dev.device_shape[1]).fill("#fff").stroke({ width: 1, color: "black"})
 
-var device = root.nested().move(20, 20)
-device.rect(100, 300).fill("#fff").stroke({ width: 1, color: "black"})
-
-var header = device.nested().move(20, 20)
-
-for (var i = 0; i < 20; i++) {
-	header.rect(5, 5).fill("#fff").stroke({ width: 1, color: "black"}).move(0, 5 * i).mouseover(function() {this.fill("#000")}).mouseout(function() {this.fill("#fff")})
+  for (var hdr_idx in dev.pin_headers) {
+    var hdr = dev.pin_headers[hdr_idx]
+    var header = device.nested().move(PIN_PX * hdr.header_pos[0], PIN_PX * hdr.header_pos[1])
+      
+    for (var pin_idx in hdr.pins) {
+      var pin = hdr.pins[pin_idx]
+      header.rect(PIN_PX, PIN_PX).fill("#fff").stroke({ width: 1, color: "black"}).move(PIN_PX * pin.pin_pos[0], PIN_PX * pin.pin_pos[1]).mouseover(function() {this.fill("#000")}).mouseout(function() {this.fill("#fff")})
+    }
+  }
 }
 
-for (var i = 0; i < 20; i++) {
-	header.rect(5, 5).fill("#fff").stroke({ width: 1, color: "black"}).move(5, 5 * i).mouseover(function() {this.fill("#000")}).mouseout(function() {this.fill("#fff")})
-}
+
+
 
