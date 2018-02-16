@@ -21,30 +21,29 @@
             type: 'get', // This is the default though, you don't actually need to always mention it
             dataType: 'JSON',
             success: function(data) {
-                var testbeds = JSON.parse(data)
+                console.log(data);
+                var testbeds = data
                 $("#status-table-body").empty();
                 if(testbeds.length == 0) {
                     $(".main-content").append("<p>No testbeds available to view.</p>")
                 }
                 else {
-                    console.log(testbeds[0]);
                     var tbody = $("#status-table-body")
                     for(var i=0; i < testbeds.length; i++) {
                         tbody.append("<tr class=\"modifiable-rows\">")
                         var index = i+1;
-                        var tr = $('#status-table-body').find('tr:eq('+index+')');
-                        console.log(tr.length==0)
-                        tr.append("<td>"+toString(i+1)+"</td>");
-                        tr.append("<td>"+testbeds[i]["fields"]["ip_address"]+"</td>");
-                        tr.append("<td>"+testbeds[i]["fields"]["status"]+"</td>");
-                        tr.append("<td>"+testbeds[i]["fields"]["report_time"]+"</td>");
-                        tr.append("<td>"+testbeds[i]["fields"]["report_status"]+"</td>");
-                        tr.append("<td>"+testbeds[i]["fields"]["report_time"]+"</td>");
-                        if(testbeds[i]["task_being_graded"] == null) {
+                        var tr = $('#status-table-body').find('tr:last');
+                        tr.append("<td>"+index+"</td>");
+                        tr.append("<td>"+testbeds[i]["ip_address"]+"</td>");
+                        tr.append("<td>"+testbeds[i]["status"]+"</td>");
+                        tr.append("<td>"+testbeds[i]["report_time"]+"</td>");
+                        tr.append("<td>"+testbeds[i]["report_status"]+"</td>");
+                        console.log(testbeds[i]["task"])
+                        if(Object.keys(testbeds[i]["task"]).length == 0) {
                             tr.append("<td>(No executing task)</td>");
                         }
                         else {
-                            tr.append("<td>"+testbeds[i]["fields"]["task_being_graded"]+"</td>")
+                            tr.append("<td> Course:"+testbeds[i]["task"]["course"]+"</br> Assignment:"+ testbeds[i]["task"]["assignment"] + "</br> Task Name:" + testbeds[i]["task"]["task_name"]+ "</br> Submission ID:" + testbeds[i]["task"]["submission_id"]+"</td>")
                         }
                     }
 

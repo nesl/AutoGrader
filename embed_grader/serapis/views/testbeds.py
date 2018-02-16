@@ -197,12 +197,37 @@ def testbed_status_list(request):
     if not user.has_perm('serapis.view_hardware_type'):
         return HttpResponse("Not enough privilege")
 
+    ids, ip_addresses, status_displays, last_report_times, last_report_statuses, tasks_being_graded = [],[],[],[],[],[]
+
     testbed_list = Testbed.objects.all()
 
+    for testbed in testbed_list:
+        print(testbed.task_being_graded)
+        ids.append(testbed.id)
+        ip_addresses.append(testbed.ip_address)
+        status_displays.append("1")
+        last_report_times.append(testbed.report_time)
+        last_report_statuses.append("1")
+        task = {}
+        if not testbed.task_being_graded:
+            tasks_being_graded.append({})
+        else:
+            task['course'] = testbed.task_being_graded.assignment_task_fk.assignment_fk.course_fk.name
+            task['assignment'] = testbed.task_being_graded.assignment_task_fk.assignment_fk.name
+            task['task_name']= testbed.task_being_graded.assignment_task_fk.description
+            task['submission_id'] =  testbed.task_being_graded.submission_fk.id
+            tasks_being_graded.append(task)
+
+
+    ajax_json = [{"id": i, "ip_address": ip, "status": s, "report_time": lrt, "report_status": lrs, "task": t} for i, ip, s, lrt, lrs, t in zip(ids, ip_addresses, status_displays, last_report_times, last_report_statuses, tasks_being_graded)]
+
     template_context = {
-        'testbed_list': testbed_list,
+        'testbed_list' : testbed_list
     }
+
+    # json_data = json.dumps(ajax_json)
+
     if request.is_ajax():
-        return JsonResponse(serializers.serialize('json', testbed_list), safe=False)
+        return JsonResponse(ajax_json, safe=False)
     else:
         return render(request, 'serapis/testbed_status_list.html', template_context)
