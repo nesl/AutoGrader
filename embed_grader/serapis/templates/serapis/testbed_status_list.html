@@ -93,6 +93,12 @@
                 Submission ID: {{ testbed.task_being_graded.submission_fk.id }}
               {% endif %}
             </td>
+            <!-- HERE -->
+            <!-- <td>
+                <a href='{% url 'abort-testbed-task' course.id %}' class="btn btn-primary">
+                  Abort Task
+                </a>
+            </td> -->
           </tr>
           {% endfor %}
         </tbody>

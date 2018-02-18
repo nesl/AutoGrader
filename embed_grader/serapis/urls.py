@@ -4,6 +4,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 from serapis.views import *
+from serapis.utils import *
 from . import services
 from . import media_controls
 
@@ -69,6 +70,8 @@ urlpatterns = [
     url(r'^create-hardware-type/$', hardware.create_hardware_type, name='create-hardware-type'),
     url(r'^modify-hardware-type/(?P<hardware_type_id>[0-9]+)/$', hardware.modify_hardware_type, name='modify-hardware-type'),
     url(r'^testbed-status-list/$', testbeds.testbed_status_list, name='testbed-status-list'),
+    url(r'^abort-testbed-task/$', testbed_helper.abort_task, name='abort-testbed-task'),
+
 
     ## Report from testbeds
     url(r'^tb/send-summary/$', services.testbed_show_summary_report, name='tb-show-summary'),
