@@ -15,13 +15,33 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
   <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/1.10.11/js/jquery.dataTables.min.js"></script>
   <script type="text/javascript">
+    function getCookie(c_name) {
+      if (document.cookie.length > 0)
+      {
+          c_start = document.cookie.indexOf(c_name + "=");
+          if (c_start != -1) {
+              c_start = c_start + c_name.length + 1;
+              c_end = document.cookie.indexOf(";", c_start);
+              if (c_end == -1) c_end = document.cookie.length;
+              return unescape(document.cookie.substring(c_start,c_end));
+         }
+      }
+      return "";
+    }
+    $(function () {
+        $.ajaxSetup({
+            headers: { "X-CSRFToken": getCookie("csrftoken") }
+        });
+    });
+
+
+
     setInterval(function(){
         $.ajax({
             url: '{% url 'testbed-status-list' %}',
             type: 'get', // This is the default though, you don't actually need to always mention it
             dataType: 'JSON',
             success: function(data) {
-                console.log(data);
                 var testbeds = data
                 $("#status-table-body").empty();
                 if(testbeds.length == 0) {
@@ -44,11 +64,10 @@
                         }
                         else {
                             tr.append("<td> Course:"+testbeds[i]["task"]["course"]+"</br> Assignment:"+ testbeds[i]["task"]["assignment"] + "</br> Task Name:" + testbeds[i]["task"]["task_name"]+ "</br> Submission ID:" + testbeds[i]["task"]["submission_id"]+"</td>")
+                            tr.append("<td><a onclick=" + "abort_task(" + index + ") class=\"btn btn-primary\"> Abort Task </a></td>")
                         }
                     }
-
                 }
-
             },
             failure: function(data) {
               console.log("bad")
@@ -94,12 +113,37 @@
               {% endif %}
             </td>
             <!-- HERE -->
-            <!-- <td>
-                <a href='{% url 'abort-testbed-task' course.id %}' class="btn btn-primary">
+
+            <td>
+                {% if not testbed.task_being_graded %}
+                <a>
+                    No Task to Abort
+                </a>
+                {% else %}
+                <a onclick="abort_task('{{ testbed.id }}')" class="btn btn-primary">
                   Abort Task
                 </a>
-            </td> -->
+                {% endif %}
+            </td>
           </tr>
+
+          <script>
+            function abort_task(testbed_id) {
+              $.ajax({
+                  url: '{% url 'abort-testbed-task' %}',
+                  type: 'post', // This is the default though, you don't actually need to always mention it
+                  dataType: 'JSON',
+                  data: {id: testbed_id} ,
+                  success: function(data) {
+                      console.log(data)
+                  },
+                  failure: function(data) {
+                    console.log("bad")
+                    alert('Got an error dude');
+                  }
+              });
+            }
+          </script>
           {% endfor %}
         </tbody>
       </table>

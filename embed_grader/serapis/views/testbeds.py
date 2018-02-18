@@ -20,6 +20,9 @@ from guardian.shortcuts import assign_perm
 
 from serapis.models import *
 from serapis.forms.testbed_forms import *
+from serapis.utils import testbed_helper
+from django.views.decorators.csrf import csrf_exempt
+
 
 
 @login_required(login_url='/login/')
@@ -225,9 +228,15 @@ def testbed_status_list(request):
         'testbed_list' : testbed_list
     }
 
-    # json_data = json.dumps(ajax_json)
-
     if request.is_ajax():
         return JsonResponse(ajax_json, safe=False)
     else:
         return render(request, 'serapis/testbed_status_list.html', template_context)
+
+@csrf_exempt
+@login_required(login_url='/login/')
+def abort_testbed_task(request):
+    testbed_id = int(request.POST['id'])
+    testbed = Testbed.objects.all()[testbed_id]
+    testbed_helper.abort_task(testbed, set_status=Testbed.STATUS_AVAILABLE)
+    return JsonResponse({"done": "success"}, safe=False)
