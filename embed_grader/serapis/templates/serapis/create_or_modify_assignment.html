@@ -42,10 +42,14 @@
       <br/>
       <br/>
       <h2 class="page-header">Danger zone</h2>
-      <a class="btn btn-danger" href="{% url 'delete-assignment' assignment.id %}" onclick="return double_check_delete_assignment()">Delete assignment</a>
+      <form action="{% url 'delete-assignment' %}" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="assignment_id" value="{{assignment.id}}" />
+        <input type="submit" class="btn btn-danger" value="Delete assignment" onclick="return double_check_delete_assignment()">
+      </form>
       <script>
         function double_check_delete_assignment() {
-          return confirm("Are you sure you want to permanently remove this assignment? All the student submissions will be removed as well");
+          return confirm("Are you sure you want to permanently remove this assignment? All the student submissions under this assignment will be removed as well.");
         }
       </script>
     {% endif %}

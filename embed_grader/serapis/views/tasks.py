@@ -97,9 +97,12 @@ def modify_assignment_task(request, task_id):
 
 
 @login_required(login_url='/login/')
-def delete_assignment_task(request, task_id):
+def delete_assignment_task(request):
+    if request.method != 'POST':
+        HttpResponse("Not enough privilege", status=404)
+
     try:
-        task = AssignmentTask.objects.get(id=task_id)
+        task = AssignmentTask.objects.get(id=request.POST.get('task_id'))
     except AssignmentTask.DoesNotExist:
         return HttpResponse("Assignment task cannot be found")
 
