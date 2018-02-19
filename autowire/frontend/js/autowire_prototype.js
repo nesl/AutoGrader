@@ -527,6 +527,29 @@ var platform = {
   ]
 }
 
+function amendPlatformJSON(connections) {
+  var targetConnections = []
+  
+  for (var i in connections) {
+    var connection = connections[i];
+    var targetEntry = {
+      'from': {
+        'device_id': connection.src.data('device').device_id,
+        'header_name': connection.src.data('header').header_name,
+        'pin_no': connection.src.data('pin').pin_no
+      },
+      'to': {
+        'device_id': connection.dst.data('device').device_id,
+        'header_name': connection.dst.data('header').header_name,
+        'pin_no': connection.dst.data('pin').pin_no
+      }
+    }
+    targetConnections.push(targetEntry)
+  }
+
+  platform.connections = targetConnections
+}
+
 window.addEventListener('load', function() {
 
   // The shape of the testbed
@@ -553,6 +576,10 @@ window.addEventListener('load', function() {
   // Connections established
   var connections = []
 
+  var textLabel = root.nested().move(PIN_PX, 2 * PIN_PX)
+  var textLabelText = textLabel.plain("")
+  textLabelText.build(false)
+
   // Variables for drawing the connecting wires: null if there is no active source of connection
   var sourcePin = null
   var activeWire = null
@@ -570,7 +597,6 @@ window.addEventListener('load', function() {
       activeWire.plot(sourceX, sourceY, cursorX, cursorY)
     }
   })
-
 
   // Draw all the devices
   for (var dev_idx in platform.devices) {
@@ -598,7 +624,17 @@ window.addEventListener('load', function() {
           .fill("#fff")
           .stroke({ width: 1, color: "black"})
           .move(PIN_PX * pin.pin_pos[0], PIN_PX * pin.pin_pos[1])
-          .mouseover(function() { this.fill("#000")}).mouseout(function() {this.fill("#fff") })
+          .mouseover(function() { 
+            if (pin.available) {
+              this.fill("#000")
+            }
+            
+            textLabelText.plain(this.data('device').device_name + ' ' + this.data('header').header_name + ' ' + this.data('pin').pin_name)
+          })
+          .mouseout(function() {
+            this.fill("#fff") 
+            textLabelText.plain("None")
+          })
           .click(function() {
             if (!sourcePin) {
               for (var i in connections) {
@@ -658,7 +694,15 @@ window.addEventListener('load', function() {
       }
     }
   }
+
+  window.addEventListener('keyup', function(e) {
+    if (e.keycode === 13 || e.which === 13) {
+      amendPlatformJSON(connections)
+      console.log(platform)
+    }
+  })
 })
+
 
 
 
