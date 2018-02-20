@@ -22,6 +22,7 @@ from serapis.models import *
 from serapis.forms.testbed_forms import *
 from serapis.utils import testbed_helper
 from django.views.decorators.csrf import csrf_exempt
+from django.utils.formats import get_format
 
 
 
@@ -209,6 +210,7 @@ def testbed_status_list(request):
         ip_addresses.append(testbed.ip_address)
         status_displays.append(testbed.get_status_display())
         last_report_times.append(testbed.report_time)
+        print(testbed.report_time)
         last_report_statuses.append(testbed.get_report_status_display())
         task = {}
         if not testbed.task_being_graded:
@@ -216,7 +218,7 @@ def testbed_status_list(request):
         else:
             task['course'] = testbed.task_being_graded.assignment_task_fk.assignment_fk.course_fk.name
             task['assignment'] = testbed.task_being_graded.assignment_task_fk.assignment_fk.name
-            task['task_name']= testbed.task_being_graded.assignment_task_fk.description
+            task['task_name']= testbed.task_being_graded.assignment_task_fk.brief_description
             task['submission_id'] =  testbed.task_being_graded.submission_fk.id
             tasks_being_graded.append(task)
 
