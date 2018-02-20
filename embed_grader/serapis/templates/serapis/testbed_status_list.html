@@ -53,7 +53,7 @@
                         tbody.append("<tr class=\"modifiable-rows\">")
                         var index = i+1;
                         var tr = $('#status-table-body').find('tr:last');
-                        tr.append("<td>"+index+"</td>");
+                        tr.append("<td>"+testbeds[i]["id"]+"</td>");
                         tr.append("<td>"+testbeds[i]["ip_address"]+"</td>");
                         tr.append("<td>"+testbeds[i]["status"]+"</td>");
                         tr.append("<td>"+testbeds[i]["report_time"]+"</td>");
@@ -64,7 +64,7 @@
                         }
                         else {
                             tr.append("<td> Course:"+testbeds[i]["task"]["course"]+"</br> Assignment:"+ testbeds[i]["task"]["assignment"] + "</br> Task Name:" + testbeds[i]["task"]["task_name"]+ "</br> Submission ID:" + testbeds[i]["task"]["submission_id"]+"</td>")
-                            tr.append("<td><a onclick=" + "abort_task(" + index + ") class=\"btn btn-primary\"> Abort Task </a></td>")
+                            tr.append("<td><a onclick=" + "abort_task(" + testbeds[i]["id"] + ") class=\"btn btn-primary\"> Abort Task </a></td>")
                         }
                     }
                 }
@@ -115,20 +115,17 @@
             <!-- HERE -->
 
             <td>
-                {% if not testbed.task_being_graded %}
-                <a>
-                    No Task to Abort
-                </a>
-                {% else %}
-                <a onclick="abort_task('{{ testbed.id }}')" class="btn btn-primary">
-                  Abort Task
-                </a>
+                {% if testbed.task_being_graded %}
+                    <a onclick="abort_task('{{ testbed.id }}')" class="btn btn-primary">
+                        Abort Task
+                    </a>
                 {% endif %}
             </td>
           </tr>
 
           <script>
             function abort_task(testbed_id) {
+                console.log(testbed_id)
               $.ajax({
                   url: '{% url 'abort-testbed-task' %}',
                   type: 'post', // This is the default though, you don't actually need to always mention it

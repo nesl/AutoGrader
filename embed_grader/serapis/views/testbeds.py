@@ -205,12 +205,11 @@ def testbed_status_list(request):
     testbed_list = Testbed.objects.all()
 
     for testbed in testbed_list:
-        print(testbed.task_being_graded)
         ids.append(testbed.id)
         ip_addresses.append(testbed.ip_address)
-        status_displays.append("1")
+        status_displays.append(testbed.get_status_display())
         last_report_times.append(testbed.report_time)
-        last_report_statuses.append("1")
+        last_report_statuses.append(testbed.get_report_status_display())
         task = {}
         if not testbed.task_being_graded:
             tasks_being_graded.append({})
@@ -237,6 +236,12 @@ def testbed_status_list(request):
 @login_required(login_url='/login/')
 def abort_testbed_task(request):
     testbed_id = int(request.POST['id'])
-    testbed = Testbed.objects.all()[testbed_id]
-    testbed_helper.abort_task(testbed, set_status=Testbed.STATUS_AVAILABLE)
+    testbed_list = Testbed.objects.filter(id=testbed_id)
+    if len(testbed_list) != 1:
+        return HttpResponse("Not enough privilege", status=404)
+
+    testbed = testbed_list[0]
+
+    print(testbed.id, testbed.task_being_graded)
+    testbed_helper.abort_task(testbed, set_status=Testbed.STATUS_AVAILABLE, tolerate_task_is_not_present=True, check_task_status_is_executing=False)
     return JsonResponse({"done": "success"}, safe=False)
