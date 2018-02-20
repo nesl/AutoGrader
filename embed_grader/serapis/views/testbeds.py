@@ -195,35 +195,32 @@ def testbed_type_list(request):
     return render(request, 'serapis/testbed_type_list.html', template_context)
 
 
+def _convert_testbed_to_JSON(testbed):
+    task = {}
+    if testbed.task_being_graded:
+        task['course'] = testbed.task_being_graded.assignment_task_fk.assignment_fk.course_fk.name
+        task['assignment'] = testbed.task_being_graded.assignment_task_fk.assignment_fk.name
+        task['task_name']= testbed.task_being_graded.assignment_task_fk.brief_description
+        task['submission_id'] =  testbed.task_being_graded.submission_fk.id
+
+    return {
+            "id": testbed.id,
+            "ip_address": testbed.ip_address,
+            "status": testbed.get_status_display(),
+            "report_time": testbed.report_time,
+            "report_status": testbed.get_report_status_display(),
+            "task": task,
+    }
+
 @login_required(login_url='/login/')
 def testbed_status_list(request):
     user = User.objects.get(username=request.user)
     if not user.has_perm('serapis.view_hardware_type'):
         return HttpResponse("Not enough privilege")
 
-    ids, ip_addresses, status_displays, last_report_times, last_report_statuses, tasks_being_graded = [],[],[],[],[],[]
-
     testbed_list = Testbed.objects.all()
 
-    for testbed in testbed_list:
-        ids.append(testbed.id)
-        ip_addresses.append(testbed.ip_address)
-        status_displays.append(testbed.get_status_display())
-        last_report_times.append(testbed.report_time)
-        print(testbed.report_time)
-        last_report_statuses.append(testbed.get_report_status_display())
-        task = {}
-        if not testbed.task_being_graded:
-            tasks_being_graded.append({})
-        else:
-            task['course'] = testbed.task_being_graded.assignment_task_fk.assignment_fk.course_fk.name
-            task['assignment'] = testbed.task_being_graded.assignment_task_fk.assignment_fk.name
-            task['task_name']= testbed.task_being_graded.assignment_task_fk.brief_description
-            task['submission_id'] =  testbed.task_being_graded.submission_fk.id
-            tasks_being_graded.append(task)
-
-
-    ajax_json = [{"id": i, "ip_address": ip, "status": s, "report_time": lrt, "report_status": lrs, "task": t} for i, ip, s, lrt, lrs, t in zip(ids, ip_addresses, status_displays, last_report_times, last_report_statuses, tasks_being_graded)]
+    ajax_json = list(map(_convert_testbed_to_JSON, testbed_list))
 
     template_context = {
         'testbed_list' : testbed_list
