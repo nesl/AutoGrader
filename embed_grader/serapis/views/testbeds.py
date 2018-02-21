@@ -231,7 +231,7 @@ def testbed_status_list(request):
     else:
         return render(request, 'serapis/testbed_status_list.html', template_context)
 
-@csrf_exempt
+
 @login_required(login_url='/login/')
 def abort_testbed_task(request):
     testbed_id = int(request.POST['id'])
