@@ -80,6 +80,20 @@
         }
       });
     }, 5000);
+              
+    function abort_task(testbed_id) {
+      $.ajax({
+        url: "{% url 'abort-testbed-task' %}",
+        type: 'POST',
+        dataType: 'JSON',
+        data: {id: testbed_id} ,
+        success: function(data) {
+        },
+        failure: function(data) {
+          alert('Got an error dude');
+        }
+      });
+    }
   </script>
   <div class="main-content">
     <h1 class="page-header">Testbed Status List</h1>
@@ -124,22 +138,6 @@
                   {% endif %}
                 </td>
               </tr>
-
-              <script>
-                function abort_task(testbed_id) {
-                  $.ajax({
-                    url: "{% url 'abort-testbed-task' %}",
-                    type: 'POST',
-                    dataType: 'JSON',
-                    data: {id: testbed_id} ,
-                    success: function(data) {
-                    },
-                    failure: function(data) {
-                      alert('Got an error dude');
-                    }
-                  });
-                }
-              </script>
             {% endfor %}
           </tbody>
         </table>
