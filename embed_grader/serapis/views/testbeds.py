@@ -25,7 +25,6 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.formats import get_format
 
 
-
 @login_required(login_url='/login/')
 def create_testbed_type(request):
     username = request.user
@@ -195,52 +194,67 @@ def testbed_type_list(request):
     return render(request, 'serapis/testbed_type_list.html', template_context)
 
 
-def _convert_testbed_to_JSON(testbed):
-    task = {}
-    if testbed.task_being_graded:
-        task['course'] = testbed.task_being_graded.assignment_task_fk.assignment_fk.course_fk.name
-        task['assignment'] = testbed.task_being_graded.assignment_task_fk.assignment_fk.name
-        task['task_name']= testbed.task_being_graded.assignment_task_fk.brief_description
-        task['submission_id'] =  testbed.task_being_graded.submission_fk.id
+@login_required(login_url='/login/')
+def testbed_status_list(request):
+    user = User.objects.get(username=request.user)
+    if not user.has_perm('serapis.view_hardware_type'):
+        return HttpResponse("Not enough privilege", status=404)
 
+    template_context = {'myuser': request.user}
+    return render(request, 'serapis/testbed_status_list.html', template_context)
+
+        
+def _convert_task_grading_status_to_JSON(task):
+    if task is None:
+        return None
+
+    assignment_task = task.assignment_task_fk
+    assignment = assignment_task.assignment_fk
+    return {
+            "course": assignment.course_fk.name,
+            "assignment": assignment.name,
+            "task_name": assignment_task.brief_description,
+            "submission_id": task.submission_fk.id,
+    }
+
+def _convert_testbed_to_JSON(testbed):
     return {
             "id": testbed.id,
             "ip_address": testbed.ip_address,
             "status": testbed.get_status_display(),
             "report_time": testbed.report_time,
             "report_status": testbed.get_report_status_display(),
-            "task": task,
+            "task": _convert_task_grading_status_to_JSON(testbed.task_being_graded),
     }
 
 @login_required(login_url='/login/')
-def testbed_status_list(request):
-    user = User.objects.get(username=request.user)
-    if not user.has_perm('serapis.view_hardware_type'):
-        return HttpResponse("Not enough privilege")
-
-    testbed_list = Testbed.objects.all()
-
-    ajax_json = list(map(_convert_testbed_to_JSON, testbed_list))
-
-    template_context = {
-        'testbed_list' : testbed_list
-    }
-
-    if request.is_ajax():
-        return JsonResponse(ajax_json, safe=False)
-    else:
-        return render(request, 'serapis/testbed_status_list.html', template_context)
-
-
-@login_required(login_url='/login/')
-def abort_testbed_task(request):
-    testbed_id = int(request.POST['id'])
-    testbed_list = Testbed.objects.filter(id=testbed_id)
-    if len(testbed_list) != 1:
+def ajax_get_testbeds(request):
+    if not request.is_ajax():
         return HttpResponse("Not enough privilege", status=404)
 
-    testbed = testbed_list[0]
+    user = User.objects.get(username=request.user)
+    if not user.has_perm('serapis.view_hardware_type'):
+        return HttpResponse("Not enough privilege", status=404)
 
-    print(testbed.id, testbed.task_being_graded)
-    testbed_helper.abort_task(testbed, set_status=Testbed.STATUS_AVAILABLE, tolerate_task_is_not_present=True, check_task_status_is_executing=False)
+    testbed_list = Testbed.objects.all()
+    ajax_json = list(map(_convert_testbed_to_JSON, testbed_list))
+
+    return JsonResponse(ajax_json, safe=False)
+
+
+@login_required(login_url='/login/')
+def ajax_abort_testbed_task(request):
+    if not request.is_ajax():
+        return HttpResponse("Not enough privilege", status=404)
+    
+    if request.method != 'POST':
+        return HttpResponse("Not enough privilege", status=404)
+
+    try:
+        testbed = Testbed.objects.get(id=request.POST['id'])
+    except:
+        return HttpResponse("Not enough privilege", status=404)
+
+    testbed_helper.abort_task(testbed, set_status=Testbed.STATUS_AVAILABLE,
+            tolerate_task_is_not_present=True, check_task_status_is_executing=False)
     return JsonResponse({"done": "success"}, safe=False)
