@@ -11,97 +11,12 @@
 
 {% block testbed-status-list-active %}active{% endblock %}
 
+{% block page-specific-js %}
+  <script src="{% static 'serapis/js/ajax_common.js' %}"></script>
+  <script src="{% static 'serapis/js/testbed_status_list.js' %}"></script>
+{% endblock %}
+
 {% block main-content %}
-  <script type="text/javascript">
-    function getCookie(c_name) {
-      if (document.cookie.length > 0) {
-        c_start = document.cookie.indexOf(c_name + "=");
-        if (c_start != -1) {
-          c_start = c_start + c_name.length + 1;
-          c_end = document.cookie.indexOf(";", c_start);
-          if (c_end == -1)
-            c_end = document.cookie.length;
-          return unescape(document.cookie.substring(c_start,c_end));
-        }
-      }
-      return "";
-    }
-    $(function() {
-      $.ajaxSetup({
-        headers: {"X-CSRFToken": getCookie("csrftoken")}
-      });
-    });
-
-    function render_table() {
-      $.ajax({
-        url: "{% url 'ajax-get-testbeds' %}",
-        type: "GET",
-        dataType: 'JSON',
-        success: function(testbeds) {
-          $("#block-fetching-data-msg").css("display", "none");
-          $("#block-no-testbed-msg").css("display", "none");
-          $("#block-testbeds").css("display", "none");
-
-          if (testbeds.length == 0) {
-            $("#block-no-testbed-msg").css("display", "block");
-          }
-          else {
-            $("#block-testbeds").css("display", "block");
-
-            var tbody = $("#status-table-body");
-            tbody.empty();
-
-            for (i = 0; i < testbeds.length; i++) {
-              testbed = testbeds[i];
-              tbody.append("<tr class='modifiable-rows'>")
-              var tr = $('#status-table-body').find('tr:last');
-              tr.append("<td>" + testbed.id + "</td>");
-              tr.append("<td>" + testbed.ip_address + "</td>");
-              tr.append("<td>" + testbed.status + "</td>");
-              tr.append("<td>Status: " + testbed.report_status + "<br/>(" + testbed.report_time + ")</td>");
-
-              task = testbed.task;
-              if (task === null) {
-                tr.append("<td>(No executing task)</td>");
-                tr.append("<td>&nbsp;</td>")
-              }
-              else {
-                tr.append("<td>"
-                    + "Course: " + task.course + "<br/>"
-                    + "Assignment: " + task.assignment + "<br/>"
-                    + "Task Name: " + task.task_name + "<br/>"
-                    + "Submission ID: " + task.submission_id
-                    + "</td>")
-                tr.append("<td><a onclick=abort_task(" + testbed.id + ") class='btn btn-primary'>Abort Task</a></td>")
-              }
-            }
-          }
-
-          $("#block-updated-time").html("Last table updated time: " + (new Date().toLocaleString()));
-        },
-        failure: function(data) {
-          $("#block-updated-time").html("Last data query time: " + (new Date().toLocaleString()) + " <span style='color:red'>(Failed to fetch testbed list)</span>");
-        }
-      });
-    }
-    
-    render_table();
-    setInterval(render_table, 5000);
-              
-    function abort_task(testbed_id) {
-      $.ajax({
-        url: "{% url 'ajax-abort-testbed-task' %}",
-        type: 'POST',
-        dataType: 'JSON',
-        data: {id: testbed_id},
-        success: function(data) {
-        },
-        failure: function(data) {
-          alert('Got an error dude');
-        }
-      });
-    }
-  </script>
   <div class="main-content">
     <h1 class="page-header">Testbed Status List</h1>
 
@@ -130,5 +45,10 @@
       <p>&nbsp;</p>
     </div>
   </div>
+  
+  <script type="text/javascript">
+    render_table();
+    setInterval(render_table, 5000);
+  </script>
 
 {% endblock %}
