@@ -76,9 +76,11 @@
               }
             }
           }
+
+          $("#block-updated-time").html("Last table updated time: " + (new Date().toLocaleString()));
         },
         failure: function(data) {
-          alert('Got an error dude');
+          $("#block-updated-time").html("Last data query time: " + (new Date().toLocaleString()) + " <span style='color:red'>(Failed to fetch testbed list)</span>");
         }
       });
     }
@@ -123,6 +125,9 @@
         </thead>
         <tbody id="status-table-body" />
       </table>
+    </div>
+    <div id="block-updated-time">
+      <p>&nbsp;</p>
     </div>
   </div>
 
