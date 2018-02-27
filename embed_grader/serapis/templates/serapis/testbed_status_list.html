@@ -37,14 +37,19 @@
         url: "{% url 'ajax-get-testbeds' %}",
         type: "get",
         dataType: 'JSON',
-        success: function(data) {
-          var testbeds = data
-          $("#status-table-body").empty();
+        success: function(testbeds) {
+          $("#block-fetching-data-msg").css("display", "none");
+          $("#block-no-testbed-msg").css("display", "none");
+          $("#block-testbeds").css("display", "none");
+
           if (testbeds.length == 0) {
-            $(".main-content").append("<p>No testbeds available to view.</p>")
+            $("#block-no-testbed-msg").css("display", "block");
           }
           else {
+            $("#block-testbeds").css("display", "block");
+
             var tbody = $("#status-table-body");
+            tbody.empty();
 
             for (i = 0; i < testbeds.length; i++) {
               testbed = testbeds[i];
@@ -86,7 +91,7 @@
         url: "{% url 'abort-testbed-task' %}",
         type: 'POST',
         dataType: 'JSON',
-        data: {id: testbed_id} ,
+        data: {id: testbed_id},
         success: function(data) {
         },
         failure: function(data) {
@@ -98,25 +103,27 @@
   <div class="main-content">
     <h1 class="page-header">Testbed Status List</h1>
 
-    {% if not testbed_list %}
+    <div id="block-fetching-data-msg">
+      <p>(Fetch data...)</p>
+    </div>
+    <div id="block-no-testbed-msg" style="display:none">
       <p>No testbeds available to view.</p>
-    {% else %}
-      <div class="table-responsive">
-        <table class="table table-hover">
-          <thead>
-            <tr>
-              <th>Testbed ID</th>
-              <th>IP Address &nbsp; Port</th>
-              <th>Current Status</th>
-              <th>Report From Testbed</th>
-              <th>Graded task</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody id="status-table-body" />
-        </table>
-      </div>
-    {% endif %}
+    </div>
+    <div id="block-testbeds" class="table-responsive" style="display:none">
+      <table class="table table-hover">
+        <thead>
+          <tr>
+            <th>Testbed ID</th>
+            <th>IP Address &nbsp; Port</th>
+            <th>Current Status</th>
+            <th>Report From Testbed</th>
+            <th>Graded task</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="status-table-body" />
+      </table>
+    </div>
   </div>
 
 {% endblock %}
