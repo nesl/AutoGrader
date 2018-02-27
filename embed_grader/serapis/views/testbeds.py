@@ -243,14 +243,17 @@ def ajax_get_testbeds(request):
 
 
 @login_required(login_url='/login/')
-def abort_testbed_task(request):
-    testbed_id = int(request.POST['id'])
-    testbed_list = Testbed.objects.filter(id=testbed_id)
+def ajax_abort_testbed_task(request):
+    if not request.is_ajax():
+        return HttpResponse("Not enough privilege", status=404)
     
-    if len(testbed_list) != 1:
+    if request.method != 'POST':
         return HttpResponse("Not enough privilege", status=404)
 
-    testbed = testbed_list[0]
+    try:
+        testbed = Testbed.objects.get(id=request.POST['id'])
+    except:
+        return HttpResponse("Not enough privilege", status=404)
 
     testbed_helper.abort_task(testbed, set_status=Testbed.STATUS_AVAILABLE,
             tolerate_task_is_not_present=True, check_task_status_is_executing=False)

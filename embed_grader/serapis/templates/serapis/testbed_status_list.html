@@ -35,7 +35,7 @@
     function render_table() {
       $.ajax({
         url: "{% url 'ajax-get-testbeds' %}",
-        type: "get",
+        type: "GET",
         dataType: 'JSON',
         success: function(testbeds) {
           $("#block-fetching-data-msg").css("display", "none");
@@ -88,7 +88,7 @@
               
     function abort_task(testbed_id) {
       $.ajax({
-        url: "{% url 'abort-testbed-task' %}",
+        url: "{% url 'ajax-abort-testbed-task' %}",
         type: 'POST',
         dataType: 'JSON',
         data: {id: testbed_id},
