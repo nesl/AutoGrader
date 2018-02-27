@@ -70,6 +70,7 @@ urlpatterns = [
     url(r'^create-hardware-type/$', hardware.create_hardware_type, name='create-hardware-type'),
     url(r'^modify-hardware-type/(?P<hardware_type_id>[0-9]+)/$', hardware.modify_hardware_type, name='modify-hardware-type'),
     url(r'^testbed-status-list/$', testbeds.testbed_status_list, name='testbed-status-list'),
+    url(r'^ajax-get-testbeds/$', testbeds.ajax_get_testbeds, name='ajax-get-testbeds'),
     url(r'^abort-testbed-task/$', testbeds.abort_testbed_task, name='abort-testbed-task'),
 
     ## Report from testbeds

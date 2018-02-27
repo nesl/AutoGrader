@@ -194,6 +194,16 @@ def testbed_type_list(request):
     return render(request, 'serapis/testbed_type_list.html', template_context)
 
 
+@login_required(login_url='/login/')
+def testbed_status_list(request):
+    user = User.objects.get(username=request.user)
+    if not user.has_perm('serapis.view_hardware_type'):
+        return HttpResponse("Not enough privilege", status=404)
+
+    template_context = {'myuser': request.user}
+    return render(request, 'serapis/testbed_status_list.html', template_context)
+
+        
 def _convert_task_grading_status_to_JSON(task):
     if task is None:
         return None
@@ -201,10 +211,10 @@ def _convert_task_grading_status_to_JSON(task):
     assignment_task = task.assignment_task_fk
     assignment = assignment_task.assignment_fk
     return {
-        "course": assignment.course_fk.name,
-        "assignment": assignment.name,
-        "task_name": assignment_task.brief_description,
-        "submission_id": task.submission_fk.id,
+            "course": assignment.course_fk.name,
+            "assignment": assignment.name,
+            "task_name": assignment_task.brief_description,
+            "submission_id": task.submission_fk.id,
     }
 
 def _convert_testbed_to_JSON(testbed):
@@ -218,34 +228,30 @@ def _convert_testbed_to_JSON(testbed):
     }
 
 @login_required(login_url='/login/')
-def testbed_status_list(request):
+def ajax_get_testbeds(request):
+    if not request.is_ajax():
+        return HttpResponse("Not enough privilege", status=404)
+
     user = User.objects.get(username=request.user)
     if not user.has_perm('serapis.view_hardware_type'):
-        return HttpResponse("Not enough privilege")
+        return HttpResponse("Not enough privilege", status=404)
 
     testbed_list = Testbed.objects.all()
-
     ajax_json = list(map(_convert_testbed_to_JSON, testbed_list))
 
-    template_context = {
-        'testbed_list' : testbed_list
-    }
-
-    if request.is_ajax():
-        return JsonResponse(ajax_json, safe=False)
-    else:
-        return render(request, 'serapis/testbed_status_list.html', template_context)
+    return JsonResponse(ajax_json, safe=False)
 
 
 @login_required(login_url='/login/')
 def abort_testbed_task(request):
     testbed_id = int(request.POST['id'])
     testbed_list = Testbed.objects.filter(id=testbed_id)
+    
     if len(testbed_list) != 1:
         return HttpResponse("Not enough privilege", status=404)
 
     testbed = testbed_list[0]
 
-    print(testbed.id, testbed.task_being_graded)
-    testbed_helper.abort_task(testbed, set_status=Testbed.STATUS_AVAILABLE, tolerate_task_is_not_present=True, check_task_status_is_executing=False)
+    testbed_helper.abort_task(testbed, set_status=Testbed.STATUS_AVAILABLE,
+            tolerate_task_is_not_present=True, check_task_status_is_executing=False)
     return JsonResponse({"done": "success"}, safe=False)

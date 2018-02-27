@@ -34,8 +34,8 @@
 
     function render_table() {
       $.ajax({
-        url: '{% url 'testbed-status-list' %}',
-        type: 'get',
+        url: "{% url 'ajax-get-testbeds' %}",
+        type: "get",
         dataType: 'JSON',
         success: function(data) {
           var testbeds = data
@@ -47,7 +47,6 @@
             var tbody = $("#status-table-body");
 
             for (i = 0; i < testbeds.length; i++) {
-            //for (testbed in testbeds) {
               testbed = testbeds[i];
               tbody.append("<tr class='modifiable-rows'>")
               var tr = $('#status-table-body').find('tr:last');
