@@ -194,22 +194,27 @@ def testbed_type_list(request):
     return render(request, 'serapis/testbed_type_list.html', template_context)
 
 
-def _convert_testbed_to_JSON(testbed):
-    task = None
-    if testbed.task_being_graded:
-        task = {}
-        task['course'] = testbed.task_being_graded.assignment_task_fk.assignment_fk.course_fk.name
-        task['assignment'] = testbed.task_being_graded.assignment_task_fk.assignment_fk.name
-        task['task_name']= testbed.task_being_graded.assignment_task_fk.brief_description
-        task['submission_id'] =  testbed.task_being_graded.submission_fk.id
+def _convert_task_grading_status_to_JSON(task):
+    if task is None:
+        return None
 
+    assignment_task = task.assignment_task_fk
+    assignment = assignment_task.assignment_fk
+    return {
+        "course": assignment.course_fk.name,
+        "assignment": assignment.name,
+        "task_name": assignment_task.brief_description,
+        "submission_id": task.submission_fk.id,
+    }
+
+def _convert_testbed_to_JSON(testbed):
     return {
             "id": testbed.id,
             "ip_address": testbed.ip_address,
             "status": testbed.get_status_display(),
             "report_time": testbed.report_time,
             "report_status": testbed.get_report_status_display(),
-            "task": task,
+            "task": _convert_task_grading_status_to_JSON(testbed.task_being_graded),
     }
 
 @login_required(login_url='/login/')
