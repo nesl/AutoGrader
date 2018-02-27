@@ -12,6 +12,73 @@
 {% block testbed-status-list-active %}active{% endblock %}
 
 {% block main-content %}
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+  <script type="text/javascript" src="{% static 'serapis/js/date.js' %}"></script>
+  <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/1.10.11/js/jquery.dataTables.min.js"></script>
+  <script type="text/javascript" src="date-de-DE.js"></script>
+  <script type="text/javascript">
+    function getCookie(c_name) {
+      if (document.cookie.length > 0)
+      {
+          c_start = document.cookie.indexOf(c_name + "=");
+          if (c_start != -1) {
+              c_start = c_start + c_name.length + 1;
+              c_end = document.cookie.indexOf(";", c_start);
+              if (c_end == -1) c_end = document.cookie.length;
+              return unescape(document.cookie.substring(c_start,c_end));
+         }
+      }
+      return "";
+    }
+    $(function () {
+        $.ajaxSetup({
+            headers: { "X-CSRFToken": getCookie("csrftoken") }
+        });
+    });
+
+
+
+    setInterval(function(){
+        $.ajax({
+            url: '{% url 'testbed-status-list' %}',
+            type: 'get', // This is the default though, you don't actually need to always mention it
+            dataType: 'JSON',
+            success: function(data) {
+                var testbeds = data
+                $("#status-table-body").empty();
+                if(testbeds.length == 0) {
+                    $(".main-content").append("<p>No testbeds available to view.</p>")
+                }
+                else {
+                    var tbody = $("#status-table-body")
+                    for(var i=0; i < testbeds.length; i++) {
+                        tbody.append("<tr class=\"modifiable-rows\">")
+                        var index = i+1;
+                        var tr = $('#status-table-body').find('tr:last');
+                        tr.append("<td>"+testbeds[i]["id"]+"</td>");
+                        tr.append("<td>"+testbeds[i]["ip_address"]+"</td>");
+                        tr.append("<td>"+testbeds[i]["status"]+"</td>");
+
+                        tr.append("<td>"+ testbeds[i]["report_time"] +"</td>");
+                        tr.append("<td>"+testbeds[i]["report_status"]+"</td>");
+                        if(Object.keys(testbeds[i]["task"]).length == 0) {
+                            tr.append("<td>(No executing task)</td>");
+                            tr.append("<td><p> </p></td>")
+                        }
+                        else {
+                            tr.append("<td> Course: "+testbeds[i]["task"]["course"]+"</br> Assignment: "+ testbeds[i]["task"]["assignment"] + "</br> Task Name: " + testbeds[i]["task"]["task_name"]+ "</br> Submission ID: " + testbeds[i]["task"]["submission_id"]+"</td>")
+                            tr.append("<td><a onclick=" + "abort_task(" + testbeds[i]["id"] + ") class=\"btn btn-primary\"> Abort Task </a></td>")
+                        }
+                    }
+                }
+            },
+            failure: function(data) {
+              console.log("bad")
+              alert('Got an error dude');
+            }
+        });
+    }, 5000);
+  </script>
   <div class="main-content">
     <h1 class="page-header">Testbed Status List</h1>
 
@@ -20,6 +87,7 @@
     {% else %}
       <div class="table-responsive">
         <table class="table table-hover">
+          <thead>
           <tr>
             <th>Testbed ID</th>
             <th>IP Address &nbsp; Port</th>
@@ -27,9 +95,12 @@
             <th>Last Report Time</th>
             <th>Last Report Status</th>
             <th>Graded task</th>
+            <th>Action</th>
           </tr>
+        </thead>
+        <tbody id="status-table-body">
           {% for testbed in testbed_list %}
-          <tr>
+          <tr class="modifiable-rows">
             <td>{{ testbed.id }}</td>
             <td>{{ testbed.ip_address }}</td>
             <td>{{ testbed.get_status_display }}</td>
@@ -45,13 +116,42 @@
                 Submission ID: {{ testbed.task_being_graded.submission_fk.id }}
               {% endif %}
             </td>
+            <!-- HERE -->
+
+            <td>
+                {% if testbed.task_being_graded %}
+                    <a onclick="abort_task('{{ testbed.id }}')" class="btn btn-primary">
+                        Abort Task
+                    </a>
+                {% else %}
+                    <p> </p>
+                {% endif %}
+            </td>
           </tr>
-        {% endfor %}
+
+          <script>
+            function abort_task(testbed_id) {
+                console.log(testbed_id)
+              $.ajax({
+                  url: '{% url 'abort-testbed-task' %}',
+                  type: 'post', // This is the default though, you don't actually need to always mention it
+                  dataType: 'JSON',
+                  data: {id: testbed_id} ,
+                  success: function(data) {
+                      console.log(data)
+                  },
+                  failure: function(data) {
+                    console.log("bad")
+                    alert('Got an error dude');
+                  }
+              });
+            }
+          </script>
+          {% endfor %}
+        </tbody>
       </table>
       </div>
     {% endif %}
-
-
   </div>
 
 {% endblock %}

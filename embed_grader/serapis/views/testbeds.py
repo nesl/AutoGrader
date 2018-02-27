@@ -7,6 +7,7 @@ from django.shortcuts import render, get_object_or_404
 from django.http import *
 from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
+from django.core import serializers
 from django.template import RequestContext
 from django.db import IntegrityError
 from django.db import transaction
@@ -19,6 +20,10 @@ from guardian.shortcuts import assign_perm
 
 from serapis.models import *
 from serapis.forms.testbed_forms import *
+from serapis.utils import testbed_helper
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.formats import get_format
+
 
 
 @login_required(login_url='/login/')
@@ -190,6 +195,23 @@ def testbed_type_list(request):
     return render(request, 'serapis/testbed_type_list.html', template_context)
 
 
+def _convert_testbed_to_JSON(testbed):
+    task = {}
+    if testbed.task_being_graded:
+        task['course'] = testbed.task_being_graded.assignment_task_fk.assignment_fk.course_fk.name
+        task['assignment'] = testbed.task_being_graded.assignment_task_fk.assignment_fk.name
+        task['task_name']= testbed.task_being_graded.assignment_task_fk.brief_description
+        task['submission_id'] =  testbed.task_being_graded.submission_fk.id
+
+    return {
+            "id": testbed.id,
+            "ip_address": testbed.ip_address,
+            "status": testbed.get_status_display(),
+            "report_time": testbed.report_time,
+            "report_status": testbed.get_report_status_display(),
+            "task": task,
+    }
+
 @login_required(login_url='/login/')
 def testbed_status_list(request):
     user = User.objects.get(username=request.user)
@@ -198,7 +220,27 @@ def testbed_status_list(request):
 
     testbed_list = Testbed.objects.all()
 
+    ajax_json = list(map(_convert_testbed_to_JSON, testbed_list))
+
     template_context = {
-        'testbed_list': testbed_list,
+        'testbed_list' : testbed_list
     }
-    return render(request, 'serapis/testbed_status_list.html', template_context)
+
+    if request.is_ajax():
+        return JsonResponse(ajax_json, safe=False)
+    else:
+        return render(request, 'serapis/testbed_status_list.html', template_context)
+
+
+@login_required(login_url='/login/')
+def abort_testbed_task(request):
+    testbed_id = int(request.POST['id'])
+    testbed_list = Testbed.objects.filter(id=testbed_id)
+    if len(testbed_list) != 1:
+        return HttpResponse("Not enough privilege", status=404)
+
+    testbed = testbed_list[0]
+
+    print(testbed.id, testbed.task_being_graded)
+    testbed_helper.abort_task(testbed, set_status=Testbed.STATUS_AVAILABLE, tolerate_task_is_not_present=True, check_task_status_is_executing=False)
+    return JsonResponse({"done": "success"}, safe=False)
