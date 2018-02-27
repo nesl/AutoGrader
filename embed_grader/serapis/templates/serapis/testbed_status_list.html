@@ -12,20 +12,17 @@
 {% block testbed-status-list-active %}active{% endblock %}
 
 {% block main-content %}
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-  <script type="text/javascript" src="{% static 'serapis/js/date.js' %}"></script>
-  <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/1.10.11/js/jquery.dataTables.min.js"></script>
-  <script type="text/javascript" src="date-de-DE.js"></script>
   <script type="text/javascript">
     function getCookie(c_name) {
       if (document.cookie.length > 0) {
-          c_start = document.cookie.indexOf(c_name + "=");
-          if (c_start != -1) {
-              c_start = c_start + c_name.length + 1;
-              c_end = document.cookie.indexOf(";", c_start);
-              if (c_end == -1) c_end = document.cookie.length;
-              return unescape(document.cookie.substring(c_start,c_end));
-         }
+        c_start = document.cookie.indexOf(c_name + "=");
+        if (c_start != -1) {
+          c_start = c_start + c_name.length + 1;
+          c_end = document.cookie.indexOf(";", c_start);
+          if (c_end == -1)
+            c_end = document.cookie.length;
+          return unescape(document.cookie.substring(c_start,c_end));
+        }
       }
       return "";
     }
