@@ -40,7 +40,7 @@
         success: function(data) {
           var testbeds = data
           $("#status-table-body").empty();
-          if(testbeds.length == 0) {
+          if (testbeds.length == 0) {
             $(".main-content").append("<p>No testbeds available to view.</p>")
           }
           else {
@@ -57,7 +57,7 @@
               tr.append("<td>Status: " + testbed.report_status + "<br/>(" + testbed.report_time + ")</td>");
 
               task = testbed.task;
-              if (Object.keys(task).length == 0) {
+              if (task === null) {
                 tr.append("<td>(No executing task)</td>");
                 tr.append("<td>&nbsp;</td>")
               }

@@ -25,7 +25,6 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.formats import get_format
 
 
-
 @login_required(login_url='/login/')
 def create_testbed_type(request):
     username = request.user
@@ -196,8 +195,9 @@ def testbed_type_list(request):
 
 
 def _convert_testbed_to_JSON(testbed):
-    task = {}
+    task = None
     if testbed.task_being_graded:
+        task = {}
         task['course'] = testbed.task_being_graded.assignment_task_fk.assignment_fk.course_fk.name
         task['assignment'] = testbed.task_being_graded.assignment_task_fk.assignment_fk.name
         task['task_name']= testbed.task_being_graded.assignment_task_fk.brief_description
