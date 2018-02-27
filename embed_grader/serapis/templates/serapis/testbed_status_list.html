@@ -26,13 +26,13 @@
       }
       return "";
     }
-    $(function () {
+    $(function() {
       $.ajaxSetup({
         headers: {"X-CSRFToken": getCookie("csrftoken")}
       });
     });
 
-    setInterval(function(){
+    function render_table() {
       $.ajax({
         url: '{% url 'testbed-status-list' %}',
         type: 'get',
@@ -46,7 +46,6 @@
           else {
             var tbody = $("#status-table-body");
 
-            console.log("-----", testbeds);
             for (i = 0; i < testbeds.length; i++) {
             //for (testbed in testbeds) {
               testbed = testbeds[i];
@@ -79,7 +78,10 @@
           alert('Got an error dude');
         }
       });
-    }, 5000);
+    }
+    
+    render_table();
+    setInterval(render_table, 5000);
               
     function abort_task(testbed_id) {
       $.ajax({
@@ -114,32 +116,7 @@
               <th>Action</th>
             </tr>
           </thead>
-          <tbody id="status-table-body">
-            {% for testbed in testbed_list %}
-              <tr class="modifiable-rows">
-                <td>{{ testbed.id }}</td>
-                <td>{{ testbed.ip_address }}</td>
-                <td>{{ testbed.get_status_display }}</td>
-                <td>{{ testbed.report_time }}</td>
-                <td>{{ testbed.get_report_status_display }}</td>
-                <td>
-                  {% if not testbed.task_being_graded %}
-                    (No executing task)
-                  {% else %}
-                    Course: {{ testbed.task_being_graded.assignment_task_fk.assignment_fk.course_fk.name }}<br/>
-                    Assignment: {{ testbed.task_being_graded.assignment_task_fk.assignment_fk.name }}<br/>
-                    Task name: {{ testbed.task_being_graded.assignment_task_fk }}<br/>
-                    Submission ID: {{ testbed.task_being_graded.submission_fk.id }}
-                  {% endif %}
-                </td>
-                <td>
-                  {% if testbed.task_being_graded %}
-                    <a onclick="abort_task('{{ testbed.id }}')" class="btn btn-primary">Abort Task</a>
-                  {% endif %}
-                </td>
-              </tr>
-            {% endfor %}
-          </tbody>
+          <tbody id="status-table-body" />
         </table>
       </div>
     {% endif %}
