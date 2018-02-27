@@ -54,8 +54,7 @@
               tr.append("<td>" + testbed.id + "</td>");
               tr.append("<td>" + testbed.ip_address + "</td>");
               tr.append("<td>" + testbed.status + "</td>");
-              tr.append("<td>" + testbed.report_time + "</td>");
-              tr.append("<td>" + testbed.report_status + "</td>");
+              tr.append("<td>Status: " + testbed.report_status + "<br/>(" + testbed.report_time + ")</td>");
 
               task = testbed.task;
               if (Object.keys(task).length == 0) {
@@ -110,8 +109,7 @@
               <th>Testbed ID</th>
               <th>IP Address &nbsp; Port</th>
               <th>Current Status</th>
-              <th>Last Report Time</th>
-              <th>Last Report Status</th>
+              <th>Report From Testbed</th>
               <th>Graded task</th>
               <th>Action</th>
             </tr>
