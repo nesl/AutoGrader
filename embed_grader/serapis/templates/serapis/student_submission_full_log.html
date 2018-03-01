@@ -22,7 +22,7 @@
       <table class="table table-striped table-hover" id="data-table" cellspacing="0">
         <thead class="thead-default">
           <tr>
-            {% submission_table_schema  author_name 20%  assignment 30%  score 15%  submission_time 20%  detail_button 15% as table_schema %}
+            {% submission_table_schema  author_names 20%  assignment 30%  score 15%  submission_time 20%  detail_button 15% as table_schema %}
           </tr>
         </thead>
         <tfoot style="display: table-header-group;">
@@ -34,12 +34,12 @@
             <th style="display:none">Detail</th>
           </tr>
         </tfoot>
-        
+
         {% for submission in submission_list %}
           <tr>{% submission_table_row table_schema submission myuser %}</tr>
         {% endfor %}
       </table>
-      
+
       <script type="text/javascript">
         $(document).ready(function() {
           $('#data-table tfoot th').each( function () {
