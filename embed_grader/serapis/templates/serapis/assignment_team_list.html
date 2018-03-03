@@ -45,7 +45,12 @@
               {% endfor %}
             </td>
             <td>
-              <a class="btn btn-danger" href="{% url 'delete-team' assignment.id team_bundle.team.id %}" onclick="return double_check_delete_team()">Delete team</a>
+              <form action="{% url 'delete-team' %}" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="assignment_id" value="{{assignment.id}}" />
+                <input type="hidden" name="team_id" value="{{team_bundle.team.id}}" />
+                <input type="submit" class="btn btn-danger" value="Delete team" onclick="return double_check_delete_team()">
+              </form>
             </td>
           </tr>
         {% endfor %}

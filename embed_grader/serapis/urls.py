@@ -4,6 +4,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 from serapis.views import *
+from serapis.utils import *
 from . import services
 from . import media_controls
 
@@ -32,9 +33,9 @@ urlpatterns = [
     url(r'^course/(?P<course_id>[0-9]+)/membership/$', courses.membership, name='membership'),
     url(r'^create-course/$', courses.create_course, name='create-course'),
     url(r'^modify-course/(?P<course_id>[0-9]+)/$', courses.modify_course, name='modify-course'),
-    url(r'^delete-course/(?P<course_id>[0-9]+)/$', courses.delete_course, name='delete-course'),
+    url(r'^delete-course/$', courses.delete_course, name='delete-course'),
     url(r'^enroll-course/$', courses.enroll_course, name='enroll-course'),
-    url(r'^unenroll-course/(?P<course_id>[0-9]+)/$', courses.unenroll_course, name='unenroll-course'),
+    url(r'^drop-course/(?P<course_id>[0-9]+)/$', courses.drop_course, name='drop-course'),
     url(r'^download-csv/(?P<course_id>[0-9]+)/$', courses.download_csv, name='download-csv'),
 
     ## Assignment pages
@@ -43,13 +44,13 @@ urlpatterns = [
     url(r'^assignment-create-team/(?P<assignment_id>[0-9]+)/$', assignments.assignment_create_team, name='assignment-create-team'),
     url(r'^assignment-join-team/(?P<assignment_id>[0-9]+)/$', assignments.assignment_join_team, name='assignment-join-team'),
     url(r'^view-assignment-team-list/(?P<assignment_id>[0-9]+)/$', assignments.view_assignment_team_list, name='view-assignment-team-list'),
-    url(r'^delete-team/(?P<assignment_id>[0-9]+)/(?P<team_id>[0-9]+)/$', assignments.delete_team, name='delete-team'),
+    url(r'^delete-team/$', assignments.delete_team, name='delete-team'),
     url(r'^create-assignment/(?P<course_id>[0-9]+)/$', assignments.create_assignment, name='create-assignment'),
     url(r'^modify-assignment/(?P<assignment_id>[0-9]+)/$', assignments.modify_assignment, name='modify-assignment'),
-    url(r'^delete-assignment/(?P<assignment_id>[0-9]+)/$', assignments.delete_assignment, name='delete-assignment'),
+    url(r'^delete-assignment/$', assignments.delete_assignment, name='delete-assignment'),
     url(r'^create-assignment-task/(?P<assignment_id>[0-9]+)/$', tasks.create_assignment_task, name='create-assignment-task'),
     url(r'^modify-assignment-task/(?P<task_id>[0-9]+)/$', tasks.modify_assignment_task, name='modify-assignment-task'),
-    url(r'^delete-assignment-task/(?P<task_id>[0-9]+)/$', tasks.delete_assignment_task, name='delete-assignment-task'),
+    url(r'^delete-assignment-task/$', tasks.delete_assignment_task, name='delete-assignment-task'),
     url(r'^zip-input-files/(?P<task_id>[0-9]+)/$', tasks.zip_input_files, name='zip-input-files'),
     url(r'^view-task-input-files/(?P<task_id>[0-9]+)/$', tasks.view_task_input_files, name='view-task-input-files'),
 
@@ -69,6 +70,8 @@ urlpatterns = [
     url(r'^create-hardware-type/$', hardware.create_hardware_type, name='create-hardware-type'),
     url(r'^modify-hardware-type/(?P<hardware_type_id>[0-9]+)/$', hardware.modify_hardware_type, name='modify-hardware-type'),
     url(r'^testbed-status-list/$', testbeds.testbed_status_list, name='testbed-status-list'),
+    url(r'^ajax-get-testbeds/$', testbeds.ajax_get_testbeds, name='ajax-get-testbeds'),
+    url(r'^ajax-abort-testbed-task/$', testbeds.ajax_abort_testbed_task, name='ajax-abort-testbed-task'),
 
     ## Report from testbeds
     url(r'^tb/send-summary/$', services.testbed_show_summary_report, name='tb-show-summary'),
