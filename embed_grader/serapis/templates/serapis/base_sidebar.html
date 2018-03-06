@@ -45,20 +45,10 @@
                 {% endif %}
               {% endif %}
 
-              {% if perms.serapis.view_hardware_type or perms.serapis.add_testbed %}
-                <li>
-                  <a data-toggle="collapse"
-                  data-target="#submenu1" aria-expanded="false">Submissions</a>
-                  <ul class="nav collapse" id="submenu1" role="menu" aria-labelledby="btn-1">
-                    <li class="{% block my-submissions-active %}{% endblock %}"><a href="{% url 'submissions_full_log' %}">My Submissions</a></li>
-                    <li class="{% block student-submissions-active %}{% endblock %}"><a href="{% url 'student_submission_full_log' %}">Student Submissions</a></li>
-                  </ul>
-                </li>
-              {% else %}
-                <li class="{% block submissions-active %}{% endblock %}">
+             <!-- don't need conditional -->
+              <li class="{% block submissions-active %}{% endblock %}">
                   <a href="{% url 'submissions_full_log' %}">Submissions</a>
-                </li>
-              {% endif %}
+              </li>
 
               {% if perms.serapis.view_hardware_type or perms.serapis.add_testbed %}
                 <li class="{% block testbed-type-list-active %}{% endblock %}"><a href="{% url 'testbed-type-list' %}">Testbed Types</a></li>
