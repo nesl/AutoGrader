@@ -19,4 +19,5 @@ from django.contrib import admin
 urlpatterns = [
     url(r'^wire/', include('wire.urls')),
     url(r'^admin/', admin.site.urls),
+    url(r'^', include('wire.urls')),
 ]

@@ -1034,6 +1034,11 @@ window.addEventListener('load', function() {
     if (e.keycode === 13 || e.which === 13) {
       amendPlatformJSON(connections)
       console.log(platform)
+
+      var xhttp = new XMLHttpRequest()
+      xhttp.open('POST', 'wire/configure_device', true)
+      xhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8")
+      xhttp.send(JSON.stringify(platform))
     }
   })
 })
