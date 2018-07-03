@@ -13,5 +13,20 @@ def index(request):
 def configure_device(request):
 	print('configure request received')
 	if request.body:
-		print(json.loads(request.body.decode('utf-8')))
+		device_data = json.loads(request.body.decode('utf-8'))
+		print(device_data)
+		program_fpga(device_data)
 	return JsonResponse({})
+
+def program_fpga(device_data):
+	# Create a Verilog file according to the connections.
+	pass
+
+	# Create a script to map the pins
+	pass
+
+	# Call the Quartus commands to generate the binary
+	pass
+
+	# Program the FPGA
+	pass
