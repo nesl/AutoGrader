@@ -826,12 +826,14 @@ function amendPlatformJSON(connections) {
       'from': {
         'device_id': connection.src.data('device').device_id,
         'header_name': connection.src.data('header').header_name,
-        'pin_no': connection.src.data('pin').pin_no
+        'pin_no': connection.src.data('pin').pin_no,
+        'fpga_pin': connection.src.data('pin').fpga_pin
       },
       'to': {
         'device_id': connection.dst.data('device').device_id,
         'header_name': connection.dst.data('header').header_name,
-        'pin_no': connection.dst.data('pin').pin_no
+        'pin_no': connection.dst.data('pin').pin_no,
+        'fpga_pin': connection.dst.data('pin').fpga_pin
       }
     }
     targetConnections.push(targetEntry)
