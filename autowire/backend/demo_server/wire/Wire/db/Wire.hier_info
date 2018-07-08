@@ -1,5 +1,0 @@
-|MyWire
-x => y.DATAIN
-y << x.DB_MAX_OUTPUT_PORT_TYPE
-
-
