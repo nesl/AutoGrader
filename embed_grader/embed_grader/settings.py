@@ -170,3 +170,5 @@ SITE_NAME = "NESL Embed AutoGrader"
 # DJANGO_WYSIWYG_MEDIA_URL = STATIC_URL + "ckeditor/"
 CKEDITOR_UPLOAD_PATH = "Content_images/"
 CKEDITOR_IMAGE_BACKEND = 'pillow'
+
+GRADING_SCHEDULER_LOG_PATH = "/tmp/embed_grader_scheduler.log"

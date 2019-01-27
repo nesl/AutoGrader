@@ -1,3 +1,4 @@
+import os
 import sys
 import requests
 import datetime
@@ -14,6 +15,7 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 from django.db.models import Q
 
+from embed_grader import settings
 from serapis.models import *
 from serapis.utils import file_schema
 from serapis.utils import send_mail_helper
@@ -21,7 +23,6 @@ from serapis.utils import submission_helper
 from serapis.utils import testbed_helper
 from serapis.utils import team_helper
 from serapis.utils.grading_scheduler_heartbeat import GradingSchedulerHeartbeat
-
 
 K_TESTBED_INVALIDATION_OFFLINE_SEC = 30
 K_TESTBED_INVALIDATION_REMOVE_SEC = 10 * 60
@@ -49,15 +50,17 @@ class Command(BaseCommand):
 
     def _printMessage(self, msg):
         self.print_lock.acquire()
-        time_str = timezone.now().astimezone(pytz.timezone('US/Pacific')).strftime("%H:%M:%S")
+        now = timezone.now().astimezone(pytz.timezone(settings.TIME_ZONE))
+        time_str = now.strftime("%H:%M:%S")
         if self.just_printed_idle_msg:
             print()
             self.just_printed_idle_msg = False
             self.idle_cnt = 0
-        final_msg = '%s - %s' % (time_str, msg)
-        print(final_msg)
-        with open('/tmp/embed_grader_scheduler.log', 'a') as fo:
-            fo.write(final_msg + '\n')
+        display_msg = '%s - %s' % (time_str, msg)
+        print(display_msg)
+        log_msg = '[%5d] %s' % (os.getpid(), display_msg)
+        with open(settings.GRADING_SCHEDULER_LOG_PATH, 'a') as fo:
+            fo.write(log_msg + '\n')
         self.print_lock.release()
 
     def _schemaFiles2postFiles(self, dict_schema_files):
