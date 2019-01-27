@@ -20,6 +20,7 @@ from serapis.utils import send_mail_helper
 from serapis.utils import submission_helper
 from serapis.utils import testbed_helper
 from serapis.utils import team_helper
+from serapis.utils.grading_scheduler_heartbeat import GradingSchedulerHeartbeat
 
 
 K_TESTBED_INVALIDATION_OFFLINE_SEC = 30
@@ -107,11 +108,24 @@ class Command(BaseCommand):
             traceback.print_exception(exc_type, exc_value, exc_tb)
 
     def handle(self, *args, **options):
+        # heartbeat initialization
+        heartbeat = GradingSchedulerHeartbeat()
+
+        # timer initialization
         timer_testbed_invalidation_offline = 0
         timer_testbed_invalidation_remove = 0
         timer_submission_invalidation = 0
 
         while True:
+            # at any given time, if we detect another grading scheduler running, this scheulder
+            # should abort. The new scheduler should respawn.
+            if GradingSchedulerHeartbeat.detect_if_other_scheduler_exists():
+                self._printMessage('Found other scheduler, terminate self')
+                exit(0)
+
+            # leave a heartbeat
+            heartbeat.send_heartbeat()
+
             timer_testbed_invalidation_offline -= K_CYCLE_DURATION_SEC
             timer_testbed_invalidation_remove -= K_CYCLE_DURATION_SEC
             timer_submission_invalidation -= K_CYCLE_DURATION_SEC
