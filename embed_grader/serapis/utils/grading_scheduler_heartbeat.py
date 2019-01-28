@@ -1,7 +1,9 @@
 import os
 import psutil
+import datetime
 
 from django.utils import timezone
+from django.db import transaction
 
 from serapis.models import *
 
@@ -21,12 +23,13 @@ class GradingSchedulerHeartbeat():
         self.start_time = timezone.now()
 
     def send_heartbeat(self):
-        GradingSchedulerFootprint.objects.all().delete()
-        GradingSchedulerFootprint.objects.create(
-            pid=self.pid,
-            woke_time=self.start_time,
-            watchdog_time=timezone.now(),
-        )
+        with transaction.atomic():
+            GradingSchedulerFootprint.objects.all().delete()
+            GradingSchedulerFootprint.objects.create(
+                pid=self.pid,
+                woke_time=self.start_time,
+                watchdog_time=timezone.now(),
+            )
         
     @classmethod
     def get_last_heartbeat(cls):
@@ -51,3 +54,33 @@ class GradingSchedulerHeartbeat():
             return False
 
         return psutil.pid_exists(heartbeat.pid)
+
+    @classmethod
+    def is_scheduler_running(cls):
+        """
+        Returns:
+          `True` if the scheduler is running
+          `False` if the scheduler is not running
+          `None` if the status cannot be determined
+        """
+        heartbeat = cls.get_last_heartbeat()
+        if heartbeat is None:
+            return None
+
+        return psutil.pid_exists(heartbeat.pid)
+
+    @classmethod
+    def get_time_since_last_scheduler_crash(cls):
+        """
+        Returns:
+          a `timedelta` object
+        """
+        heartbeat = cls.get_last_heartbeat()
+        if heartbeat is None:
+            raise Exception("The scheduler has never been up...")
+
+        if psutil.pid_exists(heartbeat.pid):
+            return datetime.timedelta(0)
+        else:
+            return timezone.now() - heartbeat.watchdog_time
+        

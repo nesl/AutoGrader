@@ -20,6 +20,12 @@
   <div class="main-content">
     <h1 class="page-header">Testbed Status List</h1>
 
+    {% if is_scheduler_running %}
+      <p style="color:green">{{scheduler_status_msg}}</p>
+    {% else %}
+      <p style="color:red">{{scheduler_status_msg}}</p>
+    {% endif %}
+
     <div id="block-fetching-data-msg">
       <p>(Fetch data...)</p>
     </div>

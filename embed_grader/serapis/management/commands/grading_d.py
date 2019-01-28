@@ -300,21 +300,21 @@ class Command(BaseCommand):
                     submission.save()
 
                     # send email to the student
-                    subject = 'Your submission has been graded (ID:%d)' % submission.id
-                    team = submission.team_fk
-                    recipient_email_list = [tm.user_fk.email
-                            for tm in team_helper.get_team_members(team)]
-                    context = {
-                            'user': submission.student_fk,
-                            'submission': submission,
-                            'assignment': submission.assignment_fk,
-                    }
-                    send_mail_helper.send_by_template(
-                            subject=subject,
-                            recipient_email_list=recipient_email_list,
-                            template_path='serapis/email/grading_done_email.html',
-                            context_dict=context,
-                    )
+                    #subject = 'Your submission has been graded (ID:%d)' % submission.id
+                    #team = submission.team_fk
+                    #recipient_email_list = [tm.user_fk.email
+                    #        for tm in team_helper.get_team_members(team)]
+                    #context = {
+                    #        'user': submission.student_fk,
+                    #        'submission': submission,
+                    #        'assignment': submission.assignment_fk,
+                    #}
+                    #send_mail_helper.send_by_template(
+                    #        subject=subject,
+                    #        recipient_email_list=recipient_email_list,
+                    #        template_path='serapis/email/grading_done_email.html',
+                    #        context_dict=context,
+                    #)
 
             # go to sleep
             self._printAlive()
