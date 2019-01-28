@@ -248,11 +248,11 @@ def _convert_testbed_to_JSON(testbed):
 @login_required(login_url='/login/')
 def ajax_get_testbeds(request):
     if not request.is_ajax():
-        return HttpResponseBadRequest("Not enough privilege", status=404)
+        return HttpResponseBadRequest("Not enough privilege")
 
     user = User.objects.get(username=request.user)
     if not user.has_perm('serapis.view_hardware_type'):
-        return HttpResponseBadRequest("Not enough privilege", status=404)
+        return HttpResponseBadRequest("Not enough privilege")
 
     testbed_list = Testbed.objects.all()
     ajax_json = list(map(_convert_testbed_to_JSON, testbed_list))
@@ -263,15 +263,15 @@ def ajax_get_testbeds(request):
 @login_required(login_url='/login/')
 def ajax_abort_testbed_task(request):
     if not request.is_ajax():
-        return HttpResponseBadRequest("Not enough privilege", status=404)
+        return HttpResponseBadRequest("Not enough privilege")
     
     if request.method != 'POST':
-        return HttpResponseBadRequest("Not enough privilege", status=404)
+        return HttpResponseBadRequest("Not enough privilege")
 
     try:
         testbed = Testbed.objects.get(id=request.POST['id'])
     except:
-        return HttpResponseBadRequest("Not enough privilege", status=404)
+        return HttpResponseBadRequest("Not enough privilege")
 
     testbed_helper.abort_task(testbed, set_status=Testbed.STATUS_AVAILABLE,
             tolerate_task_is_not_present=True, check_task_status_is_executing=False)
