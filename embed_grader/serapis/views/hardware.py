@@ -26,7 +26,7 @@ def create_hardware_type(request):
     user_profile = UserProfile.objects.get(user=user)
 
     if not user.has_perm('serapis.view_hardware_type'):
-        return HttpResponse("Not enough privilege")
+        return HttpResponseBadRequest("Not enough privilege")
 
     if request.method == 'POST':
         hardware_form = HardwareTypeForm(request.POST, request.FILES)
@@ -66,11 +66,11 @@ def hardware_type(request, hardware_type_id):
     user_profile = UserProfile.objects.get(user=user)
 
     if not user.has_perm('serapis.view_hardware_type'):
-        return HttpResponse("Not enough privilege")
+        return HttpResponseBadRequest("Not enough privilege")
 
     hardware_type = HardwareType.objects.get(id=hardware_type_id)
     if not hardware_type:
-        return HttpResponse("Hardware type cannot be found")
+        return HttpResponseBadRequest("Hardware type cannot be found")
 
     hardware_type_pins = HardwareTypePin.objects.filter(hardware_type=hardware_type)
 
@@ -85,7 +85,7 @@ def hardware_type(request, hardware_type_id):
 
 @login_required(login_url='/login/')
 def modify_hardware_type(request, hardware_id):
-    return HttpResponse("under construction")
+    return HttpResponseBadRequest("under construction")
 
 
 @login_required(login_url='/login/')
@@ -95,7 +95,7 @@ def hardware_type_list(request):
     user_profile = UserProfile.objects.get(user=user)
 
     if not user.has_perm('serapis.view_hardware_type'):
-        return HttpResponse("Not enough privilege")
+        return HttpResponseBadRequest("Not enough privilege")
 
     hardware_type_list = HardwareType.objects.all()
     template_context = {

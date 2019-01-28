@@ -75,7 +75,7 @@ def new_activation(request, user_id):
     user = User.objects.get_object_or_404(id=user_id)
     user_profile = UserProfile.objects.get_object_or_404(user=user)
     if user.is_active:
-        return HttpResponse("The user has been activated")
+        return HttpResponseBadRequest("The user has been activated")
     else:
         activation_key = _generate_activation_key(user_profile.uid)
         activation_link = request.build_absolute_uri(

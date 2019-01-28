@@ -58,11 +58,11 @@ def assignment(request, assignment_id):
     try:
         assignment = Assignment.objects.get(id=assignment_id)
     except Assignment.DoesNotExist:
-        return HttpResponse("Assignment cannot be found.")
+        return HttpResponseBadRequest("Assignment cannot be found.")
 
     course = assignment.course_fk
     if not user.has_perm('view_assignment', course):
-        return HttpResponse("Not enough privilege")
+        return HttpResponseBadRequest("Not enough privilege")
 
     # retrieve team status
     team = team_helper.get_belonged_team(user, assignment)
@@ -216,11 +216,11 @@ def assignment_run_final_grade(request, assignment_id):
     try:
         assignment = Assignment.objects.get(id=assignment_id)
     except Assignment.DoesNotExist:
-        return HttpResponse("Assignment cannot be found.")
+        return HttpResponseBadRequest("Assignment cannot be found.")
 
     course = assignment.course_fk
     if not user.has_perm('modify_assignment', course):
-        return HttpResponse("Not enough privilege")
+        return HttpResponseBadRequest("Not enough privilege")
 
     now = timezone.now()
 
@@ -276,25 +276,25 @@ def assignment_join_team(request, assignment_id):
     try:
         assignment = Assignment.objects.get(id=assignment_id)
     except Assignment.DoesNotExist:
-        return HttpResponse("Assignment cannot be found.")
+        return HttpResponseBadRequest("Assignment cannot be found.")
 
     course = assignment.course_fk
     if not user.has_perm('view_assignment', course):
-        return HttpResponse("Not enough privilege")
+        return HttpResponseBadRequest("Not enough privilege")
 
     if assignment.is_deadline_passed():
-        return HttpResponse("Deadline is passed")
+        return HttpResponseBadRequest("Deadline is passed")
 
     if team_helper.get_belonged_team(user, assignment) is not None:
-        return HttpResponse("Already involved in some team")
+        return HttpResponseBadRequest("Already involved in some team")
 
     if request.method != 'POST':
-        return HttpResponse("Invalid request")
+        return HttpResponseBadRequest("Invalid request")
 
     form = JoinTeamForm(request.POST, user=user, assignment=assignment)
     if not form.is_valid():
         #TODO: show error message of incorrect passcode in the next page
-        return HttpResponse("Invalid request")
+        return HttpResponseBadRequest("Invalid request")
 
     form.save()
 
@@ -309,14 +309,14 @@ def view_assignment_team_list(request, assignment_id):
     try:
         assignment = Assignment.objects.get(id=assignment_id)
     except Assignment.DoesNotExist:
-        return HttpResponse("Assignment cannot be found.")
+        return HttpResponseBadRequest("Assignment cannot be found.")
 
     course = assignment.course_fk
     if not user.has_perm('modify_assignment', course):
-        return HttpResponse("Not enough privilege")
+        return HttpResponseBadRequest("Not enough privilege")
 
     if assignment.max_num_team_members == 1:
-        return HttpResponse("Not a team-based assignment")
+        return HttpResponseBadRequest("Not a team-based assignment")
 
     #TODO: The original plan of view_assignment_team_list view is that each student is represented
     # as a box in the table, and instructors can drag and drop the boxes to arrange students to
@@ -349,7 +349,7 @@ def view_assignment_team_list(request, assignment_id):
 @login_required(login_url='/login/')
 def delete_team(request):
     if request.method != 'POST':
-        HttpResponse("Not enough privilege", status=404)
+        HttpResponseBadRequest("Not enough privilege")
 
     user = User.objects.get(username=request.user)
 
@@ -357,14 +357,14 @@ def delete_team(request):
         assignment = Assignment.objects.get(id=request.POST.get('assignment_id'))
         team = Team.objects.get(id=request.POST.get('team_id'))
     except ObjectDoesNotExist:
-        return HttpResponse("Assignment or team cannot be found.")
+        return HttpResponseBadRequest("Assignment or team cannot be found.")
 
     course = assignment.course_fk
     if not user.has_perm('modify_assignment', course):
-        return HttpResponse("Not enough privilege")
+        return HttpResponseBadRequest("Not enough privilege")
 
     if team.assignment_fk != assignment:
-        return HttpResponse("Invalid request")
+        return HttpResponseBadRequest("Invalid request")
 
     team.delete()
 
@@ -379,14 +379,14 @@ def _create_or_modify_assignment(request, course_id, assignment):
     try:
         course = Course.objects.get(id=course_id)
     except Course.DoesNotExist:
-        return HttpResponse("Cannot find the course.")
+        return HttpResponseBadRequest("Cannot find the course.")
 
     user = User.objects.get(username=request.user)
     user_profile = UserProfile.objects.get(user=user)
 
     # Only super user has access to create a course
     if not user.has_perm('create_assignment', course):
-        return HttpResponse("Not enough privilege")
+        return HttpResponseBadRequest("Not enough privilege")
 
     mode = 'modify' if assignment else 'create'
 
@@ -421,7 +421,7 @@ def modify_assignment(request, assignment_id):
     try:
         assignment = Assignment.objects.get(id=assignment_id)
     except Assignment.DoesNotExist:
-        return HttpResponse("Cannot find the assignment.")
+        return HttpResponseBadRequest("Cannot find the assignment.")
 
     return _create_or_modify_assignment(
             request=request, course_id=assignment.course_fk.id, assignment=assignment)
@@ -435,7 +435,7 @@ def delete_assignment(request):
     try:
         assignment = Assignment.objects.get(id=request.POST.get('assignment_id'))
     except Assignment.DoesNotExist:
-        return HttpResponse("Cannot find the assignment.")
+        return HttpResponseBadRequest("Cannot find the assignment.")
 
     user = User.objects.get(username=request.user)
 

@@ -38,10 +38,10 @@ def _create_or_modify_course(request, course):
     # permission check
     if course is None:  # create mode
         if not user.has_perm('serapis.create_course'):
-            return HttpResponse("Not enough privilege.")
+            return HttpResponseBadRequest("Not enough privilege.")
     else:  # modify mode
         if not user.has_perm('modify_course', course):
-            return HttpResponse("Not enough privilege")
+            return HttpResponseBadRequest("Not enough privilege")
 
     mode = 'modify' if course else 'create'
 
@@ -73,7 +73,7 @@ def modify_course(request, course_id):
     try:
         course = Course.objects.get(id=course_id)
     except Course.DoesNotExist:
-        return HttpResponse("Course cannot be found.")
+        return HttpResponseBadRequest("Course cannot be found.")
 
     return _create_or_modify_course(request, course)
 
@@ -81,17 +81,17 @@ def modify_course(request, course_id):
 @login_required(login_url='/login/')
 def delete_course(request):
     if request.method != 'POST':
-        HttpResponse("Not enough privilege", status=404)
+        HttpResponseBadRequest("Not enough privilege", status=404)
 
     try:
         course = Course.objects.get(id=request.POST.get('course_id'))
     except Course.DoesNotExist:
-        return HttpResponse("Course cannot be found.")
+        return HttpResponseBadRequest("Course cannot be found.")
 
     user = User.objects.get(username=request.user)
 
     if not user.has_perm('modify_course', course):
-        return HttpResponse("Not enough privilege")
+        return HttpResponseBadRequest("Not enough privilege")
 
     course.delete()
 
@@ -106,10 +106,10 @@ def course(request, course_id):
     try:
         course = Course.objects.get(id=course_id)
     except Course.DoesNotExist:
-        return HttpResponse("Course cannot be found.")
+        return HttpResponseBadRequest("Course cannot be found.")
 
     if not user.has_perm('view_course', course):
-        return HttpResponse("Not enough privilege.")
+        return HttpResponseBadRequest("Not enough privilege.")
 
     assignment_list = Assignment.objects.filter(course_fk=course_id).order_by('-id')
 
@@ -151,11 +151,11 @@ def drop_course(request, course_id):
     try:
         course = Course.objects.get(id=course_id)
     except Course.DoesNotExist:
-        return HttpResponse("Not enough privilege")
+        return HttpResponseBadRequest("Not enough privilege")
 
     # show an error if not enrolled, 
     if CourseUserList.objects.filter(user_fk=user, course_fk=course).count() == 0:
-        return HttpResponse("Not enough privilege")
+        return HttpResponseBadRequest("Not enough privilege")
 
     if request.method == 'POST':
         form = CourseDropForm(request.POST, user=user, course=course)
@@ -239,10 +239,10 @@ def membership(request, course_id):
     try:
         course = Course.objects.get(id=course_id)
     except Course.DoesNotExist:
-        return HttpResponse("Course cannot be found.")
+        return HttpResponseBadRequest("Course cannot be found.")
 
     if not user.has_perm('view_membership', course):
-        return HttpResponse("Not enough privilege")
+        return HttpResponseBadRequest("Not enough privilege")
 
     students = []
     instructors = []

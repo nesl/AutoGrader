@@ -35,19 +35,19 @@ def submission(request, submission_id):
     try:
         submission = Submission.objects.get(id=submission_id)
     except Submission.DoesNotExist:
-        return HttpResponse("Submission cannot be found")
+        return HttpResponseBadRequest("Submission cannot be found")
 
     user = User.objects.get(username=request.user)
     assignment = submission.assignment_fk
     course = assignment.course_fk
 
     if not user.has_perm('view_assignment', course):
-        return HttpResponse("Not enough privilege")
+        return HttpResponseBadRequest("Not enough privilege")
 
     # for normal students, one can only see the submission if she is in the team
     if not user.has_perm('modify_assignment', course):
         if not team_helper.is_user_in_team(user, submission.team_fk):
-            return HttpResponse("Not enough privilege")
+            return HttpResponseBadRequest("Not enough privilege")
     submitter_name = user_info_helper.get_first_last_name(submission.student_fk)
     team_member_names = team_helper.get_team_member_full_name_list(submission.team_fk)
 
@@ -106,7 +106,7 @@ def task_grading_detail(request, task_grading_id):
     try:
         task_grading_status = TaskGradingStatus.objects.get(id=task_grading_id)
     except Submission.DoesNotExist:
-        return HttpResponse("Task grading detail cannot be found")
+        return HttpResponseBadRequest("Task grading detail cannot be found")
 
     user = User.objects.get(username=request.user)
     submission = task_grading_status.submission_fk
@@ -114,19 +114,19 @@ def task_grading_detail(request, task_grading_id):
     course = assignment.course_fk
     if not user.has_perm('view_assignment', course):
         print("not enrolled")
-        return HttpResponse("Not enough privilege")
+        return HttpResponseBadRequest("Not enough privilege")
 
     # for normal students, one can only see the submission if she is in the team
     if not user.has_perm('modify_assignment', course):
         if not team_helper.is_user_in_team(user, submission.team_fk):
-            return HttpResponse("Not enough privilege")
+            return HttpResponseBadRequest("Not enough privilege")
     submitter_name = user_info_helper.get_first_last_name(submission.student_fk)
     team_member_names = team_helper.get_team_member_full_name_list(submission.team_fk)
 
     assignment_task = task_grading_status.assignment_task_fk
     if not assignment_task.can_access_grading_details_by_user(user):
         print("cannot view detail")
-        return HttpResponse("Not enough privilege")
+        return HttpResponseBadRequest("Not enough privilege")
 
     if task_grading_status.grading_status != TaskGradingStatus.STAT_FINISH:
         return HttpResponse("Detail is not ready")
@@ -187,7 +187,7 @@ def submissions_full_log(request):
 def student_submission_full_log(request):
     user = User.objects.get(username=request.user)
     if not user.has_perm('serapis.view_hardware_type'):
-        return HttpResponse("Not enough privilege")
+        return HttpResponseBadRequest("Not enough privilege")
     courses_as_instructor = [o.course_fk for o in 
             CourseUserList.objects.filter(user_fk=user).exclude(role=CourseUserList.ROLE_STUDENT)]
 
@@ -216,14 +216,14 @@ def regrade(request, assignment_id):
     try:
         assignment = Assignment.objects.get(id=assignment_id)
     except Assignment.DoesNotExist:
-        return HttpResponse("Assignment cannot be found")
+        return HttpResponseBadRequest("Assignment cannot be found")
 
     user = User.objects.get(username=request.user)
     user_profile = UserProfile.objects.get(user=user)
 
     course = assignment.course_fk
     if not user.has_perm('modify_assignment', course):
-        return HttpResponse("Not enough privilege")
+        return HttpResponseBadRequest("Not enough privilege")
 
     previous_commit_result = None
     if request.method == 'POST':
