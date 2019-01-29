@@ -132,7 +132,7 @@ class Course(models.Model):
 
 class CourseUserList(models.Model):
     class Meta:
-        unique_together = ('course_id', 'user_id')
+        unique_together = ('course_fk', 'user_fk')
 
     ROLE_SUPER_USER = 0
     ROLE_INSTRUCTOR = 10
@@ -147,25 +147,28 @@ class CourseUserList(models.Model):
             (ROLE_STUDENT, 'Student'),
     )
 
-    course_id = models.ForeignKey(Course, on_delete=models.CASCADE)
-    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    course_fk = models.ForeignKey(Course, on_delete=models.CASCADE)
+    user_fk = models.ForeignKey(User, on_delete=models.CASCADE)
     role = models.IntegerField(choices=USER_ROLES)
 
     def __str__(self):
-        return '%s, %s' % (self.course_id.name, self.user_id)
+        return '%s, %s' % (self.course_fk.name, self.user_fk)
 
 
 class Assignment(models.Model):
+    SUBMISSION_LIMIT_INFINITE = 999999
+
     # basic information
-    course_id = models.ForeignKey(Course, on_delete=models.CASCADE)
+    course_fk = models.ForeignKey(Course, on_delete=models.CASCADE)
     name = models.CharField(max_length=50)
     release_time = models.DateTimeField()
     deadline = models.DateTimeField()
     problem_statement = RichTextUploadingField(blank=True)
-    num_max_team_members = models.IntegerField()
+    max_num_team_members = models.IntegerField()
+    max_num_submissions = models.IntegerField(validators=[MinValueValidator(1)])
 
     # testbed related
-    testbed_type_id = models.ForeignKey(TestbedType, null=True, blank=True)
+    testbed_type_fk = models.ForeignKey(TestbedType, null=True, blank=True)
     num_testbeds = models.IntegerField(default=0, null=True, blank=True)
 
     def __str__(self):
@@ -178,7 +181,7 @@ class Assignment(models.Model):
         Return:
           (assignment_task_list, sum_score)
         """
-        assignment_task_list = AssignmentTask.objects.filter(assignment_id=self).order_by('id')
+        assignment_task_list = AssignmentTask.objects.filter(assignment_fk=self).order_by('id')
         if not include_hidden:
             assignment_task_list = [t for t in assignment_task_list
                     if t.mode != AssignmentTask.MODE_HIDDEN]
@@ -187,23 +190,23 @@ class Assignment(models.Model):
         for assignment_task in assignment_task_list:
             sum_score += assignment_task.points
         return (assignment_task_list, sum_score)
-    
+
     def retrieve_assignment_tasks_by_accumulative_scope(self, most_powerful_mode):
         """
         Paremeter:
-          - most_powerful_mode: int, should be one of AssignmentTask.MODE_*. 
+          - most_powerful_mode: int, should be one of AssignmentTask.MODE_*.
         Return:
           assignment_task_list
         """
         return AssignmentTask.objects.filter(
-                assignment_id=self, mode__lte=most_powerful_mode).order_by('id')
+                assignment_fk=self, mode__lte=most_powerful_mode).order_by('id')
 
     def get_assignment_task_total_scores(self):
         """
         Return:
           (total_score_without_hidden, total_score_with_hidden)
         """
-        assignment_task_list = AssignmentTask.objects.filter(assignment_id=self)
+        assignment_task_list = AssignmentTask.objects.filter(assignment_fk=self)
 
         total_score_without_hidden = 0.
         total_score_with_hidden = 0.
@@ -219,12 +222,12 @@ class Assignment(models.Model):
     VIEWING_SCOPE_FULL = 2  # problem statement, all cases
     def viewing_scope_by_user(self, user):
         # who can create the assignment (i.e., instructor) can see the test input
-        if user.has_perm('create_assignment', self.course_id):
+        if user.has_perm('create_assignment', self.course_fk):
             return Assignment.VIEWING_SCOPE_FULL
 
         # students cannot see test input if homework is not released yet
         now = timezone.now()
-        if now < self.release_time:
+        if now < self.release_time or (not user.has_perm('view_assignment', self.course_fk)):
             return Assignment.VIEWING_SCOPE_NO
 
         # students can see everything after deadline
@@ -253,7 +256,7 @@ class AssignmentTask(models.Model):
         (MODE_HIDDEN, 'Hidden'),
     )
 
-    assignment_id = models.ForeignKey(Assignment, on_delete = models.CASCADE)
+    assignment_fk = models.ForeignKey(Assignment, on_delete = models.CASCADE)
     brief_description = models.CharField(max_length=100, null=True, blank=True)
     mode = models.IntegerField(choices=EVAL_MODES)
     points = models.FloatField(validators=[MinValueValidator(0.0)])
@@ -272,7 +275,7 @@ class AssignmentTask(models.Model):
         """
         The grading details here include input and output files, grading feedback, and scores.
         """
-        viewing_scope = self.assignment_id.viewing_scope_by_user(user)
+        viewing_scope = self.assignment_fk.viewing_scope_by_user(user)
         if viewing_scope == Assignment.VIEWING_SCOPE_NO:
             return False
         elif viewing_scope == Assignment.VIEWING_SCOPE_FULL:
@@ -281,60 +284,63 @@ class AssignmentTask(models.Model):
             return self.mode in [self.MODE_PUBLIC, self.MODE_DEBUG]
 
     def can_access_grading_script_by_user(self, user):
-        return user.has_perm('create_assignment', self.assignment_id.course_id)
+        return user.has_perm('create_assignment', self.assignment_fk.course_fk)
+
+    def retrieve_assignment_task_files_url(self, user):
+        assign_task_file_list = self.retrieve_assignment_task_files(user)
+        assign_task_file_url_list = [f.file.url for f in assign_task_file_list]
+        return assign_task_file_url_list
 
     def retrieve_assignment_task_files(self, user):
-        viewing_scope = self.assignment_id.viewing_scope_by_user(user)
-        assign_task_file_list = AssignmentTaskFile.objects.filter(assignment_task_id=self.id)
-        assign_task_file_url_list = [f.file.url for f in assign_task_file_list]
-        
+        viewing_scope = self.assignment_fk.viewing_scope_by_user(user)
+        assign_task_file_list = AssignmentTaskFile.objects.filter(assignment_task_fk=self.id)
+
         if viewing_scope == Assignment.VIEWING_SCOPE_NO:
             return []
         elif viewing_scope == Assignment.VIEWING_SCOPE_FULL:
-            return assign_task_file_url_list
+            return assign_task_file_list
         else:
             if self.mode in [self.MODE_DEBUG, self.MODE_PUBLIC]:
-                return assign_task_file_url_list
+                return assign_task_file_list
             else:
                 return []
 
-
 class AssignmentTaskFileSchema(models.Model):
     class Meta:
-        unique_together = ('assignment_id', 'field')
+        unique_together = ('assignment_fk', 'field')
 
-    assignment_id = models.ForeignKey(Assignment, on_delete=models.CASCADE)
+    assignment_fk = models.ForeignKey(Assignment, on_delete=models.CASCADE)
     field = models.CharField(max_length=100)
 
 
 class AssignmentTaskFile(models.Model):
     class Meta:
-        unique_together = ('assignment_task_id', 'file_schema_id')
+        unique_together = ('assignment_task_fk', 'file_schema_fk')
 
-    assignment_task_id = models.ForeignKey(AssignmentTask, on_delete=models.CASCADE)
-    file_schema_id = models.ForeignKey(AssignmentTaskFileSchema, on_delete=models.CASCADE)
+    assignment_task_fk = models.ForeignKey(AssignmentTask, on_delete=models.CASCADE)
+    file_schema_fk = models.ForeignKey(AssignmentTaskFileSchema, on_delete=models.CASCADE)
     file = models.FileField(upload_to='AssignmentTaskFile_file')
 
 
 class Team(models.Model):
-    assignment_id = models.ForeignKey(Assignment, on_delete=models.CASCADE)
+    assignment_fk = models.ForeignKey(Assignment, on_delete=models.CASCADE)
     passcode = models.CharField(max_length=20, unique=True)
-    
+
     def __str__(self):
         return str(self.id)
 
 
 class TeamMember(models.Model):
     class Meta:
-        unique_together = ('assignment_id', 'user_id')
+        unique_together = ('assignment_fk', 'user_fk')
 
-    assignment_id = models.ForeignKey(Assignment, on_delete=models.CASCADE)
-    team_id = models.ForeignKey(Team, on_delete=models.CASCADE)
-    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    assignment_fk = models.ForeignKey(Assignment, on_delete=models.CASCADE)
+    team_fk = models.ForeignKey(Team, on_delete=models.CASCADE)
+    user_fk = models.ForeignKey(User, on_delete=models.CASCADE)
     is_leader = models.BooleanField()
 
     def __str__(self):
-        return 'team%d-%s' % (self.team_id.id, self.user_id) 
+        return 'team%d-%s' % (self.team_fk.id, self.user_fk)
 
 
 class Submission(models.Model):
@@ -349,16 +355,18 @@ class Submission(models.Model):
             (STAT_GRADED, "Result is ready"),
     )
 
-    student_id = models.ForeignKey(User, on_delete=models.CASCADE)
-    team_id = models.ForeignKey(Team, on_delete=models.CASCADE)
-    assignment_id = models.ForeignKey(Assignment, on_delete=models.CASCADE)
+    student_fk = models.ForeignKey(User, on_delete=models.CASCADE)
+    team_fk = models.ForeignKey(Team, on_delete=models.CASCADE)
+    assignment_fk = models.ForeignKey(Assignment, on_delete=models.CASCADE)
     submission_time = models.DateTimeField()
     grading_result = models.FloatField()
     status = models.IntegerField(choices=SUBMISSION_STATES, default=STAT_RECEIVED)
-    task_scope = models.IntegerField()
+    task_scope = models.IntegerField()  # enum of AssignmentTask.EVAL_MODES
+    num_graded_tasks = models.IntegerField()
+    num_total_tasks = models.IntegerField()
 
     def __str__(self):
-        return self.student_id.first_name + " " + self.student_id.last_name + ", " + str(self.id)
+        return self.student_fk.first_name + " " + self.student_fk.last_name + ", " + str(self.id)
 
     def retrieve_task_grading_status_and_score_sum(self, include_hidden):
         """
@@ -369,17 +377,17 @@ class Submission(models.Model):
           (task_grading_status_list, sum_student_score, sum_total_score)
         """
         task_grading_status_list = TaskGradingStatus.objects.filter(
-                submission_id=self).order_by('assignment_task_id')
+                submission_fk=self).order_by('assignment_task_fk')
         if not include_hidden:
             task_grading_status_list = [t for t in task_grading_status_list
-                    if t.assignment_task_id.mode != AssignmentTask.MODE_HIDDEN]
+                    if t.assignment_task_fk.mode != AssignmentTask.MODE_HIDDEN]
 
         sum_student_score = 0.
         sum_total_score = 0.
         for grading_status in task_grading_status_list:
             if grading_status.grading_status != TaskGradingStatus.STAT_FINISH:
                 grading_status.points = 0.
-            sum_total_score += grading_status.assignment_task_id.points
+            sum_total_score += grading_status.assignment_task_fk.points
             sum_student_score += grading_status.points
         return (task_grading_status_list, sum_student_score, sum_total_score)
 
@@ -398,24 +406,24 @@ class Submission(models.Model):
 
 class SubmissionFileSchema(models.Model):
     class Meta:
-        unique_together = ('assignment_id', 'field')
+        unique_together = ('assignment_fk', 'field')
 
-    assignment_id = models.ForeignKey(Assignment, on_delete=models.CASCADE)
+    assignment_fk = models.ForeignKey(Assignment, on_delete=models.CASCADE)
     field = models.CharField(max_length=100)
 
 
 class SubmissionFile(models.Model):
     class Meta:
-        unique_together = ('submission_id', 'file_schema_id')
+        unique_together = ('submission_fk', 'file_schema_fk')
 
-    submission_id = models.ForeignKey(Submission, on_delete=models.CASCADE)
-    file_schema_id = models.ForeignKey(SubmissionFileSchema, on_delete=models.CASCADE)
+    submission_fk = models.ForeignKey(Submission, on_delete=models.CASCADE)
+    file_schema_fk = models.ForeignKey(SubmissionFileSchema, on_delete=models.CASCADE)
     file = models.FileField(upload_to='SubmissionFile_file')
 
 
 class TaskGradingStatus(models.Model):
     class Meta:
-        unique_together = ('submission_id', 'assignment_task_id')
+        unique_together = ('submission_fk', 'assignment_task_fk')
 
     STAT_PENDING = 0
     STAT_EXECUTING = 10
@@ -442,8 +450,8 @@ class TaskGradingStatus(models.Model):
             (EXEC_SEG_FAULT, 'Segmentation fault'),
     )
 
-    submission_id = models.ForeignKey(Submission, on_delete=models.CASCADE)
-    assignment_task_id = models.ForeignKey(AssignmentTask, on_delete=models.CASCADE)
+    submission_fk = models.ForeignKey(Submission, on_delete=models.CASCADE)
+    assignment_task_fk = models.ForeignKey(AssignmentTask, on_delete=models.CASCADE)
     grading_status = models.IntegerField(choices=GRADING_STATES, default=STAT_PENDING)
     execution_status = models.IntegerField(choices=EXECUTION_STATUS, default=EXECUTION_STATUS)
     status_update_time = models.DateTimeField()
@@ -456,48 +464,21 @@ class TaskGradingStatus(models.Model):
         return self.grading_status in [
                 TaskGradingStatus.STAT_FINISH, TaskGradingStatus.STAT_INTERNAL_ERROR]
 
-    def can_access_grading_details_by_user(self, user):
-        """
-        The grading details is defined the same as in AssignmentTask, including output files, 
-        grading feedback, and score.
-        """
-
-        # If the user is an instructor, she can see the output file
-        if user.has_perm('create_assignment', self.assignment_task_id.assignment_id.course_id):
-            return True
-
-        # Otherwise, the user is a student. We need to make sure the user is the owner
-        # of this output file
-        if user != self.submission_id.student_id:
-            return False
-
-        # Now, is the output ready to download? Depends on the mode of the task.
-        # Fortunately, the accessibility of an input file and an output file within the
-        # same task should be the same. We can simply ask the permission of the input file.
-        return self.assignment_task_id.can_access_grading_details_by_user(user)
-
-    def can_show_grading_details_to_user(self, user):
-        """
-        The grading details can be displayed on web only if the user has the permission to see this
-        information and the content is ready.
-        """
-        return self.can_access_grading_details_by_user(user) and self.is_grading_done()
-
 
 class TaskGradingStatusFileSchema(models.Model):
     class Meta:
-        unique_together = ('assignment_id', 'field')
+        unique_together = ('assignment_fk', 'field')
 
-    assignment_id = models.ForeignKey(Assignment, on_delete=models.CASCADE)
+    assignment_fk = models.ForeignKey(Assignment, on_delete=models.CASCADE)
     field = models.CharField(max_length=100)
 
 
 class TaskGradingStatusFile(models.Model):
     class Meta:
-        unique_together = ('task_grading_status_id', 'file_schema_id')
+        unique_together = ('task_grading_status_fk', 'file_schema_fk')
 
-    task_grading_status_id = models.ForeignKey(TaskGradingStatus, on_delete=models.CASCADE)
-    file_schema_id = models.ForeignKey(TaskGradingStatusFileSchema, on_delete=models.CASCADE)
+    task_grading_status_fk = models.ForeignKey(TaskGradingStatus, on_delete=models.CASCADE)
+    file_schema_fk = models.ForeignKey(TaskGradingStatusFileSchema, on_delete=models.CASCADE)
     file = models.FileField(upload_to='TaskGradingStatusFile_file', null=True, blank=True)
 
 
@@ -520,7 +501,7 @@ class Testbed(models.Model):
         (STATUS_UNKNOWN, 'Unknown'),
     )
 
-    testbed_type_id = models.ForeignKey(TestbedType, on_delete=models.CASCADE)
+    testbed_type_fk = models.ForeignKey(TestbedType, on_delete=models.CASCADE)
 
     #IP Address. Only allowing IPv4 as the testers are internal
     #TODO: see whether we should switch back to IPAddressField
@@ -535,95 +516,9 @@ class Testbed(models.Model):
     # report message
     report_time = models.DateTimeField()
     report_status = models.IntegerField(choices=REPORT_STATUS)
-    
+
     # status of the foreign testbed
     secret_code = models.CharField(max_length=100)
-
-    def grade_task(self, chosen_task, duration, force_detach_currently_graded_task=False,
-            check_testbed_status_is_available=True, check_task_status_is_pending=True):
-        """
-        Paremeter:
-          - chosen_task: TaskGradingStatus, the task to be graded
-          - duration: Float, how much time the task can be executed
-          - force_detach_currently_grading_task: True to abort the currently graded task if
-                present. Otherwise an exception is raised if task_being_graded is not None.
-          - check_testbed_status_available: True if want to check this testbed is available
-          - check_task_status_pending: True if want to check the status of chosen_task is pending
-        """
-        if force_detach_currently_graded_task:
-            if self.task_being_graded:
-                self.abort_task(set_status=self.status, check_task_status_is_executing=False)
-        if self.task_being_graded:
-            raise Exception('This testbed is still grading one task')
-        if check_testbed_status_is_available:
-            if self.status != Testbed.STATUS_AVAILABLE:
-                raise Exception('Request grading a task but status is not available')
-        if check_task_status_is_pending:
-            if chosen_task.grading_status != TaskGradingStatus.STAT_PENDING:
-                raise Exception('Requested task is not in pending status')
-        
-        with transaction.atomic():
-            self.status = Testbed.STATUS_BUSY
-            self.task_being_graded = chosen_task
-            self.grading_deadline = timezone.now() + datetime.timedelta(0, duration)
-            self.secret_code = str(timezone.now())
-            self.save()
-
-            chosen_task.grading_status = TaskGradingStatus.STAT_EXECUTING
-            chosen_task.status_update_time = timezone.now()
-            chosen_task.points = 0.
-            chosen_task.grading_detail = None
-            chosen_task.save()
-
-    def abort_task(self, set_status=STATUS_AVAILABLE,
-            tolerate_task_is_not_present=False, check_task_status_is_executing=True):
-        """
-        Paremeter:
-          - set_status: The status going to be set for this testbed
-          - tolerate_task_is_not_present: True if the grading task does not have to be present
-          - check_testbed_status_is_executing: True to check the status of the task is executing.
-                Will have no effect if tolerate_task_is_not_present is True.
-        """
-        check_task_status_is_executing &= not tolerate_task_is_not_present
-
-        task = self.task_being_graded
-        if not tolerate_task_is_not_present:
-            if not task:
-                raise Exception('No task to abort')
-        if check_task_status_is_executing:
-            if task.grading_status != TaskGradingStatus.STAT_EXECUTING:
-                raise Exception('Status of the graded task is not executing')
-                
-        with transaction.atomic():
-            if task:
-                task.grading_status = TaskGradingStatus.STAT_PENDING
-                task.save()
-            self.task_being_graded = None
-            self.status = set_status
-            self.secret_code = ''
-            self.save()
-
-
-    def finish_grading(self, task_execution_status):
-        task = self.task_being_graded
-        if not task:
-            raise Exception('No grading task is associated with this testbed')
-
-        with transaction.atomic():
-            now = timezone.now()
-
-            task.grading_status = TaskGradingStatus.STAT_OUTPUT_TO_BE_CHECKED
-            task.execution_status = task_execution_status
-            task.status_update_time = now
-            task.save()
-            
-            self.task_being_graded = None
-            self.report_time = now
-            self.report_status = Testbed.STATUS_AVAILABLE
-            self.status = Testbed.STATUS_AVAILABLE
-            self.secret_code = ''
-            self.save()
-
 
 class HardwareDevice(models.Model):
     hardware_type = models.ForeignKey(
@@ -632,3 +527,11 @@ class HardwareDevice(models.Model):
     )
 
     testbed = models.ForeignKey(Testbed, on_delete=models.CASCADE)
+
+class GradingSchedulerFootprint(models.Model):
+    pid = models.IntegerField()
+    woke_time = models.DateTimeField()
+    watchdog_time = models.DateTimeField()
+
+    def get_elapsed_time(self):
+        return self.watchdog_time - self.woke_time

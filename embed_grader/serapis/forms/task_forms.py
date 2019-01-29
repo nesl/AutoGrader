@@ -68,7 +68,7 @@ class AssignmentTaskForm(ModelForm):
 
     def save_and_commit(self):
         assignment_task = super(AssignmentTaskForm, self).save(commit=False)
-        assignment_task.assignment_id = self.assignment
+        assignment_task.assignment_fk = self.assignment
         assignment_task.save()
 
         schema_name_to_files = {}

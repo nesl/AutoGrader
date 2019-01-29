@@ -8,7 +8,7 @@ from django.utils.html import format_html
 
 from serapis.models import *
 from serapis.utils import team_helper
-
+from serapis.utils import task_grading_status_helper
 
 register = template.Library()
 
@@ -24,7 +24,7 @@ def show_score(achieved_score, total_score):
         total_score = str(round(float(total_score), 2))
     except:
         pass
-    
+
     background_color = ('green'
             if achieved_score != '0.0' and achieved_score == total_score else 'darkred')
     return format_html('<span class="badge" style="background:%s; width:100px;">%s / %s</span>' % (
@@ -35,7 +35,6 @@ def show_status(status):
         status = str(status)
     except:
         pass
-    
 
 
 class SubmissionTableSchemaNode(template.Node):
@@ -75,11 +74,11 @@ def do_submission_table_schema(parser, token):
         raise template.TemplateSyntaxError(
             "%r tag requires arguments" % token.contents.split()[0]
         )
-    
+
     m = re.search(r'(.*?) as (\w+)', arg)
     if not m:
         raise template.TemplateSyntaxError("%r tag had invalid arguments" % tag_name)
-    
+
     format_string, var_name = m.groups()
     terms = [w.strip() for w in format_string.split()]
     terms = [w for w in terms if w]
@@ -88,7 +87,7 @@ def do_submission_table_schema(parser, token):
         raise template.TemplateSyntaxError(
             "%r tag should have more than 0 and even number of arguments" % tag_name
         )
-    
+
     schema_list = terms[::2]
     attr_list = terms[1::2]
 
@@ -118,7 +117,7 @@ class RenderSubmissionTableRow:
         }
         self.submission = submission
         self.user = user
-        self.include_hidden = (submission.assignment_id.viewing_scope_by_user(user)
+        self.include_hidden = (submission.assignment_fk.viewing_scope_by_user(user)
                 == Assignment.VIEWING_SCOPE_FULL)
         self.result = format_html(
                 ''.join(['<td>' + schema_to_function[sch]() + '</td>'
@@ -128,19 +127,19 @@ class RenderSubmissionTableRow:
         return self.result
 
     def _get_content_assignment(self):
-        assignment = self.submission.assignment_id
+        assignment = self.submission.assignment_fk
         return '<a href="%s">%s</a>' % (
                 reverse('assignment', kwargs={'assignment_id': assignment.id}), assignment.name)
 
     def _get_content_status(self):
-        (all_assignment_tasks, _) = (self.submission.assignment_id
+        (all_assignment_tasks, _) = (self.submission.assignment_fk
                 .retrieve_assignment_tasks_and_score_sum(include_hidden=True))
         (task_grading_status_list, _, _) = (
                 self.submission.retrieve_task_grading_status_and_score_sum(self.include_hidden))
-        
+
         atid_2_task_grading_status = {}
         for task_grading_status in task_grading_status_list:
-            atid = task_grading_status.assignment_task_id.id
+            atid = task_grading_status.assignment_task_fk.id
             atid_2_task_grading_status[atid] = task_grading_status
 
         status_2_text = {
@@ -168,8 +167,9 @@ class RenderSubmissionTableRow:
             else:
                 task = atid_2_task_grading_status[atid]
                 status = task.grading_status
-                task_id_for_url = (
-                        task.id if task.can_show_grading_details_to_user(self.user) else None)
+                can_show_task = task_grading_status_helper.can_show_grading_details_to_user(
+                        task, self.user)
+                task_id_for_url = task.id if can_show_task else None
                 htmls.append(self._render_task_status(status_2_text[status],
                     status_2_background_color[status], task_id_for_url))
         return '&nbsp;'.join(htmls)
@@ -185,12 +185,11 @@ class RenderSubmissionTableRow:
 
     def _get_content_detail_button(self):
         url_str = reverse('submission', kwargs={'submission_id': self.submission.id})
-        return ('<a class="btn btn-primary" href="%s" style="font-size:12px; background:white; '
-                + 'width:90px; color:SteelBlue; border-color:SteelBlue">'
+        return ('<a class="btn btn-primary btn-detail-enabled" href="%s" style="width:90px;">'
                 + '<span class="glyphicon glyphicon-file"></span>&nbsp;Detail</a>') % url_str
 
     def _get_content_author_names(self):
-        return team_helper.get_team_member_first_name_list(self.submission.team_id)
+        return team_helper.get_team_member_first_name_list(self.submission.team_fk)
 
     def _render_task_status(self, text, background_color, task_id_for_url):
         if not task_id_for_url:

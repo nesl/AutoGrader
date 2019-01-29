@@ -9,3 +9,17 @@
 a:hover {
   cursor: pointer;
 }
+
+.btn-detail-enabled {
+  font-size: 12px;
+  background: white;
+  color: SteelBlue;
+  border-color: SteelBlue;
+}
+
+.btn-detail-disabled {
+  font-size: 12px;
+  background: white;
+  color: grey;
+  border-color: grey;
+}

@@ -1,0 +1,56 @@
+{% extends 'serapis/base_sidebar.html' %}
+{% load staticfiles %}
+{% load guardian_tags %}
+{% load submission_tags %}
+
+{% block profile-usertitle-name %}
+  {{ course.course_code }}
+{% endblock %}
+
+{% block profile-usertitle-job %}
+  {{ assignment.name }}
+{% endblock %}
+
+{% block courses-active %}active{% endblock %}
+
+{% block page-specific-css %}
+  {{ visualizer_manager.render_css }}
+{% endblock %}
+
+{% block page-specific-js %}
+  {{ visualizer_manager.render_js }}
+{% endblock %}
+
+{% block main-content %}
+  {% get_obj_perms request.user for course as "course_perms" %}
+
+  <div class="main-content">
+    <div class="top-buffer">
+      <ol class="breadcrumb">
+        <li><a href="{% url 'homepage' %}">Courses</a></li>
+        <li><a href="{% url 'course' course.id %}">{{course.course_code}}</a></li>
+        <li><a href="{% url 'assignment' assignment.id %}">{{assignment.name}}</a></li>
+        <li class="active">{{task.brief_description}}</a></li>
+      </ol>
+    </div>
+
+    <h2 class="page-header">Task Detail</h2>
+
+    <h5>Task name: {{ task.brief_description }}</h5>
+    <h5>Mode: {{ task.get_mode_display }}</h5>
+    <h5>Points: {{ task.points }}</h5>
+    <h5>Description: {{task.description}}</h5>
+
+    <h3 class="page-header">Input Files</h3>
+
+    {% for visualization in visualizer_manager.get_visualizations %}
+      <h4>File: {{visualization.field_name}}
+        <a href="{{ MEDIA_URL }}{{ visualization.url }}" class="btn btn-primary btn-detail-enabled">
+          <span class="glyphicon glyphicon-download-alt"></span> &nbsp;Download
+        </a>
+      </h4>
+      <br/>
+      {{ visualization.html }}
+    {% endfor %}
+  </div>
+{% endblock %}

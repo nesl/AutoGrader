@@ -1,0 +1,39 @@
+{% extends 'serapis/base.html' %}
+{% load staticfiles %}
+
+{% block css %}
+{% endblock %}
+
+
+{% block content %}
+  <div class="container">
+    <h1 class="page-header">Hardware Type - {{ hardware_type.name }} (ID={{ hardware_type.id }})</h1>
+
+    <div class="row">
+      <div class="col-lg-4">
+        <img src="{{ MEDIA_URL }}{{ hardware_type.pinout.url }}" style="width:100%" alt="" />
+      </div>
+      <div class="col-lg-8">
+        <p>Manual: <a href="{{ hardware_type.link_to_manual }}">{{ hardware_type.link_to_manual }}</a></p>
+        <p>Hardware role: {{ hardware_type.get_hardware_role_display }}</p>
+        {% if hardware_type_pins %}
+          <p>Pins:</p>
+          <ul>
+            {% for pin in hardware_type_pins %}
+              <li>{{ pin.pin_name }}</a></li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </div>
+    </div>
+
+    <p>
+      <a href="{% url 'modify-hardware-type' hardware_type.id %}" class="btn btn-primary">Modify this hardware type</a>
+      <a href="#" class="btn btn-danger">Delete this hardware type</a>
+    </p>
+    <p>
+      <a href="{% url 'hardware-type-list' %}">[Go back to hardware type List]</a>
+    </p>
+  </div>
+
+{% endblock %}

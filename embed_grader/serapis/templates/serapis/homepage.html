@@ -12,47 +12,45 @@
 {% block courses-active %}active{% endblock %}
 
 {% block main-content %}
-    <div class="main-content">
-        <h2 class="page-header">Course List</h2>
+  <div class="main-content">
+    <h2 class="page-header">Course List</h2>
 
-        {% if not course_list %}
-            <p>No courses are available.</p>
-        {% else %}
-            <div class="table-responsive">
-            <table class="table table-striped table-hover">
-                <tr>
-                <thead class="thead-default">
-                    <th style="text-align:left;">Course</th>
-                    <th>Quarter</th>
-                    <th>Year</th>
-                    <th>Drop Course</th>
-                </thead>
-                </tr>
-                {% for course in course_list %}
-                <tr>
-                    <td style="text-align:left; width:35%"><a href="{% url 'course' course.id %}">{{ course.course_code }}: {{ course.name }}</a></td>
-                    <td>{{ course.get_quarter_display }}</td>
-                    <td>{{ course.year }}</td>
-                    <td>
-                      <a href="{% url 'unenroll-course' course.id %}" class="btn btn-primary" style="font-size:12px; 
-                      background:white; color:SteelBlue; border-color:SteelBlue; width:80px">
-                        <span class="fa fa-sign-out"></span>&nbsp;Drop
-                      </a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </table>
-            </div>
-            <!--end table-->
-        {% endif %}
+    {% if not course_list %}
+      <p>No courses are available.</p>
+    {% else %}
+      <div class="table-responsive">
+        <table class="table table-striped table-hover">
+          <tr>
+          <thead class="thead-default">
+            <th style="text-align:left;">Course</th>
+            <th>Quarter</th>
+            <th>Year</th>
+            <th>Drop Course</th>
+          </thead>
+          </tr>
+          {% for course in course_list %}
+            <tr>
+              <td style="text-align:left; width:35%"><a href="{% url 'course' course.id %}">{{ course.course_code }}: {{ course.name }}</a></td>
+              <td>{{ course.get_quarter_display }}</td>
+              <td>{{ course.year }}</td>
+              <td>
+                <a href="{% url 'drop-course' course.id %}" class="btn btn-primary btn-detail-enabled" style="width:80px">
+                  <span class="fa fa-sign-out"></span>&nbsp;Drop
+                </a>
+              </td>
+            </tr>
+          {% endfor %}
+        </table>
+      </div>
+    {% endif %}
 
-            <hr/>
-            <p>
-                {% if perms.serapis.add_course %}
-                    <a href="{% url 'create-course' %}" class="btn btn-primary">Create New Course</a>
-                {% endif %}
-                <a href="{% url 'enroll-course' %}" class="btn btn-success" style="margin-left:10px">Enroll in a Course</a>
-            </p>
-    </div>
+    <hr/>
+    <p>
+      {% if perms.serapis.add_course %}
+        <a href="{% url 'create-course' %}" class="btn btn-primary">Create New Course</a>
+      {% endif %}
+      <a href="{% url 'enroll-course' %}" class="btn btn-success" style="margin-left:10px">Enroll in a Course</a>
+    </p>
+  </div>
 
 {% endblock %}

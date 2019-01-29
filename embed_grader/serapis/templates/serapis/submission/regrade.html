@@ -1,0 +1,73 @@
+{% extends 'serapis/base_sidebar.html' %}
+{% load staticfiles %}
+{% load guardian_tags %}
+{% load bootstrap3 %}
+
+{% block page-specific-js %}
+  <script src="{% static 'serapis/js/form_helper.js' %}"></script>
+{% endblock %}
+
+{% block profile-usertitle-name %}
+  Regrading Interface
+{% endblock %}
+
+{% block profile-usertitle-job %}
+  {{ assignment.name }}
+{% endblock %}
+
+{% block submissions-type-list-active %}active{% endblock %}
+
+{% block courses-active %}active{% endblock %}
+
+{% block main-content %}
+  <div class="main-content">
+    <style>
+      form input[type='radio'] {
+        display: inline-block;
+      }
+    </style>
+    <div class="top-buffer">
+      <ol class="breadcrumb">
+        <li><a href="{% url 'homepage' %}">Courses</a></li>
+        <li><a href="{% url 'course' course.id %}">{{ course.course_code }}</a></li>
+        <li><a href="{% url 'assignment' assignment.id %}">{{ assignment.name }}</a></li>
+        <li>Regrading interface</li>
+      </ol>
+    </div>
+
+    {% if previous_commit_result %}
+      <div class="alert alert-success alert-dismissable alert-link">
+        <button class="close" type="button" data-dismiss="alert" aria-hidden="true">x</button>
+        {{previous_commit_result.num_successful_submissions}} submission(s) and
+        {{previous_commit_result.num_successful_task_grading_status}} task-grading status have been updated.
+      </div>
+    {% endif %}
+    <h3 class="page-header">Regrade interface</h3>
+    <h5>Course: {{course.course_code}} {{course.name}}</h5>
+    <h5>Assignment: {{assignment.name}}</h5>
+    <hr/>
+    
+    <form action="." method="post" class="form">
+      {% csrf_token %}
+      {% bootstrap_form form %}
+      <input class="btn btn-primary" type="submit" value="Submit" />&nbsp;
+      <a class="btn btn-default" href="javascript:history.back()" />Back</a>
+    </form>
+
+    <script>
+      make_radio_button_choice_extension(
+        'id_author_scope', /* radio_button_group_id */
+        'id_author_choice', /* input_id */
+        ', and the author is <input>', /* append_format */
+        200, /* input width */
+      );
+      
+      make_radio_button_choice_extension(
+        'id_submission_scope', /* radio_button_group_id */
+        'id_submission_range', /* input_id */
+        ': <input>', /* append_format */
+        400, /* input width */
+      );
+    </script>
+  </div>
+{% endblock %}

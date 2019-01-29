@@ -1,0 +1,30 @@
+{% extends 'serapis/base_sidebar.html' %}
+{% load staticfiles %}
+{% load widget_tweaks %}
+{% load bootstrap3 %}
+
+{% block profile-usertitle-name %}
+  Welcome!
+{% endblock %}
+
+{% block profile-usertitle-job %}
+  {{ course.name }}
+{% endblock %}
+
+{% block courses-active %}active{% endblock %}
+
+{% block main-content %}
+  <div class="main-content">
+    <h3 class="page-header">Drop course {{course.course_code}}</h3>
+    <p style="color:red; font-weight:bold">Warning: You are going to drop course {{course.course_code}}: {{course.name}}. Are you sure you want to drop this class?</p>
+    <p>Note that if you are a team leader of any assignments in this course, the entire team will be wiped out and your teammates will lose the submission history.</p>
+    <form action="." method="post">
+      {% csrf_token %}
+      {% bootstrap_form form %}
+      <br/>
+      <p><a href="{% url 'homepage' %}" class="btn btn-primary" style="width:200px">No, take me out of here</a></p>
+      <p><input type="submit" class="btn btn-danger" style="width:200px" value="Yes, I'd like to drop"></p>
+    </form>
+
+  </div>
+{% endblock %}

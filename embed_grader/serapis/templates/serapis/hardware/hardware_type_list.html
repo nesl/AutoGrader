@@ -1,0 +1,43 @@
+{% extends 'serapis/base_sidebar.html' %}
+{% load staticfiles %}
+
+{% block profile-usertitle-name %}
+  Testbed
+{% endblock %}
+
+{% block profile-usertitle-job %}
+  <br/>
+{% endblock %}
+
+{% block hardware-type-list-active %}active{% endblock %}
+
+{% block main-content %}
+  <div class="main-content">
+    <h1 class="page-header">Hardware Type Gallery</h1>
+
+    {% if not hardware_type_list %}
+      <p>No hardware type has been specified.</p>
+    {% else %}
+      <div class="table-responsive">
+      <table class="table table-hover">
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+        </tr>
+        {% for hardware_type in hardware_type_list %}
+        <tr>
+          <td><a href="{% url 'hardware-type' hardware_type.id %}">{{hardware_type.name}}</a></td>
+          <td>{{ hardware_type.get_hardware_role_display }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+      </div>
+    {% endif %}
+
+    <p>
+      <a href="{% url 'create-hardware-type' %}" class="btn btn-primary">Create a New Hardware Type</a>
+      <!-- <a href="{% url 'testbed-type-list' %}" class="btn btn-default">View Testbed Type List</a> -->
+    </p>
+  </div>
+
+{% endblock %}

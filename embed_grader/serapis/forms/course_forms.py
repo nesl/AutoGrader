@@ -29,11 +29,11 @@ class CourseCreationForm(ModelForm):
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user')
         super(CourseCreationForm, self).__init__(*args, **kwargs)
-        
+
         course = kwargs.get('instance')  # None if in creating mode, otherwise updating
 
         now = timezone.now()
-        cur_year = now.year 
+        cur_year = now.year
         cur_month = now.month
         cur_quarter = (cur_month - 1) // 3
         cur_year_quarter = cur_year * 4 + cur_quarter
@@ -80,7 +80,7 @@ class CourseCreationForm(ModelForm):
                     quarter=quarter,
             )
             course_user_list = CourseUserList.objects.create(
-                    user_id=self.user, course_id=course, role=CourseUserList.ROLE_INSTRUCTOR)
+                    user_fk=self.user, course_fk=course, role=CourseUserList.ROLE_INSTRUCTOR)
 
             # permission: create groups, add group permissions
             #TODO: don't hardcode strings here
@@ -89,7 +89,7 @@ class CourseCreationForm(ModelForm):
 
             instructor_group = Group.objects.create(name=instructor_group_name)
             student_group = Group.objects.create(name=student_group_name)
-            
+
             self.user.groups.add(instructor_group)
 
             #assign permissions
@@ -119,18 +119,22 @@ class CourseEnrollmentForm(Form):
     error_messages = {
         'course_already_enrolled': "You have already enrolled in this course.",
     }
-    
+
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user')
         super(CourseEnrollmentForm, self).__init__(*args, **kwargs)
 
-        current_year = timezone.now().year
+        now = timezone.now()
+        cur_year = now.year
+        cur_month = now.month
+        cur_quarter = (cur_month - 1) // 3
+        
         self.fields['course_select'] = forms.ModelChoiceField(
-            queryset=Course.objects.filter(year=current_year))
+            queryset=Course.objects.filter(year=cur_year, quarter=cur_quarter))
 
     def clean(self):
         course = self.cleaned_data.get("course_select")
-        if CourseUserList.objects.filter(user_id=self.user, course_id=course).count():
+        if CourseUserList.objects.filter(user_fk=self.user, course_fk=course).count():
             raise forms.ValidationError(self.error_messages['course_already_enrolled'],
                 code='course_already_enrolled')
         return self.cleaned_data
@@ -138,15 +142,15 @@ class CourseEnrollmentForm(Form):
     def save(self, commit=True):
         course = self.cleaned_data['course_select']
         course_user_list = CourseUserList(
-                user_id=self.user,
-                course_id=course,
+                user_fk=self.user,
+                course_fk=course,
                 role=CourseUserList.ROLE_STUDENT
         )
-        
+
         student_group_name = str(course.id) + "_Student_Group"
         student_group = Group.objects.get(name=student_group_name)
         self.user.groups.add(student_group)
-        
+
         if commit:
             course_user_list.save()
 
@@ -168,21 +172,19 @@ class CourseDropForm(Form):
 
     def save_and_commit(self):
         with transaction.atomic():
-            assignment_list = Assignment.objects.filter(course_id=self.course)
+            assignment_list = Assignment.objects.filter(course_fk=self.course)
             for assignment in assignment_list:
                 team = team_helper.get_belonged_team(self.user, assignment)
                 if team is not None:
                     team_helper.remove_users_from_team(team=team, users=[self.user])
 
-            CourseUserList.objects.filter(user_id=self.user, course_id=self.course).delete()
+            CourseUserList.objects.filter(user_fk=self.user, course_fk=self.course).delete()
 
         #TODO: remove instruction privileges
         # if len(cu_list) > 0 && cu_list[0].role < 20:
         #     instructor_group_name = str(course.id) + "_Instructor_Group"
-    
+
         # remove user from course group also
         student_group_name = str(self.course.id) + "_Student_Group"
         student_group = Group.objects.get(name=student_group_name)
         self.user.groups.remove(student_group)
-    
-        

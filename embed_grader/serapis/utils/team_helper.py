@@ -18,19 +18,19 @@ def create_team(assignment, users):
     Returns:
       (team, team_member_list)
     """
-    if len(users) > assignment.num_max_team_members:
+    if len(users) > assignment.max_num_team_members:
         raise Exception('Maximum number of team members exceeds')
 
     with transaction.atomic():
-        team = Team.objects.create(assignment_id=assignment)
+        team = Team.objects.create(assignment_fk=assignment)
         team.passcode = _generate_passcode(team)
         team.save()
 
         team_member_list = []
         for idx, user in enumerate(users):
             is_leader = (idx == 0)
-            team_member = TeamMember.objects.create(team_id=team, user_id=user,
-                    assignment_id=assignment, is_leader=is_leader)
+            team_member = TeamMember.objects.create(team_fk=team, user_fk=user,
+                    assignment_fk=assignment, is_leader=is_leader)
             team_member_list.append(team_member)
 
         return (team, team_member_list)
@@ -53,8 +53,18 @@ def get_belonged_team(user, assignment):
     Return:
       A Team object which the user belongs to, otherwise None
     """
-    member_list = TeamMember.objects.filter(user_id=user, team_id__assignment_id=assignment)
-    return member_list[0].team_id if member_list else None
+    member_list = TeamMember.objects.filter(user_fk=user, team_fk__assignment_fk=assignment)
+    return member_list[0].team_fk if member_list else None
+
+def is_user_in_team(user, team):
+    """
+    Parameter:
+      user: A User object
+      team: A Team object
+    Return:
+      Bool to indicate if the user is in the team
+    """
+    return TeamMember.objects.filter(user_fk=user, team_fk=team).count() == 1
 
 def delete_team(team):
     team.delete()
@@ -67,16 +77,16 @@ def add_users_to_team(team, users):
       team: A Team object
       users: A list of User
     """
-    assignment = team.assignment_id
-    if len(TeamMember.objects.filter(team_id=team)) + len(users) > assignment.num_max_team_members:
+    assignment = team.assignment_fk
+    if len(TeamMember.objects.filter(team_fk=team)) + len(users) > assignment.max_num_team_members:
         raise Exception('Maximum number of team members exceeds')
 
     with transaction.atomic():
         for user in users:
-            if TeamMember.objects.filter(team_id=team, user_id=user):
+            if TeamMember.objects.filter(team_fk=team, user_fk=user):
                 raise Exception('Some users have had belonged team')
-            TeamMember.objects.create(team_id=team, user_id=user,
-                    assignment_id=assignment, is_leader=False)
+            TeamMember.objects.create(team_fk=team, user_fk=user,
+                    assignment_fk=assignment, is_leader=False)
 
     return True
             
@@ -91,7 +101,7 @@ def remove_users_from_team(team, users):
     """
     team_member_list = []
     for user in users:
-        member_list = TeamMember.objects.filter(team_id=team, user_id=user)
+        member_list = TeamMember.objects.filter(team_fk=team, user_fk=user)
         if not member_list:
             raise Exception('Some users do not belong this team')
         team_member_list.append(member_list[0])
@@ -107,7 +117,7 @@ def get_num_team_members(team):
     Return:
       num_team_members: int
     """
-    return TeamMember.objects.filter(team_id=team).count()
+    return TeamMember.objects.filter(team_fk=team).count()
 
 def get_team_members(team):
     """
@@ -116,28 +126,59 @@ def get_team_members(team):
     """
     # Since the first member is assumed to be the leader when the team is created, sorting by 
     # object id and accessing the first object can retrieve the team leader.
-    return [tm for tm in TeamMember.objects.filter(team_id=team).order_by('id')]
+    return [tm for tm in TeamMember.objects.filter(team_fk=team).order_by('id')]
 
 def get_specific_team_member(team, user):
     """
     Return:
       team_member: A TeamMember object, the specified team member
     """
-    team_member_list = TeamMember.objects.filter(team_id=team, user_id=user)
+    team_member_list = TeamMember.objects.filter(team_fk=team, user_fk=user)
     return team_member_list[0] if team_member_list else None
 
-def get_team_member_full_name_list(team):
+def get_team_member_full_name_list(team, last_and=False):
     """
+    Parameter:
+      last_and: Optional. When set to true, the output sounds more natural for humans.
     Return:
       name_list: A string
     """
-    return ', '.join([user_info_helper.get_first_last_name(tm.user_id) for tm
-            in TeamMember.objects.filter(team_id=team).order_by('id')])
+    name_list = [user_info_helper.get_first_last_name(tm.user_fk) for tm
+                    in TeamMember.objects.filter(team_fk=team).order_by('id')]
+    result = ', '.join(name_list)
 
-def get_team_member_first_name_list(team):
+    if last_and: 
+        if len(name_list) == 0:
+            result = ''
+        elif len(name_list) == 1:
+            result = name_list[0]
+        elif len(name_list) == 2:
+            result = ' and '.join(name_list)
+        else:
+            result = ', '.join(name_list[:-1]) + ', and ' + name_list[-1]
+
+    return result
+
+def get_team_member_first_name_list(team, last_and=False):
     """
+    Parameter:
+      last_and: Optional. When set to true, the output sounds more natural for humans.
     Return:
       name_list: A string
     """
-    return ', '.join([tm.user_id.first_name for tm
-            in TeamMember.objects.filter(team_id=team).order_by('id')])
+    name_list = [tm.user_fk.first_name for tm
+            in TeamMember.objects.filter(team_fk=team).order_by('id')]
+    
+    result = ', '.join(name_list)
+
+    if last_and: 
+        if len(name_list) == 0:
+            result = ''
+        elif len(name_list) == 1:
+            result = name_list[0]
+        elif len(name_list) == 2:
+            result = ' and '.join(name_list)
+        else:
+            result = ', '.join(name_list[:-1]) + ', and ' + name_list[-1]
+
+    return result

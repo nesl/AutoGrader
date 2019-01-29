@@ -1,0 +1,18 @@
+{% if not can_visualize %}
+  <p style="white-space:pre; font-size:13px; font-family:monospace">{{plain_text}}</p>
+{% else %}
+  <div id="{{visualizer_id}}"></div>
+
+  <script type="text/javascript">
+    {% for p in plot_series_json %}
+      {% autoescape off %}
+        series_data = {{ p }}; 
+      {% endautoescape %}
+
+      div_id = series_data.id;
+      div_tag = '<div id="' + series_data.id + '" style="width:100%; height:300px;"></div>';
+      $("#{{visualizer_id}}").append(div_tag);
+      draw_logic_saleae_waveform_series(series_data);
+    {% endfor %}
+  </script>
+{% endif %}

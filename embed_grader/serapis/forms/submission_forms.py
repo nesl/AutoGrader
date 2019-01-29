@@ -14,6 +14,7 @@ from datetimewidget.widgets import DateTimeWidget, DateWidget, TimeWidget
 
 from serapis.models import *
 from serapis.utils import grading
+from serapis.utils import submission_helper
 
 from datetime import timedelta
 
@@ -43,7 +44,7 @@ class RegradeForm(Form):
         assignment = kwargs.pop('assignment')
         super(RegradeForm, self).__init__(*args, **kwargs)
 
-        course = assignment.course_id
+        course = assignment.course_fk
 
         self.fields['author_scope'] = forms.ChoiceField(
                 required=True,
@@ -58,7 +59,7 @@ class RegradeForm(Form):
                 initial=RegradeForm.SUBMISSION_OPTION_LAST_ONES,
         )
 
-        authors = [o.user_id for o in CourseUserList.objects.filter(course_id=course)]
+        authors = [o.user_fk for o in CourseUserList.objects.filter(course_fk=course)]
         author_choices = [(u.id, UserProfile.objects.get(user=u).__str__()) for u in authors]
         self.fields['author_choice'] = forms.ChoiceField(
                 required=True,
@@ -71,7 +72,7 @@ class RegradeForm(Form):
                 widget=forms.TextInput,
         )
 
-        assignment_tasks = AssignmentTask.objects.filter(assignment_id=assignment).order_by('id')
+        assignment_tasks = AssignmentTask.objects.filter(assignment_fk=assignment).order_by('id')
         assignment_task_choices = [(a.id, a.brief_description) for a in assignment_tasks]
         assignment_task_choices_id = [t[0] for t in assignment_task_choices]
         self.fields['assignment_task_choice'] = forms.MultipleChoiceField(
@@ -120,7 +121,7 @@ class RegradeForm(Form):
           
         # finalize the author list
         if self.cleaned_data['author_scope'] == RegradeForm.AUTHOR_OPTION_ALL:
-            authors = [o.user_id for o in CourseUserList.objects.filter(course_id=self.course)]
+            authors = [o.user_fk for o in CourseUserList.objects.filter(course_fk=self.course)]
         else:
             authors = [self.cleaned_data['author_choice']]
 
@@ -128,7 +129,7 @@ class RegradeForm(Form):
         submission_list = []
         if self.cleaned_data['submission_scope'] == RegradeForm.SUBMISSION_OPTION_LAST_ONES:
             for a in authors:
-                query = Submission.objects.filter(student_id=a, assignment_id=self.assignment)
+                query = Submission.objects.filter(student_fk=a, assignment_fk=self.assignment)
                 if query.count() > 0:
                     submission_list.append(query.latest('id'))
         else:
@@ -137,7 +138,7 @@ class RegradeForm(Form):
                 s_list = Submission.objects.filter(id=sid)
                 if s_list:
                     s = s_list[0]
-                    if s.student_id in author_set:
+                    if s.student_fk in author_set:
                         submission_list.append(s)
 
         num_affected_submissions = len(submission_list)
@@ -148,18 +149,20 @@ class RegradeForm(Form):
         # change TaskGradingStatus records
         affected_task_grading_status = set()
         for s in submission_list:
-            task_grading_status_list = TaskGradingStatus.objects.filter(submission_id=s)
+            task_grading_status_list = TaskGradingStatus.objects.filter(submission_fk=s)
             for task_grading in task_grading_status_list:
-                if task_grading.assignment_task_id in assignment_task_set:
-                    task_grading.grading_status = TaskGradingStatus.STAT_PENDING
-                    task_grading.points = 0.
-                    task_grading.save()
+                if task_grading.assignment_task_fk in assignment_task_set:
+                    submission_helper.update_task_grading_status(
+                            task_grading,
+                            grading_status=TaskGradingStatus.STAT_PENDING,
+                            points=0.,
+                    )
                     affected_task_grading_status.add(task_grading)
         num_affected_task_grading_status = len(affected_task_grading_status)
 
         # invalidate affected testbeds
-        testbed_type = self.assignment.testbed_type_id
-        testbeds = Testbed.objects.filter(testbed_type_id=testbed_type)
+        testbed_type = self.assignment.testbed_type_fk
+        testbeds = Testbed.objects.filter(testbed_type_fk=testbed_type)
         for t in testbeds:
             task = t.task_being_graded
             if task and task in affected_task_grading_status:

@@ -1,0 +1,42 @@
+{% extends 'serapis/base.html' %}
+{% load staticfiles %}
+{% load bootstrap3 %}
+
+{% block css %}
+  <link href="{% static "serapis/signin.css" %}" rel="stylesheet">
+{% endblock %}
+
+{% block js %}
+  <script src="{% static 'serapis/js/registration.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+  <div class="container">
+    <div class="form-register">
+      <h2 class="form-signin-heading">Account information</h2>
+      <p><b>Username:</b> {{ user.username }}</p>
+      <p><b>Full name:</b> {{ user.first_name }} {{ user.last_name}}</p>
+      <p><b>Email:</b> {{ user.email }}</p>
+      <p><b>University ID:</b> {{ user_profile.uid }}</p>
+      <hr/>
+
+      <h2 class="form-signin-heading">Change password</h2>
+      <form role="form" action="{% url 'user-account' %}" method="post">
+        {% csrf_token %}
+
+        {% if error_message %}
+          <div class="alert alert-danger alert-dismissable alert-link">
+            <button class="close" type="button" data-dismiss="alert" aria-hidden="true">&#215;</button>
+            {{ error_message }}
+          </div>
+        {% endif %}
+
+        {% bootstrap_form form %}
+        <div class="form-group">
+          <button type="submit" class="btn btn-primary btn-block">Change password</button>
+          <a href="{% url 'homepage' %}" class="btn btn-block">Cancel</a>
+        </div>
+      </form> <!-- /form -->
+    </div>
+  </div> <!-- ./container -->
+{% endblock %}

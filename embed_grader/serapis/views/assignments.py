@@ -3,7 +3,7 @@ from django.contrib.auth.models import User, Group
 
 from django.shortcuts import render, get_object_or_404
 from django.http import *
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
 
 from django.template import RequestContext
 from django import forms
@@ -27,6 +27,7 @@ from serapis.utils import grading
 from serapis.utils import user_info_helper
 from serapis.utils import score_distribution
 from serapis.utils import team_helper
+from serapis.utils import submission_helper
 from serapis.forms.assignment_forms import *
 
 
@@ -37,7 +38,7 @@ def _plural(n, s):
 def _display_remaining_time(tdelta):
     if tdelta < datetime.timedelta(0):
         return 'Deadline passed'
-    
+
     days = tdelta.days
     hours, rem = divmod(tdelta.seconds, 3600)
     mins, secs = divmod(rem, 60)
@@ -57,11 +58,11 @@ def assignment(request, assignment_id):
     try:
         assignment = Assignment.objects.get(id=assignment_id)
     except Assignment.DoesNotExist:
-        return HttpResponse("Assignment cannot be found.")
+        return HttpResponseBadRequest("Assignment cannot be found.")
 
-    course = assignment.course_id
+    course = assignment.course_fk
     if not user.has_perm('view_assignment', course):
-        return HttpResponse("Not enough privilege")
+        return HttpResponseBadRequest("Not enough privilege")
 
     # retrieve team status
     team = team_helper.get_belonged_team(user, assignment)
@@ -69,22 +70,36 @@ def assignment(request, assignment_id):
 
     # if the user does not belong to any team yet it's an individual assignment, just create the
     # one-person team
-    if team is None and assignment.num_max_team_members == 1:
+    if team is None and assignment.max_num_team_members == 1:
         team, _ = team_helper.create_team(assignment=assignment, users=[user])
         num_team_members = 1
 
+    # retrieve passcode
     passcode = None
     if team is not None:
         user_team_member = team_helper.get_specific_team_member(team, user)
         if user_team_member is not None and user_team_member.is_leader:
             passcode = team.passcode
 
+    # a string of team member names
+    team_members_human_readable = team_helper.get_team_member_full_name_list(team, last_and=True)
+
     # handle POST the request
+    first_sub_error = None
     if team is not None and request.method == 'POST':
         form = AssignmentSubmissionForm(
                 request.POST, request.FILES, user=user, team=team, assignment=assignment)
         if form.is_valid():
             form.save_and_commit()
+        #TODO: The following code seems hacky. Find a better way to implement the following logic
+        #if form.errors is not None and form.errors != {}:
+        #    first_sub_error = form.errors.as_data()['__all__'][0].message
+        if form.errors != {}:
+            error_data = form.errors.as_data()
+            error_msgs = []
+            for key in error_data:
+                error_msgs.extend(['<li>%s</li>' % msg for msg in error_data[key]])
+            first_sub_error = '<ul>%s</ul>' % ''.join(error_msgs)
 
     # compute remaining time for submission
     now = timezone.now()
@@ -99,20 +114,28 @@ def assignment(request, assignment_id):
 
     assignment_task_files_list = []
     for task in assignment_tasks:
-        task_files = task.retrieve_assignment_task_files(user)
+        task_files = task.retrieve_assignment_task_files_url(user)
         assignment_task_files_list.append(task_files)
 
+    num_attempted_submissions = (
+            Submission.objects.filter(assignment_fk=assignment, team_fk=team).count())
+    submission_quota = max(assignment.max_num_submissions - num_attempted_submissions, 0)
+
+    # check submission status (whether students can make a submission or not)
     if user.has_perm('modify_assignment', course):
-        can_submit, reason_of_cannot_submit = True, None
+        reason_of_cannot_submit = None
     elif assignment.is_deadline_passed():
-        can_submit, reason_of_cannot_submit = False, 'Deadline has passed'
+        reason_of_cannot_submit = 'Deadline has passed'
     elif team is None:
-        can_submit, reason_of_cannot_submit = False, 'You have to create or join a team first'
+        reason_of_cannot_submit = 'You have to create or join a team first'
     elif not user_info_helper.all_submission_graded_on_assignment(user, assignment):
-        can_submit, reason_of_cannot_submit = (
-                False, 'Please wait until current submission if fully graded')
+        reason_of_cannot_submit = 'Please wait until current submission if fully graded'
+    elif submission_quota == 0:
+        reason_of_cannot_submit = 'Have reached maximum number of attempts'
     else:
-        can_submit, reason_of_cannot_submit = True, None
+        reason_of_cannot_submit = None
+
+    can_submit = (reason_of_cannot_submit is None)
 
     # render the submission form
     submission_form = (AssignmentSubmissionForm(user=user, team=team, assignment=assignment)
@@ -125,17 +148,17 @@ def assignment(request, assignment_id):
             submission_lists['team'] = None
         else:
             submission_lists['team'] = Submission.objects.filter(
-                    team_id=team, assignment_id=assignment).order_by('-id')[:10]
+                    team_fk=team, assignment_fk=assignment).order_by('-id')[:10]
     else:
-        teams = Team.objects.filter(assignment_id=assignment)
+        teams = Team.objects.filter(assignment_fk=assignment)
         graded_list = []
         grading_list = []
-        
+
         for team in teams:
             sub = grading.get_last_fully_graded_submission(team, assignment)
             if sub:
                 graded_list.append(sub)
-            
+
             sub = grading.get_last_grading_submission(team, assignment)
             if sub:
                 grading_list.append(sub)
@@ -149,8 +172,7 @@ def assignment(request, assignment_id):
                 assignment=assignment, include_hidden=is_deadline_passed)
 
     assignment_tasks_with_file_list = zip(assignment_tasks, assignment_task_files_list)
-
-
+    
     template_context = {
             # user
             'myuser': request.user,
@@ -165,21 +187,26 @@ def assignment(request, assignment_id):
             # team info
             'team': team,
             'num_team_members': num_team_members,
+            'team_members_human_readable': team_members_human_readable,
             'passcode': passcode,
             # form
+            'first_sub_error': first_sub_error,
             'submission_form': submission_form,
             'reason_of_cannot_submit': reason_of_cannot_submit,
+            'submission_quota': submission_quota,
             'now': now,
             'time_remaining': time_remaining,
             # score distribution
             'num_attempting_teams': num_attempting_teams,
             'score_statistics': score_statistics,
-            'submission_unit': 'student' if assignment.num_max_team_members == 1 else 'team',
+            'submission_unit': 'student' if assignment.max_num_team_members == 1 else 'team',
             # submission section
             'submission_lists': submission_lists,
+            # classes
+            'Assignment': Assignment,
     }
 
-    return render(request, 'serapis/assignment.html', template_context)
+    return render(request, 'serapis/assignment/assignment.html', template_context)
 
 
 @login_required(login_url='/login/')
@@ -189,41 +216,35 @@ def assignment_run_final_grade(request, assignment_id):
     try:
         assignment = Assignment.objects.get(id=assignment_id)
     except Assignment.DoesNotExist:
-        return HttpResponse("Assignment cannot be found.")
+        return HttpResponseBadRequest("Assignment cannot be found.")
 
-    course = assignment.course_id
+    course = assignment.course_fk
     if not user.has_perm('modify_assignment', course):
-        return HttpResponse("Not enough privilege")
+        return HttpResponseBadRequest("Not enough privilege")
 
     now = timezone.now()
-    
+
     assignment_tasks = assignment.retrieve_assignment_tasks_by_accumulative_scope(
             AssignmentTask.MODE_HIDDEN)
 
-    students = [o.user_id for o in CourseUserList.objects.filter(course_id=course)]
-    for student in students:
-        submission = grading.get_last_submission(student, assignment)
+    teams = Team.objects.filter(assignment_fk=assignment)
+    for team in teams:
+        submission = grading.get_last_submission(team, assignment)
         if submission is None:
             continue
-        
-        graded_task_obj_for_submission = TaskGradingStatus.objects.filter(submission_id=submission)
-        graded_task_for_submission = [t.assignment_task_id for t in graded_task_obj_for_submission]
+
+        graded_task_obj_for_submission = TaskGradingStatus.objects.filter(submission_fk=submission)
+        graded_task_for_submission = [t.assignment_task_fk for t in graded_task_obj_for_submission]
         task_to_be_added = [t for t in assignment_tasks if t not in graded_task_for_submission]
 
         with transaction.atomic():
             for task in task_to_be_added:
-                grading_task = TaskGradingStatus.objects.create(
-                    submission_id=submission,
-                    assignment_task_id=task,
-                    grading_status=TaskGradingStatus.STAT_PENDING,
-                    execution_status=TaskGradingStatus.EXEC_UNKNOWN,
-                    status_update_time=now,
-                    )
+                grading_task = submission_helper.create_task_grading_status(submission, task)
                 file_schema.create_empty_task_grading_status_schema_files(grading_task)
 
             submission.task_scope = AssignmentTask.MODE_HIDDEN
             submission.save()
-    
+
     return HttpResponseRedirect(reverse('assignment', kwargs={'assignment_id': assignment_id}))
 
 
@@ -236,7 +257,7 @@ def assignment_create_team(request, assignment_id):
     except Assignment.DoesNotExist:
         return HttpResponse("Assignment cannot be found.")
 
-    course = assignment.course_id
+    course = assignment.course_fk
     if not user.has_perm('view_assignment', course):
         return HttpResponse("Not enough privilege")
 
@@ -244,7 +265,7 @@ def assignment_create_team(request, assignment_id):
         return HttpResponse("Deadline is passed")
 
     team_helper.create_team(assignment, [user])
-    
+
     return HttpResponseRedirect(reverse('assignment', kwargs={'assignment_id': assignment_id}))
 
 
@@ -255,28 +276,28 @@ def assignment_join_team(request, assignment_id):
     try:
         assignment = Assignment.objects.get(id=assignment_id)
     except Assignment.DoesNotExist:
-        return HttpResponse("Assignment cannot be found.")
+        return HttpResponseBadRequest("Assignment cannot be found.")
 
-    course = assignment.course_id
+    course = assignment.course_fk
     if not user.has_perm('view_assignment', course):
-        return HttpResponse("Not enough privilege")
+        return HttpResponseBadRequest("Not enough privilege")
 
     if assignment.is_deadline_passed():
-        return HttpResponse("Deadline is passed")
+        return HttpResponseBadRequest("Deadline is passed")
 
     if team_helper.get_belonged_team(user, assignment) is not None:
-        return HttpResponse("Already involved in some team")
+        return HttpResponseBadRequest("Already involved in some team")
 
     if request.method != 'POST':
-        return HttpResponse("Invalid request")
+        return HttpResponseBadRequest("Invalid request")
 
     form = JoinTeamForm(request.POST, user=user, assignment=assignment)
     if not form.is_valid():
         #TODO: show error message of incorrect passcode in the next page
-        return HttpResponse("Invalid request")
+        return HttpResponseBadRequest("Invalid request")
 
     form.save()
-    
+
     return HttpResponseRedirect(reverse('assignment', kwargs={'assignment_id': assignment_id}))
 
 
@@ -288,24 +309,24 @@ def view_assignment_team_list(request, assignment_id):
     try:
         assignment = Assignment.objects.get(id=assignment_id)
     except Assignment.DoesNotExist:
-        return HttpResponse("Assignment cannot be found.")
+        return HttpResponseBadRequest("Assignment cannot be found.")
 
-    course = assignment.course_id
+    course = assignment.course_fk
     if not user.has_perm('modify_assignment', course):
-        return HttpResponse("Not enough privilege")
+        return HttpResponseBadRequest("Not enough privilege")
 
-    if assignment.num_max_team_members == 1:
-        return HttpResponse("Not a team-based assignment")
+    if assignment.max_num_team_members == 1:
+        return HttpResponseBadRequest("Not a team-based assignment")
 
     #TODO: The original plan of view_assignment_team_list view is that each student is represented
     # as a box in the table, and instructors can drag and drop the boxes to arrange students to
     # different teams.
 
-    teams = Team.objects.filter(assignment_id=assignment)
+    teams = Team.objects.filter(assignment_fk=assignment)
     team_bundles = []
     for team in teams:
         team_members = team_helper.get_team_members(team)
-        team_member_names = [user_info_helper.get_first_last_name(tm.user_id)
+        team_member_names = [user_info_helper.get_first_last_name(tm.user_fk)
                 for tm in team_members]
         team_bundle = {
                 'team': team,
@@ -322,25 +343,28 @@ def view_assignment_team_list(request, assignment_id):
             'team_bundles': team_bundles,
     }
 
-    return render(request, 'serapis/assignment_team_list.html', template_context)
+    return render(request, 'serapis/assignment/assignment_team_list.html', template_context)
 
 
 @login_required(login_url='/login/')
-def delete_team(request, assignment_id, team_id):
+def delete_team(request):
+    if request.method != 'POST':
+        HttpResponseBadRequest("Not enough privilege")
+
     user = User.objects.get(username=request.user)
 
     try:
-        assignment = Assignment.objects.get(id=assignment_id)
-        team = Team.objects.get(id=team_id)
-    except Assignment.DoesNotExist:
-        return HttpResponse("Assignment or team cannot be found.")
-    
-    course = assignment.course_id
-    if not user.has_perm('modify_assignment', course):
-        return HttpResponse("Not enough privilege")
+        assignment = Assignment.objects.get(id=request.POST.get('assignment_id'))
+        team = Team.objects.get(id=request.POST.get('team_id'))
+    except ObjectDoesNotExist:
+        return HttpResponseBadRequest("Assignment or team cannot be found.")
 
-    if team.assignment_id != assignment:
-        return HttpResponse("Invalid request")
+    course = assignment.course_fk
+    if not user.has_perm('modify_assignment', course):
+        return HttpResponseBadRequest("Not enough privilege")
+
+    if team.assignment_fk != assignment:
+        return HttpResponseBadRequest("Invalid request")
 
     team.delete()
 
@@ -355,15 +379,15 @@ def _create_or_modify_assignment(request, course_id, assignment):
     try:
         course = Course.objects.get(id=course_id)
     except Course.DoesNotExist:
-        return HttpResponse("Cannot find the course.")
+        return HttpResponseBadRequest("Cannot find the course.")
 
     user = User.objects.get(username=request.user)
     user_profile = UserProfile.objects.get(user=user)
 
     # Only super user has access to create a course
     if not user.has_perm('create_assignment', course):
-        return HttpResponse("Not enough privilege")
-    
+        return HttpResponseBadRequest("Not enough privilege")
+
     mode = 'modify' if assignment else 'create'
 
     if request.method == 'POST':
@@ -374,7 +398,7 @@ def _create_or_modify_assignment(request, course_id, assignment):
                 kwargs={'assignment_id': assignment.id}))
     else:
         form = AssignmentForm(course=course, instance=assignment)
-    
+
     template_context = {
             'myuser': request.user,
             'user_profile': user_profile,
@@ -383,7 +407,7 @@ def _create_or_modify_assignment(request, course_id, assignment):
             'assignment': assignment,
             'form': form,
     }
-    return render(request, 'serapis/create_or_modify_assignment.html', template_context)
+    return render(request, 'serapis/assignment/create_or_modify_assignment.html', template_context)
 
 
 @login_required(login_url='/login/')
@@ -397,22 +421,25 @@ def modify_assignment(request, assignment_id):
     try:
         assignment = Assignment.objects.get(id=assignment_id)
     except Assignment.DoesNotExist:
-        return HttpResponse("Cannot find the assignment.")
+        return HttpResponseBadRequest("Cannot find the assignment.")
 
     return _create_or_modify_assignment(
-            request=request, course_id=assignment.course_id.id, assignment=assignment)
+            request=request, course_id=assignment.course_fk.id, assignment=assignment)
 
-    
+
 @login_required(login_url='/login/')
-def delete_assignment(request, assignment_id):
+def delete_assignment(request):
+    if request.method != 'POST':
+        HttpResponse("Not enough privilege", status=404)
+
     try:
-        assignment = Assignment.objects.get(id=assignment_id)
+        assignment = Assignment.objects.get(id=request.POST.get('assignment_id'))
     except Assignment.DoesNotExist:
-        return HttpResponse("Cannot find the assignment.")
+        return HttpResponseBadRequest("Cannot find the assignment.")
 
     user = User.objects.get(username=request.user)
-    
-    course = assignment.course_id
+
+    course = assignment.course_fk
 
     if not user.has_perm('create_assignment', course):
         return HttpResponse("Not enough privilege")
