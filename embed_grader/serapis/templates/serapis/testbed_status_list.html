@@ -1,6 +1,11 @@
 {% extends 'serapis/base_sidebar.html' %}
 {% load staticfiles %}
 
+{% block page-specific-js %}
+  <script src="{% static 'serapis/js/ajax_common.js' %}"></script>
+  <script src="{% static 'serapis/js/testbed_status_list.js' %}"></script>
+{% endblock %}
+
 {% block profile-usertitle-name %}
   Testbed
 {% endblock %}
@@ -10,11 +15,6 @@
 {% endblock %}
 
 {% block testbed-status-list-active %}active{% endblock %}
-
-{% block page-specific-js %}
-  <script src="{% static 'serapis/js/ajax_common.js' %}"></script>
-  <script src="{% static 'serapis/js/testbed_status_list.js' %}"></script>
-{% endblock %}
 
 {% block main-content %}
   <div class="main-content">

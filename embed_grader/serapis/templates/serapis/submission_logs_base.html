@@ -2,6 +2,10 @@
 {% load staticfiles %}
 {% load submission_tags %}
 
+{% block page-specific-js %}
+  <script src="{% static 'serapis/js/submission_logs.js' %}"></script>
+{% endblock %}
+
 {% block profile-usertitle-name %}
   Submissions
 {% endblock %}
@@ -15,7 +19,7 @@
 {% block main-content %}
   <div class="main-content">
     <h3>{% block page-title %}{% endblock %}</h3>
-    <!-- <hr> -->
+    
     {% if not submission_list %}
       <p>No submission history found.</p>
     {% else %}
@@ -42,25 +46,7 @@
       </table>
 
       <script type="text/javascript">
-        $(document).ready(function() {
-          $('#data-table tfoot th').each(function () {
-            var title = $(this).text();
-            $(this).html('<input type="text" placeholder="Search ' + title + '" />' );
-          });
-
-          // sort by descending submission time which is the 3rd column in the table
-          var table = $('#data-table').DataTable({"order":[[3, "desc"]]});
-
-          table.columns().every(function() {
-            var that = this;
-
-            $('input', this.footer()).on('keyup change', function() {
-              if (that.search() !== this.value) {
-                that.search( this.value ).draw();
-              }
-            });
-          });
-        });
+        initialize_submission_log_table();
       </script>
     {% endif %}
   </div>
