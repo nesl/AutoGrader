@@ -56,8 +56,8 @@ urlpatterns = [
 
     ## Submissions
     url(r'^submission/(?P<submission_id>[0-9]+)/$', submissions.submission, name='submission'),
-    url(r'^submissions_full_log/$', submissions.submissions_full_log, name='submissions_full_log'),
-    # url(r'^student_submission_full_log/$', submissions.student_submission_full_log, name='student_submission_full_log'),
+    url(r'^all-submission-logs-as-teacher/$', submissions.all_submission_logs_as_teacher, name='all-submission-logs-as-teacher'),
+    url(r'^all-submission-logs-as-student/$', submissions.all_submission_logs_as_student, name='all-submission-logs-as-student'),
     url(r'^task-grading-detail/(?P<task_grading_id>[0-9]+)/$', submissions.task_grading_detail, name='task-grading-detail'),
     url(r'^regrade/(?P<assignment_id>[0-9]+)/$', submissions.regrade, name='regrade'),
 

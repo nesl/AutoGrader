@@ -45,9 +45,12 @@
                 {% endif %}
               {% endif %}
 
-             <!-- don't need conditional -->
               <li class="{% block submissions-active %}{% endblock %}">
-                  <a href="{% url 'submissions_full_log' %}">Submissions</a>
+                {% if perms.serapis.view_hardware_type or perms.serapis.add_testbed %}
+                  <a href="{% url 'all-submission-logs-as-teacher' %}">Submissions</a>
+                {% else %}
+                  <a href="{% url 'all-submission-logs-as-student' %}">Submissions</a>
+                {% endif %}
               </li>
 
               {% if perms.serapis.view_hardware_type or perms.serapis.add_testbed %}
