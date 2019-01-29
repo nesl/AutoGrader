@@ -18,11 +18,16 @@
     <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.datatables.net/1.10.12/css/dataTables.bootstrap.min.css" rel="stylesheet">
 
-
     <!-- Fonts from Font Awesome and Google Fonts-->
     <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet">
     <link href='https://fonts.googleapis.com/css?family=Varela+Round' rel='stylesheet' type='text/css'>
     <link href='https://fonts.googleapis.com/css?family=Titillium+Web:400,300,600' rel='stylesheet' type='text/css'>
+
+    <link href="{% static "serapis/base.css" %}" rel="stylesheet">
+
+    <!-- CSS specific to Embed Autograder page-->
+    {% block css %}
+    {% endblock %}
 
     <!-- JQuery -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
@@ -39,14 +44,6 @@
     <script src="{% static 'bootstrap/js/moment.js' %}"></script>
     <script src="{% static 'bootstrap/js/bootstrap-datetimepicker.js' %}"></script>
 
-    <link href="{% static "serapis/base.css" %}" rel="stylesheet">
-
-    {{ form.media }}
-
-    <!-- CSS specific to Embed Autograder page-->
-    {% block css %}
-    {% endblock %}
-
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
     <!--[if lt IE 9]>
@@ -56,6 +53,7 @@
     {% block js %}
     {% endblock %}
 
+    {{ form.media }}
   </head>
 
   <body>

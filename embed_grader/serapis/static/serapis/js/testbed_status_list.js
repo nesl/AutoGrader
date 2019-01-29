@@ -1,6 +1,6 @@
 function render_table() {
   $.ajax({
-    url: "/ajax-get-testbeds",
+    url: "/ajax-get-testbeds/",
     type: "GET",
     dataType: 'JSON',
     success: function(testbeds) {
@@ -55,8 +55,9 @@ render_table();
 setInterval(render_table, 5000);
           
 function abort_task(testbed_id) {
+  ajax_setup();
   $.ajax({
-    url: "/ajax-abort-testbed-task",
+    url: "/ajax-abort-testbed-task/",
     type: 'POST',
     dataType: 'JSON',
     data: {id: testbed_id},

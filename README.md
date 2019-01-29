@@ -13,6 +13,7 @@ Web frontend of Embedded Systems Auto Grader project
 
 - Install missing modules
   - ```pip3 install numpy```
+  - ```pip3 install psutil```
   - ```pip3 install requests```
   - ```pip3 install django-datetime-widget```
   - ```pip3 install django-widget-tweaks```
@@ -38,8 +39,11 @@ Web frontend of Embedded Systems Auto Grader project
   - django settings file
 
 ## Run the Project
- - Under ```~/AutoGrader/embed_grader```, run the command ```python3 manage.py runserver```
- - Django database: ```localhost:8000/admin```
+- Start the web server:
+  - If you want to use the default Django provided web server, please change directory to ```<AutoGrader_folder>/embed_grader``` and then run the command ```python3 manage.py runsslserver```.
+  - If you are pushing your server in production mode to pursue performance, please use uWSGI + nginx to start the server.
+- Execute the grading scheduler:
+  - Please schedule a cron job to execute the scheduler: ```pythong3 manage.py grading_d```. The recommended frequency is every minute. (It is to resume the scheduler when it crashed)
  
 ## Documentation
  - Front-end Web Interface:

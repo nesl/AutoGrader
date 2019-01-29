@@ -527,3 +527,11 @@ class HardwareDevice(models.Model):
     )
 
     testbed = models.ForeignKey(Testbed, on_delete=models.CASCADE)
+
+class GradingSchedulerFootprint(models.Model):
+    pid = models.IntegerField()
+    woke_time = models.DateTimeField()
+    watchdog_time = models.DateTimeField()
+
+    def get_elapsed_time(self):
+        return self.watchdog_time - self.woke_time
