@@ -1,4 +1,5 @@
 import json
+import itertools
 
 from django.shortcuts import render, get_object_or_404
 from django.http import *
@@ -56,7 +57,7 @@ def submission(request, submission_id):
     now = timezone.now()
     can_see_hidden_cases_and_feedback_details = (
             assignment.viewing_scope_by_user(user) == Assignment.VIEWING_SCOPE_FULL)
-   
+
     task_grading_status_list, sum_student_score, sum_total_score = (
             submission.retrieve_task_grading_status_and_score_sum(
                 can_see_hidden_cases_and_feedback_details))
@@ -97,7 +98,7 @@ def submission(request, submission_id):
         # functions
         'showing_grading_detail_check_func': [showing_grading_detail_check_func],
     }
-    
+
     return render(request, 'serapis/submission.html', template_context)
 
 
@@ -166,49 +167,60 @@ def task_grading_detail(request, task_grading_id):
 
 
 @login_required(login_url='/login/')
-def submissions_full_log(request):
-    user = User.objects.get(username=request.user)
+def all_submission_logs_as_teacher(request):
+    """
+    The definition of teacher covers all the roles who have permission to alter students' grades.
+    Specifically, it includes instructors, teaching assistants, and graders.
+    """
 
-    #TODO: submission objects should be queried by teams. Put as a todo because submission_full_log
-    # view is going to be remodeled.
-    submission_list = Submission.objects.filter(student_fk=user).order_by('-id')
+    user = User.objects.get(username=request.user)
     
+    # get all the courses that this user teaches
+    covered_roles = [
+        CourseUserList.ROLE_INSTRUCTOR,
+        CourseUserList.ROLE_TA,
+        CourseUserList.ROLE_GRADER,
+    ]
+    course_user_list = list(itertools.chain(*[
+                CourseUserList.objects.filter(user_fk=user, role=r) for r in covered_roles]))
+    courses = [o.course_fk for o in course_user_list]
+    
+    # get all the assignments from the courses
+    assignments = list(itertools.chain(*[Assignment.objects.filter(course_fk=c) for c in courses]))
+
+    # get all the submissions associated with these assignments
+    submission_list = list(itertools.chain(*[
+                Submission.objects.filter(assignment_fk=a) for a in assignments]))
+
     template_context = {
         'myuser': user,
-        'myuser_name': user_info_helper.get_first_last_name(user),
         'submission_list': submission_list,
-        'now': timezone.now(),
     }
-
-    return render(request, 'serapis/submissions_full_log.html', template_context)
+    return render(request, 'serapis/submission_logs_teacher.html', template_context)
 
 
 @login_required(login_url='/login/')
-def student_submission_full_log(request):
+def all_submission_logs_as_student(request):
     user = User.objects.get(username=request.user)
-    if not user.has_perm('serapis.view_hardware_type'):
-        return HttpResponseBadRequest("Not enough privilege")
-    courses_as_instructor = [o.course_fk for o in 
-            CourseUserList.objects.filter(user_fk=user).exclude(role=CourseUserList.ROLE_STUDENT)]
+    
+    # get all the courses that this user has taken so far
+    course_user_list = CourseUserList.objects.filter(
+            user_fk=user, role=CourseUserList.ROLE_STUDENT)
+    courses = [o.course_fk for o in course_user_list]
+    
+    # get all the assignments from the courses and each team that this user participates
+    assignments = list(itertools.chain(*[Assignment.objects.filter(course_fk=c) for c in courses]))
+    teams = [team_helper.get_belonged_team(user, assignment=a) for a in assignments]
 
-    assignment_list = []
-    for course in courses_as_instructor:
-        course_assignments = Assignment.objects.filter(course_fk=course)
-        assignment_list.extend(course_assignments)
-
-    submission_list = []
-    for assign in assignment_list:
-        #TODO: why do we want to exclude the instructor herself?
-        #TODO: submission objects should be queried by teams. Put as a todo because
-        # student_submission_full_log view is going to be remodeled.
-        assign_submissions = Submission.objects.filter(assignment_fk=assign).exclude(student_fk=user)
-        submission_list.extend(assign_submissions)
+    # get all the submissions associated with these teams
+    submission_list = list(itertools.chain(*[
+                Submission.objects.filter(team_fk=t) for t in teams]))
 
     template_context = {
         'myuser': user,
-        'submission_list': submission_list
+        'submission_list': submission_list,
     }
-    return render(request, 'serapis/student_submission_full_log.html', template_context)
+    return render(request, 'serapis/submission_logs_student.html', template_context)
 
 
 @login_required(login_url='/login/')
@@ -231,7 +243,7 @@ def regrade(request, assignment_id):
         if form.is_valid():
             t_sub, t_grading = form.save_and_commit()
             previous_commit_result = {
-                    'num_successful_submissions': t_sub, 
+                    'num_successful_submissions': t_sub,
                     'num_successful_task_grading_status': t_grading,
             }
             form = RegradeForm(assignment=assignment)  # start a new empty form
