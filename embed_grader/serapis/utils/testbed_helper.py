@@ -41,7 +41,7 @@ def abort_task(testbed, set_status=Testbed.STATUS_AVAILABLE,
                 % (time_str, testbed.id, task_debug_id if task_debug_id else -1))
         fo.write(final_msg + '\n')
 
-        if task_debug_id != -1:
+        if task_debug_id is not None:
             final_msg = ('%s - DEBUG abort_task: Now the status of task is %s'
                 % (time_str, TaskGradingStatus.objects.get(id=task_debug_id).get_grading_status_display()))
             fo.write(final_msg + '\n')
