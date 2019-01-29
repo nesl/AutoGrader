@@ -99,7 +99,7 @@ def submission(request, submission_id):
         'showing_grading_detail_check_func': [showing_grading_detail_check_func],
     }
 
-    return render(request, 'serapis/submission.html', template_context)
+    return render(request, 'serapis/submission/submission.html', template_context)
 
 
 @login_required(login_url='/login/')
@@ -163,7 +163,7 @@ def task_grading_detail(request, task_grading_id):
         'feedback': feedback,
     }
 
-    return render(request, 'serapis/task_grading_detail.html', template_context)
+    return render(request, 'serapis/submission/task_grading_detail.html', template_context)
 
 
 @login_required(login_url='/login/')
@@ -196,7 +196,7 @@ def all_submission_logs_as_teacher(request):
         'myuser': user,
         'submission_list': submission_list,
     }
-    return render(request, 'serapis/submission_logs_teacher.html', template_context)
+    return render(request, 'serapis/submission/submission_log/teacher.html', template_context)
 
 
 @login_required(login_url='/login/')
@@ -220,7 +220,7 @@ def all_submission_logs_as_student(request):
         'myuser': user,
         'submission_list': submission_list,
     }
-    return render(request, 'serapis/submission_logs_student.html', template_context)
+    return render(request, 'serapis/subission/submission_log/student.html', template_context)
 
 
 @login_required(login_url='/login/')
@@ -258,4 +258,4 @@ def regrade(request, assignment_id):
             'course': assignment.course_fk,
             'assignment': assignment,
     }
-    return render(request, 'serapis/regrade.html', template_context)
+    return render(request, 'serapis/submission/regrade.html', template_context)

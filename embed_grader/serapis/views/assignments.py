@@ -206,7 +206,7 @@ def assignment(request, assignment_id):
             'Assignment': Assignment,
     }
 
-    return render(request, 'serapis/assignment.html', template_context)
+    return render(request, 'serapis/assignment/assignment.html', template_context)
 
 
 @login_required(login_url='/login/')
@@ -343,7 +343,7 @@ def view_assignment_team_list(request, assignment_id):
             'team_bundles': team_bundles,
     }
 
-    return render(request, 'serapis/assignment_team_list.html', template_context)
+    return render(request, 'serapis/assignment/assignment_team_list.html', template_context)
 
 
 @login_required(login_url='/login/')
@@ -407,7 +407,7 @@ def _create_or_modify_assignment(request, course_id, assignment):
             'assignment': assignment,
             'form': form,
     }
-    return render(request, 'serapis/create_or_modify_assignment.html', template_context)
+    return render(request, 'serapis/assignment/create_or_modify_assignment.html', template_context)
 
 
 @login_required(login_url='/login/')

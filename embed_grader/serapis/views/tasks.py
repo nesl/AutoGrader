@@ -31,6 +31,7 @@ from serapis.forms.task_forms import *
 from serapis.utils.visualizer_manager import VisualizerManager
 from serapis.utils import file_schema
 
+
 def _create_or_modify_assignment_task(request, assignment_id, assignment_task):
     """
     if assignment_task is None, it is creating mode, otherwise it is updating mode
@@ -70,7 +71,7 @@ def _create_or_modify_assignment_task(request, assignment_id, assignment_task):
             'assignment': assignment,
             'assignment_task': assignment_task,
     }
-    return render(request, 'serapis/create_or_modify_assignment_task.html', template_context)
+    return render(request, 'serapis/task/create_or_modify_assignment_task.html', template_context)
 
 
 @login_required(login_url='/login/')
@@ -191,4 +192,4 @@ def view_task_input_files(request, task_id):
             'task': task,
             'visualizer_manager': visualizer_manager,
     }
-    return render(request, 'serapis/view_task_input.html', template_context)
+    return render(request, 'serapis/task/view_task_input.html', template_context)

@@ -60,7 +60,7 @@ def _create_or_modify_course(request, course):
             'course': course,
             'form': form,
     }
-    return render(request, 'serapis/create_or_modify_course.html', template_context)
+    return render(request, 'serapis/course/create_or_modify_course.html', template_context)
 
 
 @login_required(login_url='/login/')
@@ -121,7 +121,7 @@ def course(request, course_id):
         'course': course,
         'assignment_list': assignment_list,
     }
-    return render(request, 'serapis/course.html', template_context)
+    return render(request, 'serapis/course/course.html', template_context)
 
 
 @login_required(login_url='/login/')
@@ -141,7 +141,7 @@ def enroll_course(request):
         'form': form,
     }
 
-    return render(request, 'serapis/enroll_course.html', template_context)
+    return render(request, 'serapis/course/enroll_course.html', template_context)
 
 
 @login_required(login_url='/login/')
@@ -169,7 +169,7 @@ def drop_course(request, course_id):
         'course': course,
         'form': form,
     }
-    return render(request, 'serapis/drop_course.html', template_context)
+    return render(request, 'serapis/course/drop_course.html', template_context)
 
 
 @login_required(login_url='/login/')
@@ -269,4 +269,4 @@ def membership(request, course_id):
         'instructors': instructors,
     }
 
-    return render(request, 'serapis/roster.html', template_context)
+    return render(request, 'serapis/course/roster.html', template_context)

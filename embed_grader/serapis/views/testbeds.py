@@ -115,7 +115,7 @@ def create_testbed_type(request):
                 'he_formset': he_formset,
                 'dut_formset': dut_formset,
         }
-        return render(request, 'serapis/create_testbed_type_stage1.html', template_context)
+        return render(request, 'serapis/testbed/create_testbed_type_stage1.html', template_context)
     elif render_stage == 2:
         if not hardware_formset.is_valid():
             return HttpResponse('Something is wrong or system is being hacked /__\\')
@@ -154,7 +154,7 @@ def create_testbed_type(request):
                 'js_pin_init_val_string': js_pin_init_val_string,
                 'wiring_formset': wiring_formset,
         }
-        return render(request, 'serapis/create_testbed_type_stage2.html', template_context)
+        return render(request, 'serapis/testbed/create_testbed_type_stage2.html', template_context)
 
 @login_required(login_url='/login/')
 def testbed_type(request, testbed_type_id):
@@ -192,7 +192,7 @@ def testbed_type_list(request):
             'user_profile': user_profile,
             'testbed_type_list': testbed_type_list,
     }
-    return render(request, 'serapis/testbed_type_list.html', template_context)
+    return render(request, 'serapis/testbed/testbed_type_list.html', template_context)
 
 
 @login_required(login_url='/login/')
@@ -219,7 +219,7 @@ def testbed_status_list(request):
         'is_scheduler_running': is_scheduler_running,
         'scheduler_status_msg': scheduler_status_msg,
     }
-    return render(request, 'serapis/testbed_status_list.html', template_context)
+    return render(request, 'serapis/testbed/testbed_status_list.html', template_context)
 
         
 def _convert_task_grading_status_to_JSON(task):

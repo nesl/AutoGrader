@@ -11,8 +11,8 @@ from . import media_controls
 
 urlpatterns = [
     ## Log in / log out
-    url(r'^login/$', auth_views.login, {'template_name': 'serapis/login.html'}, name= 'login'),
-    url(r'^logout/$', auth_views.logout, {'next_page': '/login/'}, name='logout'),
+    url(r'^login/$', auth_views.login, name='login', kwargs={'template_name': 'serapis/login.html'}),
+    url(r'^logout/$', auth_views.logout, name='logout', kwargs={'next_page': '/login/'}),
 
     ## Homepage related
     url(r'^$', homepages.homepage, name='homepage'),
@@ -21,12 +21,18 @@ urlpatterns = [
     ## Registration and Password related pages
     url(r'^registration/$', registrations.registration, name='registration'),
     url(r'^user-account/$', registrations.user_account, name='user-account'),
-    url(r'^password_reset/$', auth_views.password_reset, {'template_name': 'serapis/password_reset_form.html', 'email_template_name': 'serapis/password_reset_email.html'}, name='password_reset'),
-    url(r'^password_reset_done/$', auth_views.password_reset_done, {'template_name': 'serapis/password_reset_done.html'}, name='password_reset_done'),
-    url(r'^password_reset_confirm/(?P<uidb64>[0-9A-Za-z]+)-(?P<token>.+)/$', auth_views.password_reset_confirm, {'template_name': 'serapis/password_reset_confirm.html'}, name='password_reset_confirm'),
-    url(r'^password_reset_complete/$', auth_views.password_reset_complete, {'template_name': 'serapis/password_reset_complete.html'}, name='password_reset_complete'),
+    url(r'^password-reset/$', auth_views.password_reset, name='password_reset', kwargs={
+            'template_name': 'serapis/user_account/password_reset_form.html',
+            'email_template_name': 'serapis/user_account/email/password_reset_email.html',
+    }),
+    url(r'^password-reset-done/$', auth_views.password_reset_done, name='password_reset_done',
+            kwargs={'template_name': 'serapis/user_account/password_reset_done.html'}),
+    url(r'^password-reset-confirm/(?P<uidb64>[0-9A-Za-z]+)-(?P<token>.+)/$', auth_views.password_reset_confirm, name='password_reset_confirm',
+            kwargs={'template_name': 'serapis/user_account/password_reset_confirm.html'}),
+    url(r'^password-reset-complete/$', auth_views.password_reset_complete, name='password_reset_complete',
+            kwargs={'template_name': 'serapis/user_account/password_reset_complete.html'}),
     url(r'^activate/(?P<key>.+)$', registrations.activation, name='activation'),
-    url(r'^new_activation/(?P<user_id>\d+)/$', registrations.new_activation, name='new_activation'),
+    url(r'^new-activation/(?P<user_id>\d+)/$', registrations.new_activation, name='new-activation'),
 
     ## Course pages
     url(r'^course/(?P<course_id>[0-9]+)/$', courses.course, name='course'),

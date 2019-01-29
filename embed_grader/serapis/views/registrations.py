@@ -33,7 +33,7 @@ def _send_activation_email(activation_link, email):
     send_mail_helper.send_by_template(
             subject='Account Activation',
             recipient_email_list=[email],
-            template_path='serapis/email/activation_email.html',
+            template_path='serapis/user_account/email/activation_email.html',
             context_dict=context,
     )
 
@@ -48,10 +48,10 @@ def registration(request):
             _send_activation_email(activation_link, form.cleaned_data['email'])
 
             request.session['registered'] = True  # For display purposes
-            return render(request, 'serapis/registration_done.html', locals())
+            return render(request, 'serapis/user_account/registration_done.html', locals())
     else:
         form = UserRegistrationForm()
-    return render(request, 'serapis/registration.html', {'form': form})
+    return render(request, 'serapis/user_account/registration.html', {'form': form})
 
 
 # View called from activation email. Activate user if link didn't expire (48h default), or offer to
@@ -68,7 +68,7 @@ def activation(request, key):
     else:  # Activation successful
         user_profile.user.is_active = True
         user_profile.user.save()
-    return render(request, 'serapis/activation.html', locals())
+    return render(request, 'serapis/user_account/activation.html', locals())
 
 
 def new_activation(request, user_id):
@@ -118,4 +118,4 @@ def user_account(request):
             'error_message': error_message,
             'form': new_form,
     }
-    return render(request, 'serapis/user_account.html', template_context)
+    return render(request, 'serapis/user_account/user_account.html', template_context)

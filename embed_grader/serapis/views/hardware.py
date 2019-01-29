@@ -56,7 +56,7 @@ def create_hardware_type(request):
             'hardware_form': hardware_form,
             'pin_formset': pin_formset,
     }
-    return render(request, 'serapis/create_hardware_type.html', template_context)
+    return render(request, 'serapis/hardware/create_hardware_type.html', template_context)
 
 
 @login_required(login_url='/login/')
@@ -80,7 +80,7 @@ def hardware_type(request, hardware_type_id):
             'hardware_type': hardware_type,
             'hardware_type_pins': hardware_type_pins
     }
-    return render(request, 'serapis/hardware_type.html', template_context)
+    return render(request, 'serapis/hardware/hardware_type.html', template_context)
 
 
 @login_required(login_url='/login/')
@@ -103,4 +103,4 @@ def hardware_type_list(request):
             'user_profile': user_profile,
             'hardware_type_list': hardware_type_list,
     }
-    return render(request, 'serapis/hardware_type_list.html', template_context)
+    return render(request, 'serapis/hardware/hardware_type_list.html', template_context)
