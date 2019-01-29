@@ -51,9 +51,6 @@ function render_table() {
   });
 }
 
-render_table();
-setInterval(render_table, 5000);
-          
 function abort_task(testbed_id) {
   ajax_setup();
   $.ajax({

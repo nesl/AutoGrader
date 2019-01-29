@@ -206,7 +206,7 @@ def testbed_status_list(request):
     #      bar.
     is_scheduler_running = GradingSchedulerHeartbeat.is_scheduler_running()
     if is_scheduler_running is None:
-        schedluer_status_msg = "The scheduler has never been started."
+        scheduler_status_msg = "The scheduler has never been started."
     elif is_scheduler_running:
         scheduler_status_msg = "The scheduler is running."
     else:
