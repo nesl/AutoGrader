@@ -5,25 +5,16 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User, Group
 from django.shortcuts import render, get_object_or_404
 from django.http import *
-from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
-from django.core import serializers
-from django.template import RequestContext
 from django.db import IntegrityError
 from django.db import transaction
-from django.db.models import Max
 from django.views.generic import TemplateView
-
-from guardian.decorators import permission_required_or_403
-from guardian.compat import get_user_model
-from guardian.shortcuts import assign_perm
 
 from serapis.models import *
 from serapis.forms.testbed_forms import *
 from serapis.utils import testbed_helper
+from serapis.utils import datetime_helper
 from serapis.utils.grading_scheduler_heartbeat import GradingSchedulerHeartbeat
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.formats import get_format
 
 
 @login_required(login_url='/login/')
@@ -240,7 +231,8 @@ def _convert_testbed_to_JSON(testbed):
             "id": testbed.id,
             "ip_address": testbed.ip_address,
             "status": testbed.get_status_display(),
-            "report_time": testbed.report_time,
+            "report_time": datetime_helper.print_datetime(
+                    testbed.report_time, "%b %d, %H:%M:%S %Z"),
             "report_status": testbed.get_report_status_display(),
             "task": _convert_task_grading_status_to_JSON(testbed.task_being_graded),
     }

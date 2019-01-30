@@ -43,7 +43,7 @@ function render_table() {
         }
       }
 
-      $("#block-updated-time").html("Last table updated time: " + (new Date().toLocaleString()));
+      $("#block-updated-time").html("Last table updated time: " + (new Date().toLocaleString() + " (your local computer time)"));
     },
     failure: function(data) {
       $("#block-updated-time").html("Last data query time: " + (new Date().toLocaleString()) + " <span style='color:red'>(Failed to fetch testbed list)</span>");
