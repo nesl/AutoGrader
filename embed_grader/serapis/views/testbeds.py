@@ -266,5 +266,5 @@ def ajax_abort_testbed_task(request):
         return HttpResponseBadRequest("Not enough privilege")
 
     testbed_helper.abort_task(testbed, set_status=Testbed.STATUS_AVAILABLE,
-            tolerate_task_is_not_present=True, check_task_status_is_executing=False)
+            check_task_present=False, check_task_status_executing=False)
     return JsonResponse({"done": "success"}, safe=False)

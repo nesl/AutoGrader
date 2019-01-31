@@ -100,11 +100,11 @@ class Command(BaseCommand):
             
             r = requests.post(url, data=data, files=files)
             if r.status_code != 200:  # testbed is not available
-                testbed_helper.abort_task(testbed, set_status=Testbed.STATUS_BUSY)
+                testbed_helper.abort_task(testbed, set_testbed_status=Testbed.STATUS_BUSY)
                 self._printMessage('Testbed id=%d abort task %d' % (testbed.id, task.id))
                 
         except:
-            testbed_helper.abort_task(testbed, set_status=Testbed.STATUS_OFFLINE)
+            testbed_helper.abort_task(testbed, set_testbed_status=Testbed.STATUS_OFFLINE)
             self._printMessage('Testbed id=%d goes offline since something goes wrong:'
                     % testbed.id)
             exc_type, exc_value, exc_tb = sys.exc_info()
@@ -145,8 +145,8 @@ class Command(BaseCommand):
                 testbed_list = Testbed.objects.filter(report_time__lt=threshold_time)
                 for testbed in testbed_list:
                     # make sure that no task is associated with this testbed
-                    testbed_helper.abort_task(testbed, set_status=Testbed.STATUS_OFFLINE,
-                            tolerate_task_is_not_present=True)
+                    testbed_helper.abort_task(testbed, set_testbed_status=Testbed.STATUS_OFFLINE,
+                            enforce_task_present=False)
                     self._printMessage('Testbed id=%d removed from testbed' % (testbed.id))
                 testbed_list.delete()
                 timer_testbed_invalidation_remove = K_TESTBED_INVALIDATION_REMOVE_SEC
@@ -164,8 +164,8 @@ class Command(BaseCommand):
                     if graded_task:
                         self._printMessage('Abort the grading task id=%d and reset to pending'
                                 % (graded_task.id))
-                    testbed_helper.abort_task(testbed, set_status=Testbed.STATUS_OFFLINE,
-                            tolerate_task_is_not_present=True)
+                    testbed_helper.abort_task(testbed, set_testbed_status=Testbed.STATUS_OFFLINE,
+                            enforce_task_present=False)
                 
                 timer_testbed_invalidation_offline = K_TESTBED_INVALIDATION_OFFLINE_SEC
 
@@ -184,8 +184,8 @@ class Command(BaseCommand):
                             % (graded_task.id))
                 else:
                     self._printMessage('Wait, no grading task is found, why being busy then')
-                testbed_helper.abort_task(testbed, set_status=Testbed.STATUS_AVAILABLE,
-                        tolerate_task_is_not_present=True)
+                testbed_helper.abort_task(testbed, set_testbed_status=Testbed.STATUS_AVAILABLE,
+                        enforce_task_present=False)
 
             #TODO(#160): Remove the following code when the issue is resolved
             # What happens right now is that a testbed sometimes mysteriously detach the task

@@ -5,32 +5,44 @@ from serapis.models import *
 from serapis.utils import submission_helper
 
 
-def abort_task(testbed, set_status=Testbed.STATUS_AVAILABLE,
-        tolerate_task_is_not_present=False, check_task_status_is_executing=True):
+def abort_task(testbed, set_testbed_status=Testbed.STATUS_BUSY,
+        check_task_presence=True, check_task_status_executing=True):
     """
-    Paremeter:
-      - set_status: The status going to be set for this testbed
-      - tolerate_task_is_not_present: True if the grading task does not have to be present
-      - check_testbed_status_is_executing: True to check the status of the task is executing.
-            Will have no effect if tolerate_task_is_not_present is True.
-    """
-    check_task_status_is_executing &= not tolerate_task_is_not_present
+    `abort_task()` is a helper function to terminate a task that is in the middle of execution.
+    There are usually two entities involved in this method: a `Testbed` object and a
+    `TaskGradingStatus` object. Hence, this function check the presence of the `TaskGradingStatus`
+    object associated with the `Testbed` object, and check if the `Testbed` object is in the
+    grading status. Since abort command only keeps in the Django web server and does not propagate
+    to the remote testbeds, we initially set the status as busy, and once the job of the remote
+    testbed is done, it will update the Django web server as available.
 
+    Paremeter:
+      - set_testbed_status: The status going to be set for this testbed
+      - check_task_present: If this flag is set `True`, this function will examine if the testbed
+            is currently grading a task, otherwise, an exception will be raised.
+      - check_task_status_executing: If this flag is set `True`, the status of the task which is
+            being graded by this testbed should be executing, when the task is present.  Otherwise,
+            an exception will be raised.
+    """
+
+    # check if the task is present
     task = testbed.task_being_graded
     task_debug_id = task.id if task else None
-    if not tolerate_task_is_not_present:
-        if not task:
-            raise Exception('No task to abort')
-    if check_task_status_is_executing:
-        if task.grading_status != TaskGradingStatus.STAT_EXECUTING:
+    if check_task_present and task is None:
+        raise Exception('No task to abort')
+
+    # check if the task status is executing
+    if check_task_status_executing:
+        if task is not None and task.grading_status != TaskGradingStatus.STAT_EXECUTING:
             raise Exception('Status of the graded task is not executing')
-            
+        
+    # database update
     with transaction.atomic():
-        if task:
+        if task is not None:
             submission_helper.update_task_grading_status(
                     task, grading_status=TaskGradingStatus.STAT_PENDING)
         testbed.task_being_graded = None
-        testbed.status = set_status
+        testbed.status = set_testbed_status
         testbed.secret_code = ''
         testbed.save()
 
@@ -66,7 +78,7 @@ def grade_task(testbed, chosen_task, duration, force_detach_currently_graded_tas
                     testbed.id, testbed.task_being_graded.id if testbed.task_being_graded else -1, chosen_task.id)
             fo.write(final_msg + '\n')
         if testbed.task_being_graded:
-            abort_task(testbed, set_status=testbed.status, check_task_status_is_executing=False)
+            abort_task(testbed, set_status=testbed.status, check_task_status_executing=False)
     if testbed.task_being_graded:
         raise Exception('This testbed is still grading one task')
     if check_testbed_status_is_available:
