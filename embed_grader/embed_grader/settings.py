@@ -156,7 +156,7 @@ CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
 
 # Redirect HTTP requests to HTTPS
-SECURE_SSL_REDIRECT = True
+# SECURE_SSL_REDIRECT = True
 
 AUTHENTICATION_BACKENDS = {
     'django.contrib.auth.backends.ModelBackend', # this is default
@@ -170,3 +170,5 @@ SITE_NAME = "NESL Embed AutoGrader"
 # DJANGO_WYSIWYG_MEDIA_URL = STATIC_URL + "ckeditor/"
 CKEDITOR_UPLOAD_PATH = "Content_images/"
 CKEDITOR_IMAGE_BACKEND = 'pillow'
+
+GRADING_SCHEDULER_LOG_PATH = "/tmp/embed_grader_scheduler.log"

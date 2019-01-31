@@ -7,6 +7,7 @@ from django.shortcuts import render, get_object_or_404
 from django.http import *
 from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
+from django.core import serializers
 from django.template import RequestContext
 from django.db import IntegrityError
 from django.db import transaction
@@ -19,6 +20,10 @@ from guardian.shortcuts import assign_perm
 
 from serapis.models import *
 from serapis.forms.testbed_forms import *
+from serapis.utils import testbed_helper
+from serapis.utils.grading_scheduler_heartbeat import GradingSchedulerHeartbeat
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.formats import get_format
 
 
 @login_required(login_url='/login/')
@@ -28,7 +33,7 @@ def create_testbed_type(request):
     user_profile = UserProfile.objects.get(user=user)
 
     if not user.has_perm('serapis.view_hardware_type'):
-        return HttpResponse("Not enough privilege")
+        return HttpResponseBadRequest("Not enough privilege")
 
     was_in_stage = 1
     if request.method == 'POST' and 'stage2' in request.POST:
@@ -110,7 +115,7 @@ def create_testbed_type(request):
                 'he_formset': he_formset,
                 'dut_formset': dut_formset,
         }
-        return render(request, 'serapis/create_testbed_type_stage1.html', template_context)
+        return render(request, 'serapis/testbed/create_testbed_type_stage1.html', template_context)
     elif render_stage == 2:
         if not hardware_formset.is_valid():
             return HttpResponse('Something is wrong or system is being hacked /__\\')
@@ -149,7 +154,7 @@ def create_testbed_type(request):
                 'js_pin_init_val_string': js_pin_init_val_string,
                 'wiring_formset': wiring_formset,
         }
-        return render(request, 'serapis/create_testbed_type_stage2.html', template_context)
+        return render(request, 'serapis/testbed/create_testbed_type_stage2.html', template_context)
 
 @login_required(login_url='/login/')
 def testbed_type(request, testbed_type_id):
@@ -157,12 +162,12 @@ def testbed_type(request, testbed_type_id):
     username=request.user
 
     if not user.has_perm('serapis.view_hardware_type'):
-        return HttpResponse("Not enough privilege")
+        return HttpResponseBadRequest("Not enough privilege")
 
     try:
         testbed_type = TestbedType.objects.get(id=testbed_type_id)
     except TestbedType.DoesNotExist:
-        return HttpResponse("Testbed type not found")
+        return HttpResponseBadRequest("Testbed type not found")
 
     testbed_type_form = TestbedTypeForm()
     template_context = {
@@ -170,7 +175,7 @@ def testbed_type(request, testbed_type_id):
             "testbed_type_form": testbed_type_form,
     }
 
-    return HttpResponse("Under construction")
+    return HttpResponseBadRequest("Under construction")
 
 
 @login_required(login_url='/login/')
@@ -179,7 +184,7 @@ def testbed_type_list(request):
     user_profile = UserProfile.objects.get(user=user)
 
     if not user.has_perm('serapis.view_hardware_type'):
-        return HttpResponse("Not enough privilege")
+        return HttpResponseBadRequest("Not enough privilege")
 
     testbed_type_list = TestbedType.objects.all()
     template_context = {
@@ -187,4 +192,87 @@ def testbed_type_list(request):
             'user_profile': user_profile,
             'testbed_type_list': testbed_type_list,
     }
-    return render(request, 'serapis/testbed_type_list.html', template_context)
+    return render(request, 'serapis/testbed/testbed_type_list.html', template_context)
+
+
+@login_required(login_url='/login/')
+def testbed_status_list(request):
+    user = User.objects.get(username=request.user)
+    if not user.has_perm('serapis.view_hardware_type'):
+        return HttpResponseBadRequest("Not enough privilege", status=404)
+
+    #TODO: The following code that displays grading scheduler status is experimental and should be
+    #      reorganized. Instead of showing as part of the content, it should be moved to the side
+    #      bar.
+    is_scheduler_running = GradingSchedulerHeartbeat.is_scheduler_running()
+    if is_scheduler_running is None:
+        scheduler_status_msg = "The scheduler has never been started."
+    elif is_scheduler_running:
+        scheduler_status_msg = "The scheduler is running."
+    else:
+        time_been_down = GradingSchedulerHeartbeat.get_time_since_last_scheduler_crash()
+        total_seconds = time_been_down.days * 86400 + time_been_down.seconds
+        scheduler_status_msg = "The scheduler has been down for %d seconds." % total_seconds
+
+    template_context = {
+        'myuser': request.user,
+        'is_scheduler_running': is_scheduler_running,
+        'scheduler_status_msg': scheduler_status_msg,
+    }
+    return render(request, 'serapis/testbed/testbed_status_list.html', template_context)
+
+        
+def _convert_task_grading_status_to_JSON(task):
+    if task is None:
+        return None
+
+    assignment_task = task.assignment_task_fk
+    assignment = assignment_task.assignment_fk
+    return {
+            "course": assignment.course_fk.name,
+            "assignment": assignment.name,
+            "task_name": assignment_task.brief_description,
+            "submission_id": task.submission_fk.id,
+    }
+
+def _convert_testbed_to_JSON(testbed):
+    return {
+            "id": testbed.id,
+            "ip_address": testbed.ip_address,
+            "status": testbed.get_status_display(),
+            "report_time": testbed.report_time,
+            "report_status": testbed.get_report_status_display(),
+            "task": _convert_task_grading_status_to_JSON(testbed.task_being_graded),
+    }
+
+@login_required(login_url='/login/')
+def ajax_get_testbeds(request):
+    if not request.is_ajax():
+        return HttpResponseBadRequest("Not enough privilege")
+
+    user = User.objects.get(username=request.user)
+    if not user.has_perm('serapis.view_hardware_type'):
+        return HttpResponseBadRequest("Not enough privilege")
+
+    testbed_list = Testbed.objects.all()
+    ajax_json = list(map(_convert_testbed_to_JSON, testbed_list))
+
+    return JsonResponse(ajax_json, safe=False)
+
+
+@login_required(login_url='/login/')
+def ajax_abort_testbed_task(request):
+    if not request.is_ajax():
+        return HttpResponseBadRequest("Not enough privilege")
+    
+    if request.method != 'POST':
+        return HttpResponseBadRequest("Not enough privilege")
+
+    try:
+        testbed = Testbed.objects.get(id=request.POST['id'])
+    except:
+        return HttpResponseBadRequest("Not enough privilege")
+
+    testbed_helper.abort_task(testbed, set_status=Testbed.STATUS_AVAILABLE,
+            tolerate_task_is_not_present=True, check_task_status_is_executing=False)
+    return JsonResponse({"done": "success"}, safe=False)

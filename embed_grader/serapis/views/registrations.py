@@ -33,7 +33,7 @@ def _send_activation_email(activation_link, email):
     send_mail_helper.send_by_template(
             subject='Account Activation',
             recipient_email_list=[email],
-            template_path='serapis/email/activation_email.html',
+            template_path='serapis/user_account/email/activation_email.html',
             context_dict=context,
     )
 
@@ -48,10 +48,10 @@ def registration(request):
             _send_activation_email(activation_link, form.cleaned_data['email'])
 
             request.session['registered'] = True  # For display purposes
-            return render(request, 'serapis/registration_done.html', locals())
+            return render(request, 'serapis/user_account/registration_done.html', locals())
     else:
         form = UserRegistrationForm()
-    return render(request, 'serapis/registration.html', {'form': form})
+    return render(request, 'serapis/user_account/registration.html', {'form': form})
 
 
 # View called from activation email. Activate user if link didn't expire (48h default), or offer to
@@ -68,14 +68,14 @@ def activation(request, key):
     else:  # Activation successful
         user_profile.user.is_active = True
         user_profile.user.save()
-    return render(request, 'serapis/activation.html', locals())
+    return render(request, 'serapis/user_account/activation.html', locals())
 
 
 def new_activation(request, user_id):
     user = User.objects.get_object_or_404(id=user_id)
     user_profile = UserProfile.objects.get_object_or_404(user=user)
     if user.is_active:
-        return HttpResponse("The user has been activated")
+        return HttpResponseBadRequest("The user has been activated")
     else:
         activation_key = _generate_activation_key(user_profile.uid)
         activation_link = request.build_absolute_uri(
@@ -118,4 +118,4 @@ def user_account(request):
             'error_message': error_message,
             'form': new_form,
     }
-    return render(request, 'serapis/user_account.html', template_context)
+    return render(request, 'serapis/user_account/user_account.html', template_context)

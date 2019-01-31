@@ -10,7 +10,7 @@ from serapis.utils import team_helper
 def can_submission_file_be_accessed_by_user(submission, user):
     if user.has_perm('modify_assignment', submission.assignment_fk.course_fk):
         return True
-    return submission.team == team_helper.get_belonged_team(user, self.assignment_fk)
+    return team_helper.is_user_in_team(user, submission.team_fk)
 
 def create_task_grading_status(submission, assignment_task):
     """
@@ -64,8 +64,6 @@ def update_task_grading_status(task_grading_status, grading_status, **kwargs):
         submission.num_graded_tasks += 1
 
     # update the rest of attributes
-    if 'grading_status' in kwargs:
-        task_grading_status.grading_status = kwargs['grading_status']
     if 'execution_status' in kwargs:
         task_grading_status.execution_status = kwargs['execution_status']
     if 'status_update_time' in kwargs:

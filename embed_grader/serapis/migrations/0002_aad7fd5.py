@@ -6,21 +6,37 @@ from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
 
-from serapis.models import Assignment, Team, TeamMember, Submission
-from serapis.utils.team_helper import create_team
+from django.db import transaction
+
+from serapis.utils.team_helper import _generate_passcode
 
 def submission_data_migration(apps, schema_editor):
-    # For each submission, create a new Team and TeamMember
-    for submission in Submission.objects.all():
-        try:
-            team_member = TeamMember.objects.get(assignment_fk=submission.assignment_fk, user_fk=submission.student_fk)
-            team = team_member.team_fk
-        except:
-            team, members = create_team(submission.assignment_fk, [submission.student_fk])
-            team_member = members[0]
+    Team = apps.get_model('serapis', 'Team')
+    TeamMember = apps.get_model('serapis', 'TeamMember')
+    Submission = apps.get_model('serapis', 'Submission')
 
-        submission.team_fk = team
-        submission.save()
+    with transaction.atomic():
+        # For each submission, create a new Team and TeamMember
+        for submission in Submission.objects.all():
+            # Note: It would be easy if we can use team_helper.create_team(), however, we
+            # shouldn't use anything depends on current models.py. Thus, we have to reimplement
+            # the logic again.
+
+            assignment = submission.assignment_fk
+            user = submission.student_fk
+
+            team = Team.objects.create(assignment_fk=submission.assignment_fk)
+
+            # Exception: _generate_passcode() does not have Model specific logic
+            team.passcode = _generate_passcode(team)
+
+            team.save()
+
+            TeamMember.objects.create(team_fk=team, user_fk=user, 
+                    assignment_fk=assignment, is_leader=True)
+
+            submission.team_fk = team
+            submission.save()
  
 class Migration(migrations.Migration):
 

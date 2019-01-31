@@ -2,6 +2,10 @@
 {% load staticfiles %}
 
 
+{% block js %}
+  <script src="{% static 'serapis/js/ajax_common.js' %}"></script>
+{% endblock %}
+
 {% block profile-usertitle-name %}
   Testbed
 {% endblock %}

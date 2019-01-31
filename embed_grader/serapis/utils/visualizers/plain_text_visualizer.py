@@ -1,4 +1,4 @@
-from serapis.utils.visualizer.visualizer_base import VisualizerBase
+from serapis.utils.visualizers.visualizer_base import VisualizerBase
 
 
 class PlainTextVisualizer(VisualizerBase):

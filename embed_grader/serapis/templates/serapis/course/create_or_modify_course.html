@@ -39,7 +39,11 @@
       <br/>
       <br/>
       <h2 class="page-header">Danger zone</h2>
-      <a class="btn btn-danger" href="{% url 'delete-course' course.id %}" onclick="return double_check_delete_course()">Delete course</a>
+      <form action="{% url 'delete-course' %}" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="course_id" value="{{course.id}}" />
+        <input type="submit" class="btn btn-danger" value="Delete course" onclick="return double_check_delete_course()">
+      </form>
       <script>
         function double_check_delete_course() {
           return confirm("Are you sure you want to permanently remove this course? All the assignments, submissions, and enrollment information will be gone.");

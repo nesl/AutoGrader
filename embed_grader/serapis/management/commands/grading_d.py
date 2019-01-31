@@ -1,3 +1,4 @@
+import os
 import sys
 import requests
 import datetime
@@ -14,13 +15,14 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 from django.db.models import Q
 
+from embed_grader import settings
 from serapis.models import *
 from serapis.utils import file_schema
 from serapis.utils import send_mail_helper
 from serapis.utils import submission_helper
 from serapis.utils import testbed_helper
 from serapis.utils import team_helper
-
+from serapis.utils.grading_scheduler_heartbeat import GradingSchedulerHeartbeat
 
 K_TESTBED_INVALIDATION_OFFLINE_SEC = 30
 K_TESTBED_INVALIDATION_REMOVE_SEC = 10 * 60
@@ -48,15 +50,17 @@ class Command(BaseCommand):
 
     def _printMessage(self, msg):
         self.print_lock.acquire()
-        time_str = timezone.now().astimezone(pytz.timezone('US/Pacific')).strftime("%H:%M:%S")
+        now = timezone.now().astimezone(pytz.timezone(settings.TIME_ZONE))
+        time_str = now.strftime("%H:%M:%S")
         if self.just_printed_idle_msg:
             print()
             self.just_printed_idle_msg = False
             self.idle_cnt = 0
-        final_msg = '%s - %s' % (time_str, msg)
-        print(final_msg)
-        with open('/tmp/embed_grader_scheduler.log', 'a') as fo:
-            fo.write(final_msg + '\n')
+        display_msg = '%s - %s' % (time_str, msg)
+        print(display_msg)
+        log_msg = '[%5d] %s' % (os.getpid(), display_msg)
+        with open(settings.GRADING_SCHEDULER_LOG_PATH, 'a') as fo:
+            fo.write(log_msg + '\n')
         self.print_lock.release()
 
     def _schemaFiles2postFiles(self, dict_schema_files):
@@ -107,11 +111,24 @@ class Command(BaseCommand):
             traceback.print_exception(exc_type, exc_value, exc_tb)
 
     def handle(self, *args, **options):
+        # heartbeat initialization
+        heartbeat = GradingSchedulerHeartbeat()
+
+        # timer initialization
         timer_testbed_invalidation_offline = 0
         timer_testbed_invalidation_remove = 0
         timer_submission_invalidation = 0
 
         while True:
+            # at any given time, if we detect another grading scheduler running, this scheulder
+            # should abort. The new scheduler should respawn.
+            if GradingSchedulerHeartbeat.detect_if_other_scheduler_exists():
+                self._printMessage('Found other scheduler, terminate self')
+                exit(0)
+
+            # leave a heartbeat
+            heartbeat.send_heartbeat()
+
             timer_testbed_invalidation_offline -= K_CYCLE_DURATION_SEC
             timer_testbed_invalidation_remove -= K_CYCLE_DURATION_SEC
             timer_submission_invalidation -= K_CYCLE_DURATION_SEC
@@ -169,6 +186,19 @@ class Command(BaseCommand):
                     self._printMessage('Wait, no grading task is found, why being busy then')
                 testbed_helper.abort_task(testbed, set_testbed_status=Testbed.STATUS_AVAILABLE,
                         enforce_task_present=False)
+
+            #TODO(#160): Remove the following code when the issue is resolved
+            # What happens right now is that a testbed sometimes mysteriously detach the task
+            # which the testbed should be grading, leaving the task hanging on there and showing
+            # status as executing. The following is to clear this when orphan task grading status
+            # is found
+            executing_task_grading_status_list = TaskGradingStatus.objects.filter(
+                    grading_status=TaskGradingStatus.STAT_EXECUTING)
+            for task in executing_task_grading_status_list:
+                if Testbed.objects.filter(task_being_graded=task).count() == 0:
+                    self._printMessage('Orphan test grading status is found (id=%d)' % task.id)
+                    task.grading_status = TaskGradingStatus.STAT_PENDING
+                    task.save()
 
             #
             # task assignment
@@ -270,21 +300,21 @@ class Command(BaseCommand):
                     submission.save()
 
                     # send email to the student
-                    subject = 'Your submission has been graded (ID:%d)' % submission.id
-                    team = submission.team_fk
-                    recipient_email_list = [tm.user_fk.email
-                            for tm in team_helper.get_team_members(team)]
-                    context = {
-                            'user': submission.student_fk,
-                            'submission': submission,
-                            'assignment': submission.assignment_fk,
-                    }
-                    send_mail_helper.send_by_template(
-                            subject=subject,
-                            recipient_email_list=recipient_email_list,
-                            template_path='serapis/email/grading_done_email.html',
-                            context_dict=context,
-                    )
+                    #subject = 'Your submission has been graded (ID:%d)' % submission.id
+                    #team = submission.team_fk
+                    #recipient_email_list = [tm.user_fk.email
+                    #        for tm in team_helper.get_team_members(team)]
+                    #context = {
+                    #        'user': submission.student_fk,
+                    #        'submission': submission,
+                    #        'assignment': submission.assignment_fk,
+                    #}
+                    #send_mail_helper.send_by_template(
+                    #        subject=subject,
+                    #        recipient_email_list=recipient_email_list,
+                    #        template_path='serapis/email/grading_done_email.html',
+                    #        context_dict=context,
+                    #)
 
             # go to sleep
             self._printAlive()

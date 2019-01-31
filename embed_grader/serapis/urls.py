@@ -3,22 +3,16 @@ from django.contrib.auth import views as auth_views
 from django.conf import settings
 from django.conf.urls.static import static
 
-from serapis.views import homepages
-from serapis.views import registrations
-from serapis.views import courses
-from serapis.views import assignments
-from serapis.views import tasks
-from serapis.views import submissions
-from serapis.views import testbeds
-from serapis.views import hardware
+from serapis.views import *
+from serapis.utils import *
 from . import services
 from . import media_controls
 
 
 urlpatterns = [
     ## Log in / log out
-    url(r'^login/$', auth_views.login, {'template_name': 'serapis/login.html'}, name= 'login'),
-    url(r'^logout/$', auth_views.logout, {'next_page': '/login/'}, name='logout'),
+    url(r'^login/$', auth_views.login, name='login', kwargs={'template_name': 'serapis/login.html'}),
+    url(r'^logout/$', auth_views.logout, name='logout', kwargs={'next_page': '/login/'}),
 
     ## Homepage related
     url(r'^$', homepages.homepage, name='homepage'),
@@ -27,42 +21,49 @@ urlpatterns = [
     ## Registration and Password related pages
     url(r'^registration/$', registrations.registration, name='registration'),
     url(r'^user-account/$', registrations.user_account, name='user-account'),
-    url(r'^password_reset/$', auth_views.password_reset, {'template_name': 'serapis/password_reset_form.html', 'email_template_name': 'serapis/password_reset_email.html'}, name='password_reset'),
-    url(r'^password_reset_done/$', auth_views.password_reset_done, {'template_name': 'serapis/password_reset_done.html'}, name='password_reset_done'),
-    url(r'^password_reset_confirm/(?P<uidb64>[0-9A-Za-z]+)-(?P<token>.+)/$', auth_views.password_reset_confirm, {'template_name': 'serapis/password_reset_confirm.html'}, name='password_reset_confirm'),
-    url(r'^password_reset_complete/$', auth_views.password_reset_complete, {'template_name': 'serapis/password_reset_complete.html'}, name='password_reset_complete'),
+    url(r'^password-reset/$', auth_views.password_reset, name='password_reset', kwargs={
+            'template_name': 'serapis/user_account/password_reset_form.html',
+            'email_template_name': 'serapis/user_account/email/password_reset_email.html',
+    }),
+    url(r'^password-reset-done/$', auth_views.password_reset_done, name='password_reset_done',
+            kwargs={'template_name': 'serapis/user_account/password_reset_done.html'}),
+    url(r'^password-reset-confirm/(?P<uidb64>[0-9A-Za-z]+)-(?P<token>.+)/$', auth_views.password_reset_confirm, name='password_reset_confirm',
+            kwargs={'template_name': 'serapis/user_account/password_reset_confirm.html'}),
+    url(r'^password-reset-complete/$', auth_views.password_reset_complete, name='password_reset_complete',
+            kwargs={'template_name': 'serapis/user_account/password_reset_complete.html'}),
     url(r'^activate/(?P<key>.+)$', registrations.activation, name='activation'),
-    url(r'^new_activation/(?P<user_id>\d+)/$', registrations.new_activation, name='new_activation'),
+    url(r'^new-activation/(?P<user_id>\d+)/$', registrations.new_activation, name='new-activation'),
 
     ## Course pages
     url(r'^course/(?P<course_id>[0-9]+)/$', courses.course, name='course'),
     url(r'^course/(?P<course_id>[0-9]+)/membership/$', courses.membership, name='membership'),
     url(r'^create-course/$', courses.create_course, name='create-course'),
     url(r'^modify-course/(?P<course_id>[0-9]+)/$', courses.modify_course, name='modify-course'),
-    url(r'^delete-course/(?P<course_id>[0-9]+)/$', courses.delete_course, name='delete-course'),
+    url(r'^delete-course/$', courses.delete_course, name='delete-course'),
     url(r'^enroll-course/$', courses.enroll_course, name='enroll-course'),
-    url(r'^unenroll-course/(?P<course_id>[0-9]+)/$', courses.unenroll_course, name='unenroll-course'),
+    url(r'^drop-course/(?P<course_id>[0-9]+)/$', courses.drop_course, name='drop-course'),
+    url(r'^download-csv/(?P<course_id>[0-9]+)/$', courses.download_csv, name='download-csv'),
 
     ## Assignment pages
     url(r'^assignment/(?P<assignment_id>[0-9]+)/$', assignments.assignment, name='assignment'),
-    url(r'^assignment-run_final-grade/(?P<assignment_id>[0-9]+)/$', assignments.assignment_run_final_grade, name='assignment-run-final-grade'),
+    url(r'^assignment-run-final-grade/(?P<assignment_id>[0-9]+)/$', assignments.assignment_run_final_grade, name='assignment-run-final-grade'),
     url(r'^assignment-create-team/(?P<assignment_id>[0-9]+)/$', assignments.assignment_create_team, name='assignment-create-team'),
     url(r'^assignment-join-team/(?P<assignment_id>[0-9]+)/$', assignments.assignment_join_team, name='assignment-join-team'),
     url(r'^view-assignment-team-list/(?P<assignment_id>[0-9]+)/$', assignments.view_assignment_team_list, name='view-assignment-team-list'),
-    url(r'^delete-team/(?P<assignment_id>[0-9]+)/(?P<team_id>[0-9]+)/$', assignments.delete_team, name='delete-team'),
+    url(r'^delete-team/$', assignments.delete_team, name='delete-team'),
     url(r'^create-assignment/(?P<course_id>[0-9]+)/$', assignments.create_assignment, name='create-assignment'),
     url(r'^modify-assignment/(?P<assignment_id>[0-9]+)/$', assignments.modify_assignment, name='modify-assignment'),
-    url(r'^delete-assignment/(?P<assignment_id>[0-9]+)/$', assignments.delete_assignment, name='delete-assignment'),
+    url(r'^delete-assignment/$', assignments.delete_assignment, name='delete-assignment'),
     url(r'^create-assignment-task/(?P<assignment_id>[0-9]+)/$', tasks.create_assignment_task, name='create-assignment-task'),
     url(r'^modify-assignment-task/(?P<task_id>[0-9]+)/$', tasks.modify_assignment_task, name='modify-assignment-task'),
-    url(r'^delete-assignment-task/(?P<task_id>[0-9]+)/$', tasks.delete_assignment_task, name='delete-assignment-task'),
+    url(r'^delete-assignment-task/$', tasks.delete_assignment_task, name='delete-assignment-task'),
     url(r'^zip-input-files/(?P<task_id>[0-9]+)/$', tasks.zip_input_files, name='zip-input-files'),
     url(r'^view-task-input-files/(?P<task_id>[0-9]+)/$', tasks.view_task_input_files, name='view-task-input-files'),
 
     ## Submissions
     url(r'^submission/(?P<submission_id>[0-9]+)/$', submissions.submission, name='submission'),
-    url(r'^submissions_full_log/$', submissions.submissions_full_log, name='submissions_full_log'),
-    url(r'^student_submission_full_log/$', submissions.student_submission_full_log, name='student_submission_full_log'),
+    url(r'^all-submission-logs-as-teacher/$', submissions.all_submission_logs_as_teacher, name='all-submission-logs-as-teacher'),
+    url(r'^all-submission-logs-as-student/$', submissions.all_submission_logs_as_student, name='all-submission-logs-as-student'),
     url(r'^task-grading-detail/(?P<task_grading_id>[0-9]+)/$', submissions.task_grading_detail, name='task-grading-detail'),
     url(r'^regrade/(?P<assignment_id>[0-9]+)/$', submissions.regrade, name='regrade'),
 
@@ -74,6 +75,9 @@ urlpatterns = [
     url(r'^hardware-type/(?P<hardware_type_id>[0-9]+)/$', hardware.hardware_type, name='hardware-type'),
     url(r'^create-hardware-type/$', hardware.create_hardware_type, name='create-hardware-type'),
     url(r'^modify-hardware-type/(?P<hardware_type_id>[0-9]+)/$', hardware.modify_hardware_type, name='modify-hardware-type'),
+    url(r'^testbed-status-list/$', testbeds.testbed_status_list, name='testbed-status-list'),
+    url(r'^ajax-get-testbeds/$', testbeds.ajax_get_testbeds, name='ajax-get-testbeds'),
+    url(r'^ajax-abort-testbed-task/$', testbeds.ajax_abort_testbed_task, name='ajax-abort-testbed-task'),
 
     ## Report from testbeds
     url(r'^tb/send-summary/$', services.testbed_show_summary_report, name='tb-show-summary'),

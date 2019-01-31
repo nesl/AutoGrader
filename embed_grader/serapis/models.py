@@ -156,13 +156,16 @@ class CourseUserList(models.Model):
 
 
 class Assignment(models.Model):
+    SUBMISSION_LIMIT_INFINITE = 999999
+
     # basic information
     course_fk = models.ForeignKey(Course, on_delete=models.CASCADE)
     name = models.CharField(max_length=50)
     release_time = models.DateTimeField()
     deadline = models.DateTimeField()
     problem_statement = RichTextUploadingField(blank=True)
-    num_max_team_members = models.IntegerField()
+    max_num_team_members = models.IntegerField()
+    max_num_submissions = models.IntegerField(validators=[MinValueValidator(1)])
 
     # testbed related
     testbed_type_fk = models.ForeignKey(TestbedType, null=True, blank=True)
@@ -524,3 +527,11 @@ class HardwareDevice(models.Model):
     )
 
     testbed = models.ForeignKey(Testbed, on_delete=models.CASCADE)
+
+class GradingSchedulerFootprint(models.Model):
+    pid = models.IntegerField()
+    woke_time = models.DateTimeField()
+    watchdog_time = models.DateTimeField()
+
+    def get_elapsed_time(self):
+        return self.watchdog_time - self.woke_time

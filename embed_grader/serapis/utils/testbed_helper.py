@@ -27,6 +27,7 @@ def abort_task(testbed, set_testbed_status=Testbed.STATUS_BUSY,
 
     # check if the task is present
     task = testbed.task_being_graded
+    task_debug_id = task.id if task else None
     if check_task_present and task is None:
         raise Exception('No task to abort')
 
@@ -45,6 +46,18 @@ def abort_task(testbed, set_testbed_status=Testbed.STATUS_BUSY,
         testbed.secret_code = ''
         testbed.save()
 
+    with open('/tmp/embed_grader_scheduler.log', 'a') as fo:
+        import pytz
+        time_str = timezone.now().astimezone(pytz.timezone('US/Pacific')).strftime("%H:%M:%S")
+        final_msg = ('%s - DEBUG abort_task: Testbed %d detach task %d'
+                % (time_str, testbed.id, task_debug_id if task_debug_id else -1))
+        fo.write(final_msg + '\n')
+
+        if task_debug_id != -1:
+            final_msg = ('%s - DEBUG abort_task: Now the status of task is %s'
+                % (time_str, TaskGradingStatus.objects.get(id=task_debug_id).get_grading_status_display()))
+            fo.write(final_msg + '\n')
+
 def grade_task(testbed, chosen_task, duration, force_detach_currently_graded_task=False,
         check_testbed_status_is_available=True, check_task_status_is_pending=True):
     """
@@ -58,8 +71,14 @@ def grade_task(testbed, chosen_task, duration, force_detach_currently_graded_tas
             will throw an exception
     """
     if force_detach_currently_graded_task:
+        with open('/tmp/embed_grader_scheduler.log', 'a') as fo:
+            import pytz
+            time_str = timezone.now().astimezone(pytz.timezone('US/Pacific')).strftime("%H:%M:%S")
+            final_msg = '%s - DEBUG grade_task: Testbed %d is forced to detach task %d, going to grade task %d' % (time_str,
+                    testbed.id, testbed.task_being_graded.id if testbed.task_being_graded else -1, chosen_task.id)
+            fo.write(final_msg + '\n')
         if testbed.task_being_graded:
-            abort_task(set_status=testbed.status, enforce_task_status_executing=False)
+            abort_task(testbed, set_status=testbed.status, check_task_status_is_executing=False)
     if testbed.task_being_graded:
         raise Exception('This testbed is still grading one task')
     if check_testbed_status_is_available:
@@ -88,6 +107,13 @@ def finish_grading(testbed, task_execution_status):
     task = testbed.task_being_graded
     if not task:
         raise Exception('No grading task is associated with this testbed')
+
+    with open('/tmp/embed_grader_scheduler.log', 'a') as fo:
+        import pytz
+        time_str = timezone.now().astimezone(pytz.timezone('US/Pacific')).strftime("%H:%M:%S")
+        final_msg = '%s - DEBUG finish_grading: Testbed %d finishes grading %d' % (time_str,
+                testbed.id, task.id)
+        fo.write(final_msg + '\n')
 
     with transaction.atomic():
         now = timezone.now()
