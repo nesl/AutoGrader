@@ -14,6 +14,16 @@ from serapis.forms.service_forms import *
 from ipware.ip import get_ip
 
 
+TESTBED_REPLIED_STATUS_MSG_CONVERSION = {
+    'IDLE': Testbed.STATUS_AVAILABLE,
+    'TESTING': Testbed.STATUS_BUSY,
+}
+
+
+def _interpret_testbed_replied_status_msg(msg):
+    if msg not in TESTBED_REPLIED_STATUS_MSG_CONVERSION:
+        return Testbed.STATUS_UNKNOWN
+    return TESTBED_REPLIED_STATUS_MSG_CONVERSION[msg]
 
 def _get_ip_port(request):
     try:
@@ -32,10 +42,12 @@ def testbed_show_summary_report(request):
         print('Error: not use post')
         return HttpResponseBadRequest('Bad request')
 
+    # figure out IP and port
     ip_port = _get_ip_port(request)
     if not ip_port:
         return HttpResponseBadRequest('Bad request')
     
+    # extract testbed type and check if the type can be recognized
     try:
         testbed_type_name = request.POST['testbed_type']
     except MultiValueDictKeyError:
@@ -48,36 +60,49 @@ def testbed_show_summary_report(request):
         return HttpResponseBadRequest('Bad request')
     testbed_type = testbed_types[0]
 
+    # extract testbed status
+    try:
+        testbed_status_msg = request.POST['status']
+    except MultiValueDictKeyError:
+        print('No status is provided')
+        return HttpResponseBadRequest('Bad request')
+
+    # identify the testbed if a record in database can be found, otherwise create a new `Testbed`
+    # object
     tmp_testbed_list = Testbed.objects.filter(ip_address=ip_port)
-    flag_ask_status = False
-    if tmp_testbed_list:
+    if tmp_testbed_list.exists():
         testbed = tmp_testbed_list[0]
-        if testbed.status == Testbed.STATUS_OFFLINE:
-            flag_ask_status = True
     else:
         testbed = Testbed()
+        testbed.testbed_type_fk = testbed_type
+        testbed.ip_address = ip_port
+        testbed.task_being_graded = None
         testbed.grading_deadline = timezone.now()
-        flag_ask_status = True
-    testbed.ip_address = ip_port
-    testbed.testbed_type_fk = testbed_type
+        testbed.status = Testbed.STATUS_AVAILABLE
     
-    if flag_ask_status:
-        try:
-            r = requests.get('http://' + ip_port + '/tb/status/')
-            if r.text == 'IDLE':
-                testbed.report_status = Testbed.STATUS_AVAILABLE
-                testbed.status = Testbed.STATUS_AVAILABLE
-            elif r.text == 'TESTING':
-                testbed.report_status = Testbed.STATUS_BUSY
-                testbed.status = Testbed.STATUS_BUSY
-            else:
-                testbed.report_status = Testbed.STATUS_UNKNOWN
-                testbed.status = Testbed.STATUS_OFFLINE
-        except requests.exceptions.ConnectionError:
-            testbed.report_status = Testbed.STATUS_UNKNOWN
-            testbed.status = Testbed.STATUS_OFFLINE
+    #TODO: shall we do anything if testbed_type does not match what database remembers?
+    testbed.testbed_type_fk = testbed_type
 
+    # detemine testbed status
+    testbed.report_status = _interpret_testbed_replied_status_msg(testbed_status_msg)
     testbed.report_time = timezone.now()
+
+    if testbed.report_status == Testbed.STATUS_AVAILABLE:
+        # if remote testbed reports available, make sure that AutoGrader recognize it as a free
+        # resource (i.e., not tied to any task)
+        if testbed.task_being_graded is None:
+            testbed.status = Testbed.STATUS_AVAILABLE
+    elif testbed.report_status == Testbed.STATUS_BUSY:
+        # if remote testbed reports busy, then we believe the testbed is busy
+        testbed.status = Testbed.STATUS_BUSY
+    else:  # testbed.report_status == Testbed.STATUS_UNKNOWN:
+        # if remote testbed reports bogus message (likely crashed), abort the task being graded by
+        # this testbed
+        if testbed.task_being_graded is not None:
+            testbed_helper.abort_task(
+                    testbed, set_status=testbed.status, check_task_status_is_executing=False)
+        testbed.status = Testbed.STATUS_OFFLINE
+        
     testbed.save()
     return HttpResponse("Gotcha!")
 
