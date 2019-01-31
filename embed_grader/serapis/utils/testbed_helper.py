@@ -5,33 +5,39 @@ from serapis.models import *
 from serapis.utils import submission_helper
 
 
-def abort_task(testbed, set_testbed_status=Testbed.STATUS_AVAILABLE,
-        enforce_task_present=True, enforce_task_status_executing=True):
+def abort_task(testbed, set_testbed_status=Testbed.STATUS_BUSY,
+        check_task_presence=True, check_task_status_executing=True):
     """
+    `abort_task()` is a helper function to terminate a task that is in the middle of execution.
+    There are usually two entities involved in this method: a `Testbed` object and a
+    `TaskGradingStatus` object. Hence, this function check the presence of the `TaskGradingStatus`
+    object associated with the `Testbed` object, and check if the `Testbed` object is in the
+    grading status. Since abort command only keeps in the Django web server and does not propagate
+    to the remote testbeds, we initially set the status as busy, and once the job of the remote
+    testbed is done, it will update the Django web server as available.
+
     Paremeter:
       - set_testbed_status: The status going to be set for this testbed
-      - enforce_task_present: If set True, this testbed should be grading a task. If such task
-            is absent, this function will raise an exception.
-      - enforce_task_status_executing: If set True, the status of the task which is being graded
-            by this testbed should be executing. Otherwise, this function will raise an exception.
-            Note that if enforce_task_present is False, this flag will simply be skipped.
+      - check_task_present: If this flag is set `True`, this function will examine if the testbed
+            is currently grading a task, otherwise, an exception will be raised.
+      - check_task_status_executing: If this flag is set `True`, the status of the task which is
+            being graded by this testbed should be executing, when the task is present.  Otherwise,
+            an exception will be raised.
     """
-
-    # ignore the check of grading status if we don't check the presence of the task
-    enforce_task_status_executing &= enforce_task_present
 
     # check if the task is present
     task = testbed.task_being_graded
-    if enforce_task_present and not task:
+    if check_task_present and task is None:
         raise Exception('No task to abort')
 
     # check if the task status is executing
-    if enforce_task_status_executing and task.grading_status != TaskGradingStatus.STAT_EXECUTING:
-        raise Exception('Status of the graded task is not executing')
+    if check_task_status_executing:
+        if task is not None and task.grading_status != TaskGradingStatus.STAT_EXECUTING:
+            raise Exception('Status of the graded task is not executing')
         
     # database update
     with transaction.atomic():
-        if task:
+        if task is not None:
             submission_helper.update_task_grading_status(
                     task, grading_status=TaskGradingStatus.STAT_PENDING)
         testbed.task_being_graded = None

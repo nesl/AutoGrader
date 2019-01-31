@@ -172,7 +172,7 @@ class RegradeForm(Form):
                 # won't hurt. Since we just clear each task as pending, we should force it not to
                 # check if the task is executing.
                 t.abort_task(set_testbed_status=Testbed.STATUS_OFFLINE,
-                        enforce_task_status_executing=False)
+                        check_task_status_executing=False)
 
         return (num_affected_submissions, num_affected_task_grading_status)
 
