@@ -38,7 +38,7 @@ function render_table() {
                 + "Task Name: " + task.task_name + "<br/>"
                 + "Submission ID: " + task.submission_id
                 + "</td>")
-            tr.append("<td><a onclick=abort_task(" + testbed.id + ") class='btn btn-primary'>Abort Task</a></td>")
+            tr.append("<td><a id='abort-btn-" + testbed.id + "'onclick=abort_task(" + testbed.id + ") class='btn btn-primary'>Abort Task</a></td>")
           }
         }
       }
@@ -52,6 +52,10 @@ function render_table() {
 }
 
 function abort_task(testbed_id) {
+  // remove the abort button
+  $("#abort-btn-" + testbed_id).replaceWith("(canceling task..)");
+
+  // shoot the request
   ajax_setup();
   $.ajax({
     url: "/ajax-abort-testbed-task/",
