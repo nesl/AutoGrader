@@ -78,7 +78,7 @@ def grade_task(testbed, chosen_task, duration, force_detach_currently_graded_tas
                     testbed.id, testbed.task_being_graded.id if testbed.task_being_graded else -1, chosen_task.id)
             fo.write(final_msg + '\n')
         if testbed.task_being_graded:
-            abort_task(testbed, set_status=testbed.status, check_task_status_is_executing=False)
+            abort_task(testbed, set_status=testbed.status, check_task_status_executing=False)
     if testbed.task_being_graded:
         raise Exception('This testbed is still grading one task')
     if check_testbed_status_is_available:
