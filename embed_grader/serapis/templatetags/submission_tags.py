@@ -16,6 +16,13 @@ register = template.Library()
 @register.simple_tag
 def show_score(achieved_score, total_score):
     try:
+        achieved_score_float = float(achieved_score)
+        total_score_float = float(total_score)
+        ratio = achieved_score / total_score if total_score > 0. else 0.
+    except:
+        ratio = 0.
+
+    try:
         achieved_score = str(round(float(achieved_score), 2))
     except:
         pass
@@ -25,13 +32,12 @@ def show_score(achieved_score, total_score):
     except:
         pass
 
-    ratio = float(achieved_score) / (float(total_score) + 0.00000001)
-    if ratio <= 0.5:
+    if ratio < 0.5:
         background_color = 'darkred'
-    elif ratio <= 0.75:
+    elif ratio < 0.75:
         background_color = 'orangered'
-    elif ratio <= 0.95:
-        background_color = 'yellow'
+    elif ratio < 0.95:
+        background_color = 'darkorange'
     else:
         background_color = 'green'
     return format_html('<span class="badge" style="background:%s; width:100px;">%s / %s</span>' % (
