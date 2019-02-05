@@ -25,11 +25,12 @@ def show_score(achieved_score, total_score):
     except:
         pass
 
-    if achieved_score <= 0.5 * total_score:
+    ratio = float(achieved_score) / (float(total_score) + 0.00000001)
+    if ratio <= 0.5:
         background_color = 'darkred'
-    elif achieved_score <= 0.75 * total_score:
+    elif ratio <= 0.75:
         background_color = 'orangered'
-    elif achieved_score <= 0.95 * total_score:
+    elif ratio <= 0.95:
         background_color = 'yellow'
     else:
         background_color = 'green'
