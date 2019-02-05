@@ -25,8 +25,14 @@ def show_score(achieved_score, total_score):
     except:
         pass
 
-    background_color = ('green'
-            if achieved_score != '0.0' and achieved_score == total_score else 'darkred')
+    if achieved_score <= 0.5 * total_score:
+        background_color = 'darkred'
+    elif achieved_score <= 0.75 * total_score:
+        background_color = 'orangered'
+    elif achieved_score <= 0.95 * total_score:
+        background_color = 'yellow'
+    else:
+        background_color = 'green'
     return format_html('<span class="badge" style="background:%s; width:100px;">%s / %s</span>' % (
             background_color, achieved_score, total_score))
 
