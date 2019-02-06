@@ -129,7 +129,7 @@ def assignment(request, assignment_id):
     elif team is None:
         reason_of_cannot_submit = 'You have to create or join a team first'
     elif not user_info_helper.all_submission_graded_on_assignment(user, assignment):
-        reason_of_cannot_submit = 'Please wait until current submission if fully graded'
+        reason_of_cannot_submit = 'Please wait until current submission is fully graded'
     elif submission_quota == 0:
         reason_of_cannot_submit = 'Have reached maximum number of attempts'
     else:
